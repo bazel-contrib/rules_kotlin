@@ -89,6 +89,8 @@ def _kotlin_toolchain_impl(ctx):
         experimental_treat_internal_as_private_in_abi_jars = ctx.attr.experimental_treat_internal_as_private_in_abi_jars,
         experimental_remove_private_classes_in_abi_jars = ctx.attr.experimental_remove_private_classes_in_abi_jars,
         experimental_remove_debug_info_in_abi_jars = ctx.attr.experimental_remove_debug_info_in_abi_jars,
+        experimental_preserve_declaration_order = ctx.attr.experimental_preserve_declaration_order,
+        experimental_remove_data_class_copy_if_constructor_is_private = ctx.attr.experimental_remove_data_class_copy_if_constructor_is_private,
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
@@ -165,11 +167,25 @@ _kt_toolchain = rule(
             `kt_remove_debug_info_in_abi_plugin_incompatible`""",
             default = False,
         ),
+        "experimental_preserve_declaration_order": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:preserveDeclarationOrder=true
+            Can be disabled for an individual target using the tag.
+            `kt_experimental_preserve_declaration_order_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
         "experimental_remove_private_classes_in_abi_jars": attr.bool(
             doc = """This applies the following compiler plugin option:
               plugin:org.jetbrains.kotlin.jvm.abi:removePrivateClasses=true
             Can be disabled for an individual target using the tag.
             `kt_remove_private_classes_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
+        "experimental_remove_data_class_copy_if_constructor_is_private": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:removeDataClassCopyIfConstructorIsPrivate=true
+            Can be disabled for an individual target using the tag.
+            `kt_experimental_remove_data_class_copy_if_constructor_is_private_in_abi_plugin_incompatible`""",
             default = False,
         ),
         "experimental_report_unused_deps": attr.string(
@@ -368,6 +384,8 @@ def define_kt_toolchain(
         experimental_treat_internal_as_private_in_abi_jars = False,
         experimental_remove_private_classes_in_abi_jars = False,
         experimental_remove_debug_info_in_abi_jars = False,
+        experimental_preserve_declaration_order = False,
+        experimental_remove_data_class_copy_if_constructor_is_private = False,
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
@@ -400,6 +418,8 @@ def define_kt_toolchain(
         experimental_treat_internal_as_private_in_abi_jars = experimental_treat_internal_as_private_in_abi_jars,
         experimental_remove_private_classes_in_abi_jars = experimental_remove_private_classes_in_abi_jars,
         experimental_remove_debug_info_in_abi_jars = experimental_remove_debug_info_in_abi_jars,
+        experimental_preserve_declaration_order = experimental_preserve_declaration_order,
+        experimental_remove_data_class_copy_if_constructor_is_private = experimental_remove_data_class_copy_if_constructor_is_private,
         experimental_multiplex_workers = experimental_multiplex_workers,
         experimental_multiplex_sandboxing = experimental_multiplex_sandboxing,
         supports_path_mapping = supports_path_mapping,

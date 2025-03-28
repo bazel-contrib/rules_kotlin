@@ -40,6 +40,7 @@ class KotlinJvmTaskExecutor(
         one.addSuppressed(two)
         return one
       }
+
       one != null -> one
       else -> two
     }
@@ -96,6 +97,12 @@ class KotlinJvmTaskExecutor(
                           if (info.removeDebugInfo) {
                             flag("removeDebugInfo", "true")
                           }
+                          if (info.preserveDeclarationOrder) {
+                            flag("preserveDeclarationOrder", "true")
+                          }
+                          if (info.removeDataClassCopyIfConstructorIsPrivate) {
+                            flag("removeDataClassCopyIfConstructorIsPrivate", "true")
+                          }
                         }
                         given(outputs.jar).empty {
                           plugin(plugins.skipCodeGen)
@@ -115,6 +122,7 @@ class KotlinJvmTaskExecutor(
             // TODO(issue/296): remove when the CompilationStatusException is unified.
             is CompilationStatusException ->
               (it.second as CompilationStatusException).lines + it.first to it.second
+
             else -> it
           }
         }.fold(Pair<List<String>, Throwable?>(emptyList(), null)) { acc, result ->

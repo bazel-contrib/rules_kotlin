@@ -574,6 +574,34 @@ def _run_kt_builder_action(
     for f, path in outputs.items():
         args.add("--" + f, path)
 
+    experimental_preserve_declaration_order = toolchains.kt.experimental_preserve_declaration_order
+    if "kt_experimental_preserve_declaration_order_in_abi_plugin_incompatible" in ctx.attr.tags:
+        experimental_preserve_declaration_order = False
+
+    experimental_remove_data_class_copy_if_constructor_is_private = toolchains.kt.experimental_remove_data_class_copy_if_constructor_is_private
+    if "kt_experimental_remove_data_class_copy_if_constructor_is_private_in_abi_plugin_incompatible" in ctx.attr.tags:
+        experimental_remove_data_class_copy_if_constructor_is_private = False
+
+    # treat_internal_as_private only takes effect when private classes are removed from the abi
+    # jar: internals are reclassified as private and then stripped by the private-removal pass.
+    # A toolchain that enables the former without the latter is misconfigured, so fail loudly.
+    # The per-target tag case (a target opting out of remove_private) is handled gracefully below
+    # by disabling treat_internal for that target instead of breaking the build.
+    if toolchains.kt.experimental_treat_internal_as_private_in_abi_jars and not toolchains.kt.experimental_remove_private_classes_in_abi_jars:
+        fail(
+            "experimental_treat_internal_as_private_in_abi_jars without experimental_remove_private_classes_in_abi_jars is invalid." +
+            "\nTo remove internal symbols from kotlin abi jars ensure experimental_remove_private_classes_in_abi_jars " +
+            "and experimental_treat_internal_as_private_in_abi_jars are both enabled in define_kt_toolchain.",
+        )
+
+    experimental_remove_private_classes_in_abi_jars = toolchains.kt.experimental_remove_private_classes_in_abi_jars
+    if "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags:
+        experimental_remove_private_classes_in_abi_jars = False
+
+    experimental_treat_internal_as_private_in_abi_jars = toolchains.kt.experimental_treat_internal_as_private_in_abi_jars
+    if "kt_treat_internal_as_private_in_abi_plugin_incompatible" in ctx.attr.tags or not experimental_remove_private_classes_in_abi_jars:
+        experimental_treat_internal_as_private_in_abi_jars = False
+
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
     args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kotlinc_options))
     args.add_all("--javacopts", javac_options_to_flags(javac_options))
@@ -581,6 +609,10 @@ def _run_kt_builder_action(
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
+    args.add("--treat_internal_as_private_in_abi_jar", experimental_treat_internal_as_private_in_abi_jars)
+    args.add("--remove_private_classes_in_abi_jar", experimental_remove_private_classes_in_abi_jars)
+    args.add("--preserve_declaration_order", experimental_preserve_declaration_order)
+    args.add("--remove_data_class_copy_if_constructor_is_private", experimental_remove_data_class_copy_if_constructor_is_private)
     args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
@@ -630,20 +662,6 @@ def _run_kt_builder_action(
         map_each = _format_compile_plugin_options,
         omit_if_empty = True,
     )
-
-    if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
-        args.add("--remove_private_classes_in_abi_jar", "true")
-
-    if not "kt_treat_internal_as_private_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_treat_internal_as_private_in_abi_jars == True:
-        if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
-            args.add("--treat_internal_as_private_in_abi_jar", "true")
-        else:
-            fail(
-                "experimental_treat_internal_as_private_in_abi_jars without experimental_remove_private_classes_in_abi_jars is invalid." +
-                "\nTo remove internal symbols from kotlin abi jars ensure experimental_remove_private_classes_in_abi_jars " +
-                "and experimental_treat_internal_as_private_in_abi_jars are both enabled in define_kt_toolchain." +
-                "\nAdditionally ensure the target does not contain the kt_remove_private_classes_in_abi_plugin_incompatible tag.",
-            )
 
     if not "kt_remove_debug_info_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_debug_info_in_abi_jars == True:
         args.add("--remove_debug_info_in_abi_jar", "true")

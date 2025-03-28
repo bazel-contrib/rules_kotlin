@@ -90,6 +90,10 @@ message CompilationTaskInfo {
     bool build_tools_api = 14;
     // Debug info is stripped in abi.jar generation
     bool remove_debug_info = 15;
+    // Preserve the ABI declaration order
+    bool preserve_declaration_order = 16;
+    // Remove the copy function when data classes have private constructors from the ABI
+    bool remove_data_class_copy_if_constructor_is_private = 17;
 }
 
 // Nested messages not marked with stable could be refactored.
