@@ -11,7 +11,7 @@ def configure_modules_and_repositories(modules, kotlin_repositories, kotlinc_ver
                 fail("Only one ksp_version is supported right now!")
             ksp = ksp_version(release = override.version, sha256 = override.sha256)
 
-    kotlin_repositories_args = dict(is_bzlmod = True)
+    kotlin_repositories_args = {}
     if kotlinc:
         kotlin_repositories_args["compiler_release"] = kotlinc
     if ksp:

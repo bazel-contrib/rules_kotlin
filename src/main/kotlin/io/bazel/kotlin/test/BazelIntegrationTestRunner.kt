@@ -53,24 +53,11 @@ object BazelIntegrationTestRunner {
     }
 
     val version = bazel.run(workspace, "--version").parseVersion()
-
-    val workspaceEnabled = System.getenv("WORKSPACE_ENABLED") != null
-
-    val workspaceFlags = FlagSets(
+    val moduleFlags = FlagSets(
       listOf(
-        if (workspaceEnabled) {
-          listOf(
-            Flag("--override_repository=rules_kotlin=$unpack"),
-            Flag("--enable_bzlmod=false"),
-            Flag("--enable_workspace=true") { it.isBzlmodEnabledByDefault },
-          )
-        } else {
-          listOf(
-            Flag("--enable_bzlmod=true"),
-            Flag("--override_module=rules_kotlin=$unpack"),
-            Flag("--enable_workspace=false") { it.isBzlmodEnabledByDefault },
-          )
-        },
+        listOf(
+          Flag("--override_module=rules_kotlin=$unpack"),
+        ),
       ),
     )
 
@@ -94,7 +81,7 @@ object BazelIntegrationTestRunner {
     )
 
     val startupFlagSets = version.resolveBazelRc(workspace)
-    val commandFlagSets = workspaceFlags * deprecationFlags * experimentFlags
+    val commandFlagSets = moduleFlags * deprecationFlags * experimentFlags
 
     startupFlagSets.asStringsFor(version).forEach { systemFlags ->
       commandFlagSets.asStringsFor(version).forEach { commandFlags ->
@@ -188,14 +175,6 @@ object BazelIntegrationTestRunner {
     if (System.getProperty("os.name").lowercase().contains("windows")) "NUL" else "/dev/null"
 
   sealed class Version : Comparable<Version> {
-    companion object {
-      fun of(major:Int, minor:Int=0, patch:Int = 0) = Known(major, minor, patch)
-    }
-
-    val isBzlmodEnabledByDefault: Boolean
-      get() = this >= of(7, 0, 0)
-
-
     override fun compareTo(other: Version): Int = 1
 
     abstract fun resolveBazelRc(workspace: Path): FlagSets

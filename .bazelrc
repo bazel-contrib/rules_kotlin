@@ -1,6 +1,5 @@
 common --enable_platform_specific_config
 
-common --enable_bzlmod=true
 common --incompatible_use_plus_in_repo_names
 common --incompatible_disallow_empty_glob=false
 common --incompatible_disable_native_repo_rules=true

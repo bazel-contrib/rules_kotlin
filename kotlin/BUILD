@@ -17,17 +17,11 @@ exports_files([
     "jvm.bzl",
     "lint.bzl",
     "core.bzl",
-    "repositories.doc.bzl",
 ])
 
 release_archive(
     name = "pkg",
-    srcs = glob(
-        ["*.bzl"],
-        exclude = [
-            "repositories.doc.bzl",
-        ],
-    ),
+    srcs = glob(["*.bzl"]),
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },

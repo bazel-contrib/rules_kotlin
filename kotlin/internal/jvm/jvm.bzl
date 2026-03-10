@@ -15,19 +15,10 @@
 
 ### Setup
 
-Add the following snippet to your `WORKSPACE` file:
+Add `rules_kotlin` to your `MODULE.bazel`:
 
 ```bzl
-git_repository(
-    name = "rules_kotlin",
-    remote = "https://github.com/bazelbuild/rules_kotlin.git",
-    commit = "<COMMIT_HASH>",
-)
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-kotlin_repositories(kotlin_release_version = "1.4.0")
-
-load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-kt_register_toolchains()
+bazel_dep(name = "rules_kotlin", version = "<VERSION>")
 ```
 
 To enable persistent worker support, add the following to the appropriate `bazelrc` file:
