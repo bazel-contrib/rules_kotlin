@@ -5,6 +5,7 @@ release_archive(
     name = "pkg",
     srcs = glob(
         ["**/*.bzl"],
+        allow_empty = True,
     ),
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
@@ -19,7 +20,10 @@ release_archive(
 
 bzl_library(
     name = "core",
-    srcs = glob(["*.bzl"]),
+    srcs = glob(
+        ["*.bzl"],
+        allow_empty = True,
+    ),
     visibility = ["//:__subpackages__"],
     deps = [
         "//src/main/starlark/core/compile",

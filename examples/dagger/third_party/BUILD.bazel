@@ -17,6 +17,7 @@ java_library(
     visibility = ["//visibility:public"],
     exports = [
         "@maven_rules_kotlin_example//:com_google_dagger_dagger",
+        "@maven_rules_kotlin_example//:com_google_guava_guava",
         "@maven_rules_kotlin_example//:javax_inject_javax_inject",
     ],
 )

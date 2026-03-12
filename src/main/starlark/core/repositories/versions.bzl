@@ -65,6 +65,7 @@ versions = struct(
         ],
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
+    # Used for bootstrapping only
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
         version = "2.3.21",
         url_templates = [
@@ -143,13 +144,6 @@ versions = struct(
         url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
         sha256 = "bbf1ae2f83305b7053b11e4467d317a7ba3517a12cef608543c1b1c5bf48a4df",
         strip_prefix_template = "rules_cc-{version}",
-    ),
-    KOTLINX_COROUTINES_CORE_JVM = version(
-        version = "1.10.2",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/{version}/kotlinx-coroutines-core-jvm-{version}.jar",
-        ],
-        sha256 = "5ca175b38df331fd64155b35cd8cae1251fa9ee369709b36d42e0a288ccce3fd",
     ),
     use_repository = _use_repository,
 )

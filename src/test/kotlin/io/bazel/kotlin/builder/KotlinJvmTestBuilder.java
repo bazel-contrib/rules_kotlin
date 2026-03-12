@@ -41,8 +41,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     public static Dep
             KOTLIN_ANNOTATIONS = Dep.fromLabel("//kotlin/compiler:annotations"),
             KOTLIN_STDLIB = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib"),
-            KOTLIN_STDLIB_JDK7 = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-jdk7"),
-            KOTLIN_STDLIB_JDK8 = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-jdk8"),
             JVM_ABI_GEN = Dep.fromLabel("//kotlin/compiler:jvm-abi-gen");
 
     private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
@@ -68,9 +66,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
 
         taskBuilder.getInputsBuilder()
-            .addClasspath(KOTLIN_STDLIB.singleCompileJar())
-            .addClasspath(KOTLIN_STDLIB_JDK7.singleCompileJar())
-            .addClasspath(KOTLIN_STDLIB_JDK8.singleCompileJar());
+            .addClasspath(KOTLIN_STDLIB.singleCompileJar());
 
         taskBuilder
                 .getDirectoriesBuilder()

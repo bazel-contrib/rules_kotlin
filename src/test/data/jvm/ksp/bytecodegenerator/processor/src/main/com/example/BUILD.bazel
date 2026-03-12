@@ -27,6 +27,6 @@ kt_jvm_library(
     deps = [
         "//kotlin/compiler:symbol-processing-api",
         "//src/test/data/jvm/ksp/bytecodegenerator/annotation",
-        "@kotlin_rules_maven//:org_ow2_asm_asm",
+        "@rules_kotlin_maven_dev//:org_ow2_asm_asm",
     ],
 )

@@ -18,11 +18,11 @@ kt_bootstrap_library(
     deps = [
         ":worker_protocol_java_proto",
         "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value",
-        "@kotlin_rules_maven//:com_google_code_findbugs_jsr305",
-        "@kotlin_rules_maven//:com_google_errorprone_error_prone_annotations",
-        "@kotlin_rules_maven//:com_google_guava_guava",
-        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
-        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
+        "@rules_kotlin_maven_dev//:com_google_auto_value_auto_value",
+        "@rules_kotlin_maven_dev//:com_google_code_findbugs_jsr305",
+        "@rules_kotlin_maven_dev//:com_google_errorprone_error_prone_annotations",
+        "@rules_kotlin_maven_dev//:com_google_guava_guava",
+        "@rules_kotlin_maven_dev//:com_google_protobuf_protobuf_java",
+        "@rules_kotlin_maven_dev//:com_google_protobuf_protobuf_java_util",
     ],
 )

@@ -44,6 +44,12 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "compiler",
+    actual = "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
+    visibility = ["//visibility:public"],
+)
+
 release_archive(
     name = "pkg",
     srcs = [

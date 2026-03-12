@@ -31,21 +31,22 @@ def kt_rules_test(name, **kwargs):
 
     args["deps"] = args.setdefault("deps", []) + ["//src/test/kotlin/io/bazel/kotlin/builder:test_lib"]
     for dep in [
-        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin:jdeps-gen",
+        "//src/main/kotlin:compiler",
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-compiler",
-        "//kotlin/compiler:kotlin-stdlib",
-        "//kotlin/compiler:kotlin-stdlib-jdk7",
-        "//kotlin/compiler:kotlin-stdlib-jdk8",
         "//kotlin/compiler:kotlin-annotation-processing",
-        "@rules_kotlin//kotlin/compiler:kotlin-reflect",
-        "@kotlinx_serialization_core_jvm//file",
-        "@kotlinx_serialization_json//file",
-        "@kotlinx_serialization_json_jvm//file",
-        "@kotlin_build_tools_impl//file",
+        "//kotlin/compiler:kotlin-stdlib",
+        "//kotlin/compiler:kotlin-reflect",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+        "//kotlin/compiler:kotlinx-serialization-core-jvm",
+        "//kotlin/compiler:kotlinx-serialization-json-jvm",
+        "//kotlin/compiler:kotlin-build-tools-impl",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

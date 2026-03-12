@@ -8,6 +8,6 @@ kt_jvm_test(
     test_class = "io.bazel.generate.WriteKotlincCapabilitiesTest",
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/generate:kotlin_release_options_lib",
-        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
     ],
 )

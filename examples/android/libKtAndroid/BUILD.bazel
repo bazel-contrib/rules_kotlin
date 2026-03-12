@@ -49,6 +49,7 @@ kt_android_library(
         "@maven_rules_kotlin_example//:com_google_auto_value_auto_value_annotations",
         "@maven_rules_kotlin_example//:com_squareup_moshi_moshi",
         "@maven_rules_kotlin_example//:org_jetbrains_kotlinx_kotlinx_serialization_core",
+        "@rules_kotlin//kotlin/compiler:kotlin-stdlib",
     ],
 )
 

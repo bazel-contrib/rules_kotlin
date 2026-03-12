@@ -22,8 +22,8 @@ kt_jvm_test(
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/utils/jars",
         "//src/test/kotlin/io/bazel/testing",
-        "@kotlin_rules_maven//:com_google_truth_truth",
-        "@kotlin_rules_maven//:junit_junit",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:junit_junit",
     ],
 )
 
@@ -33,8 +33,8 @@ kt_jvm_test(
     test_class = "io.bazel.kotlin.builder.utils.ArgMapTest",
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/utils",
-        "@kotlin_rules_maven//:com_google_truth_truth",
-        "@kotlin_rules_maven//:junit_junit",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:junit_junit",
     ],
 )
 

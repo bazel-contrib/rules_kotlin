@@ -18,7 +18,4 @@ bzl_library(
     name = "options",
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_jetbrains_kotlin//:capabilities.bzl",
-    ],
 )

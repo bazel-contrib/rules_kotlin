@@ -501,7 +501,7 @@ load("@rules_kotlin//kotlin:core.bzl", "kt_plugin_cfg")
 kt_plugin_cfg(<a href="#kt_plugin_cfg-name">name</a>, <a href="#kt_plugin_cfg-deps">deps</a>, <a href="#kt_plugin_cfg-data">data</a>, <a href="#kt_plugin_cfg-options">options</a>, <a href="#kt_plugin_cfg-plugin">plugin</a>)
 </pre>
 
-Configurations for kt_compiler_plugin, ksp_plugin, and java_plugin.
+Configurations for kt_compiler_plugin.
 
 This allows setting options and dependencies independently from the initial plugin definition.
 

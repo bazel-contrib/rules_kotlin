@@ -21,6 +21,8 @@ kt_bootstrap_library(
     ]),
     neverlink_deps = [
         "@bazel_tools//tools/jdk:JacocoCoverage",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_api",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
     ],
     visibility = ["//src:__subpackages__"],
     deps = [
@@ -30,7 +32,7 @@ kt_bootstrap_library(
         "//src/main/kotlin/io/bazel/worker",
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",
-        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
-        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
+        "@rules_kotlin_maven_dev//:com_google_protobuf_protobuf_java",
+        "@rules_kotlin_maven_dev//:com_google_protobuf_protobuf_java_util",
     ],
 )

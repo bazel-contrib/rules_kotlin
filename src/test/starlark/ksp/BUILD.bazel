@@ -21,9 +21,9 @@ kt_ksp_plugin(
     name = "moshi_plugin",
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi",
+        "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi_kotlin",
+        "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -48,8 +48,8 @@ kt_jvm_library(
     srcs = ["TestModel.kt"],
     plugins = [":moshi_plugin"],
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi",
+        "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 

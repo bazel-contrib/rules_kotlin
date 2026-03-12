@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLIN_STDLIBS")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load(
+    "//kotlin/compiler:compiler_deps.bzl",
+    "KOTLIN_BUILD_RUNTIME_STDLIBS",
+    "KOTLIN_STDLIBS",
+    "KSP2_RUNTIME_STDLIBS",
+)
 
 java_import(
     name = "worker",
@@ -34,46 +39,51 @@ java_import(
     name = "ksp2_invoker",
     jars = ["ksp2_invoker.jar"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
+        "//kotlin/compiler:symbol-processing-aa",
+        "//kotlin/compiler:symbol-processing-api",
+        "//kotlin/compiler:symbol-processing-common-deps",
+    ],
+)
+
+alias(
+    name = "compiler",
+    actual = "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "jdeps-gen",
     jars = ["jdeps-gen.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_binary(
     name = "build",
-    data = [
+    data = KOTLIN_STDLIBS + [
         ":jdeps-gen",
         ":skip-code-gen",
-        "//kotlin/compiler:jvm-abi-gen",
-        "//kotlin/compiler:kotlin-annotation-processing",
-        "//kotlin/compiler:kotlin-compiler",
-        "//kotlin/compiler:kotlin-reflect",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "@com_github_jetbrains_kotlin//:home",
-        "@kotlin_build_tools_impl//file",
-        "@kotlinx_serialization_core_jvm//file",
-        "@kotlinx_serialization_json//file",
-        "@kotlinx_serialization_json_jvm//file",
     ],
     jvm_flags = [
-        "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlinx_serialization_core_jvm//file)",
-        "-D@com_github_jetbrains_kotlinx...serialization-json=$(rlocationpath @kotlinx_serialization_json//file)",
-        "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath @kotlinx_serialization_json_jvm//file)",
-        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_build_tools_impl//file)",
+        "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath //kotlin/compiler:kotlinx-serialization-core-jvm)",
+        "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath //kotlin/compiler:kotlinx-serialization-json-jvm)",
+        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath //kotlin/compiler:kotlin-build-tools-impl)",
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
-        "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
-        "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
+        "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler:compiler)",
+        "-D@rules_kotlin...kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
+        "-D@rules_kotlin...kotlin-stdlib=$(rlocationpath //kotlin/compiler:kotlin-stdlib)",
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
@@ -83,7 +93,7 @@ java_binary(
         "@bazel_tools//tools/jdk:JacocoCoverage",
     ] + [
         ":worker",
-    ] + KOTLIN_STDLIBS,
+    ] + KOTLIN_BUILD_RUNTIME_STDLIBS,
 )
 
 java_binary(
@@ -99,11 +109,11 @@ java_binary(
 
 java_binary(
     name = "ksp2",
-    data = KOTLIN_STDLIBS,
+    data = KSP2_RUNTIME_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     visibility = ["//visibility:public"],
-    runtime_deps = [":ksp2_worker"],
+    runtime_deps = [":ksp2_worker"] + KSP2_RUNTIME_STDLIBS,
 )

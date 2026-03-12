@@ -20,10 +20,10 @@ _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
     "//src/main/protobuf:kotlin_model_java_proto",
     "//src/main/protobuf:deps_java_proto",
-    "@kotlin_rules_maven//:com_google_truth_truth",
-    "@kotlin_rules_maven//:junit_junit",
-    "@kotlin_rules_maven//:com_google_guava_guava",
-    "@kotlin_rules_maven//:com_google_code_findbugs_jsr305",
+    "@rules_kotlin_maven_dev//:com_google_truth_truth",
+    "@rules_kotlin_maven_dev//:junit_junit",
+    "@rules_kotlin_maven_dev//:com_google_guava_guava",
+    "@rules_kotlin_maven_dev//:com_google_code_findbugs_jsr305",
 ]
 
 java_library(
@@ -36,8 +36,8 @@ java_library(
         "KotlinJvmTestBuilder.java",
     ],
     data = [
-        "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "@com_github_jetbrains_kotlin//:home",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
     ],
     exports = _COMMON_DEPS,
     runtime_deps = [

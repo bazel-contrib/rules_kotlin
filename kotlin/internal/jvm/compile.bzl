@@ -274,7 +274,10 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
         inputs = input_jars,
         outputs = [output_jar],
         executable = toolchains.java.single_jar,
-        arguments = [args],
+        arguments = [
+            ctx.actions.args().add_all(toolchains.kt.builder_args),
+            args,
+        ],
         progress_message = "Merging Kotlin output jar %%{label}%s from %d inputs" % (
             "" if not action_type else " (%s)" % action_type,
             len(input_jars),
@@ -531,10 +534,7 @@ def _run_ksp_builder_actions(
             toolchains.kt.execution_requirements,
             {"worker-key-mnemonic": "KotlinKsp2"},
         ),
-        arguments = [
-            ctx.actions.args().add_all(toolchains.kt.builder_args),
-            args,
-        ],
+        arguments = [args],
         progress_message = "Running KSP2 for %{label}",
         toolchain = _TOOLCHAIN_TYPE,
     )
@@ -566,7 +566,6 @@ def _run_kt_builder_action(
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
 
     args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
-
     for f, path in outputs.items():
         args.add("--" + f, path)
 
@@ -669,7 +668,6 @@ def _run_kt_builder_action(
         ),
         tools = [
             toolchains.kt.kotlinbuilder.files_to_run,
-            toolchains.kt.kotlin_home.files_to_run,
         ],
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,

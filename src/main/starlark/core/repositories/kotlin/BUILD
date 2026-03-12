@@ -5,7 +5,6 @@ release_archive(
     name = "pkg",
     srcs = glob([
         "capabilities_*.bzl",
-        "artifacts.bzl",
         "templates.bzl",
     ]),
     src_map = {

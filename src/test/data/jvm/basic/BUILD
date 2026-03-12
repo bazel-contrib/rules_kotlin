@@ -75,13 +75,13 @@ kt_jvm_library(
 kt_jvm_library(
     name = "propagation_test_exporter_lib",
     srcs = ["propagation/Stub.kt"],
-    exports = ["@kotlin_rules_maven//:junit_junit"],
+    exports = ["@rules_kotlin_maven_dev//:junit_junit"],
 )
 
 kt_jvm_library(
     name = "propagation_test_runtime_lib",
     srcs = ["propagation/Stub.kt"],
-    runtime_deps = ["@kotlin_rules_maven//:junit_junit"],
+    runtime_deps = ["@rules_kotlin_maven_dev//:junit_junit"],
 )
 
 java_binary(

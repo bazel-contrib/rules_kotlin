@@ -24,7 +24,10 @@ kt_bootstrap_library(
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-script-runtime",
     ],
-    visibility = ["//src:__subpackages__"],
+    visibility = [
+        "//kotlin/internal:__pkg__",
+        "//src:__subpackages__",
+    ],
 )
 
 release_archive(

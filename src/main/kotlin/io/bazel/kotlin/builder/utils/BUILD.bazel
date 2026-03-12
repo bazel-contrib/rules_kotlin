@@ -11,7 +11,7 @@ kt_bootstrap_library(
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",
         "@bazel_tools//tools/java/runfiles",
-        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
-        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
+        "@rules_kotlin_maven_dev//:com_google_protobuf_protobuf_java",
+        "@rules_kotlin_maven_dev//:com_google_protobuf_protobuf_java_util",
     ],
 )

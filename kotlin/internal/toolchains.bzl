@@ -15,7 +15,6 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
@@ -50,21 +49,17 @@ register_toolchains("//:custom_toolchain")
 """
 
 def _kotlin_toolchain_impl(ctx):
-    compile_time_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-            neverlink = True,
-        )
-        for jar in ctx.files.jvm_stdlibs
-    ]
-    runtime_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-        )
-        for jar in ctx.files.jvm_runtime
-    ]
+    compile_time_providers = []
+    for target in ctx.attr.jvm_stdlibs:
+        if JavaInfo in target:
+            for java_output in target[JavaInfo].java_outputs:
+                compile_time_providers.append(JavaInfo(
+                    output_jar = java_output.class_jar,
+                    compile_jar = java_output.compile_jar if java_output.compile_jar else java_output.class_jar,
+                    neverlink = True,
+                ))
+
+    runtime_providers = [target[JavaInfo] for target in ctx.attr.jvm_runtime if JavaInfo in target]
 
     toolchain = dict(
         language_version = ctx.attr.language_version,
@@ -76,7 +71,6 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
-        kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -248,11 +242,6 @@ _kt_toolchain = rule(
                 "25",
             ],
         ),
-        "kotlin_home": attr.label(
-            doc = "the filegroup defining the kotlin home",
-            default = Label("@" + _KT_COMPILER_REPO + "//:home"),
-            allow_files = True,
-        ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",
             default = Label("//src/main/kotlin:build"),
@@ -400,8 +389,6 @@ def define_kt_toolchain(
         jvm_stdlibs = jvm_stdlibs if jvm_stdlibs != None else [
             Label("//kotlin/compiler:annotations"),
             Label("//kotlin/compiler:kotlin-stdlib"),
-            Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
-            Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
         ],
         jvm_runtime = jvm_runtime if jvm_runtime != None else [
             Label("//kotlin/compiler:kotlin-stdlib"),
@@ -440,6 +427,7 @@ def kt_configure_toolchains():
 
     kt_kotlinc_options(
         name = "default_kotlinc_options",
+        include_stdlibs = "none",
         visibility = ["//visibility:public"],
     )
 

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load(":artifacts.bzl", "KOTLINC_ARTIFACT_LIST")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -20,16 +19,3 @@ bzl_library(
     name = "capabilities",
     srcs = glob(["*.bzl"]),
 )
-
-alias(
-    name = "home",
-    actual = "@$git_repo$//:home",
-)
-
-[
-    alias(
-        name = label,
-        actual = "@$git_repo$//:%s" % file.replace(".", "_"),
-    )
-    for (label, file) in KOTLINC_ARTIFACT_LIST.items()
-]

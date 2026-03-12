@@ -10,6 +10,8 @@ proto_version_parts = proto_version.split(".")
 
 proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
 
+kotlin_version = "2.3.20-RC2"
+
 bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_cc", version = "0.2.18")
 bazel_dep(name = "platforms", version = "0.0.11")
@@ -41,18 +43,15 @@ bazel_dep(name = "rules_multirun", version = "0.13.0", dev_dependency = True)
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
-rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
-use_repo(
-    rules_kotlin_extensions,
-    "com_github_google_ksp",
-    "com_github_jetbrains_kotlin",
-    "com_github_jetbrains_kotlin_git",
-    "com_github_pinterest_ktlint",
-    "kotlin_build_tools_impl",
-    "kotlinx_coroutines_core_jvm",
-    "kotlinx_serialization_core_jvm",
-    "kotlinx_serialization_json",
-    "kotlinx_serialization_json_jvm",
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+http_file(
+    name = "com_github_pinterest_ktlint",
+    downloaded_file_path = "ktlint.jar",
+    sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
+    urls = [
+        "https://github.com/pinterest/ktlint/releases/download/1.6.0/ktlint",
+    ],
 )
 
 register_toolchains("//src/main/starlark/core/compile/cli")
@@ -75,10 +74,46 @@ rbe_preconfig(
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
-    name = "kotlin_rules_maven",
+    name = "rules_kotlin_maven",
+    artifacts = [
+        "org.jetbrains:annotations:13.0",
+        "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-daemon-client:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-stdlib:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-reflect:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-test:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-script-runtime:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-compiler:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-annotation-processing:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:jvm-abi-gen:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-parcelize-compiler:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-parcelize-runtime:{}".format(kotlin_version),
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
+        "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1",
+        "com.google.devtools.ksp:symbol-processing-aa:2.3.6",
+        "com.google.devtools.ksp:symbol-processing-api:2.3.6",
+        "com.google.devtools.ksp:symbol-processing-common-deps:2.3.6",
+    ],
+    fail_if_repin_required = True,
+    fetch_sources = True,
+    lock_file = "//:rules_kotlin_maven_install.json",
+    repositories = [
+        "https://maven-central.storage.googleapis.com/repos/central/data/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+    resolver = "maven",
+)
+maven.install(
+    name = "rules_kotlin_maven_dev",
     artifacts = [
         "com.google.code.findbugs:jsr305:3.0.2",
-        "com.google.code.gson:gson:2.10.1",
         "com.google.errorprone:error_prone_annotations:2.23.0",
         "junit:junit:4.13-beta-3",
         "com.google.protobuf:protobuf-java:{}".format(proto_version),
@@ -101,32 +136,21 @@ maven.install(
         "com.squareup.moshi:moshi:1.15.2",
         "com.squareup.moshi:moshi-kotlin:1.15.2",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
-        "org.codehaus.plexus:plexus-utils:3.0.24",
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],
     fail_if_repin_required = True,
     fetch_sources = True,
-    lock_file = "//:kotlin_rules_maven_install.json",
+    lock_file = "//:rules_kotlin_maven_dev_install.json",
     repositories = [
         "https://maven-central.storage.googleapis.com/repos/central/data/",
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    resolver = "maven",
 )
 maven.override(
     name = "override_target_in_deps_kotlin_stdlib",
     coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib",
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib",
-)
-maven.override(
-    name = "override_target_in_deps_kotlin_stdlib_jdk7",
-    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk7",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk7",
-)
-maven.override(
-    name = "override_target_in_deps_kotlin_stdlib_jdk8",
-    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk8",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
 )
 maven.override(
     name = "override_target_in_deps_protobuf_java",
@@ -138,7 +162,13 @@ maven.override(
     coordinates = "com.google.protobuf:protobuf-java-util",
     target = "@com_google_protobuf//:protobuf_java_util",
 )
-use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
+use_repo(
+    maven,
+    "rules_kotlin_maven",
+    "rules_kotlin_maven_dev",
+    "unpinned_rules_kotlin_maven",
+    "unpinned_rules_kotlin_maven_dev",
+)
 
 bazel_dep(name = "rules_pkg", version = "1.0.1")
 

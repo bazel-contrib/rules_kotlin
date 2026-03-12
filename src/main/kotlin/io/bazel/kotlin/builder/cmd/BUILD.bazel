@@ -1,4 +1,9 @@
-load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
+load(
+    "//kotlin/compiler:compiler_deps.bzl",
+    _KOTLIN_BUILD_RUNTIME_STDLIBS = "KOTLIN_BUILD_RUNTIME_STDLIBS",
+    _KOTLIN_STDLIBS = "KOTLIN_STDLIBS",
+    _KSP2_RUNTIME_STDLIBS = "KSP2_RUNTIME_STDLIBS",
+)
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
 
 kt_bootstrap_library(
@@ -8,38 +13,35 @@ kt_bootstrap_library(
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
         "//src/main/kotlin/io/bazel/worker",
     ],
 )
 
 kt_bootstrap_binary(
     name = "build",
-    data = [
-        "//kotlin/compiler:jvm-abi-gen",
-        "//kotlin/compiler:kotlin-annotation-processing",
-        "//kotlin/compiler:kotlin-compiler",
+    data = _KOTLIN_STDLIBS + [
         "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin:skip-code-gen",
-        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
-        "@com_github_jetbrains_kotlin//:home",
-        "@kotlin_build_tools_impl//file",
-        "@kotlinx_serialization_core_jvm//file",
-        "@kotlinx_serialization_json//file",
-        "@kotlinx_serialization_json_jvm//file",
-    ] + _KOTLIN_STDLIBS,
-    final_runtime_deps = _KOTLIN_STDLIBS,
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
+    ],
+    final_runtime_deps = _KOTLIN_BUILD_RUNTIME_STDLIBS + [
+        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
+        "//src/main/kotlin:skip-code-gen",
+        "//src/main/kotlin:jdeps-gen",
+    ],
     jvm_flags = [
-        "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlinx_serialization_core_jvm//file)",
-        "-D@com_github_jetbrains_kotlinx...serialization-json=$(rlocationpath @kotlinx_serialization_json//file)",
-        "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath @kotlinx_serialization_json_jvm//file)",
-        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_build_tools_impl//file)",
+        "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath //kotlin/compiler:kotlinx-serialization-core-jvm)",
+        "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath //kotlin/compiler:kotlinx-serialization-json-jvm)",
+        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath //kotlin/compiler:kotlin-build-tools-impl)",
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
-        "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar)",
-        "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
+        "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler:compiler)",
+        "-D@rules_kotlin...kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
+        "-D@rules_kotlin...kotlin-stdlib=$(rlocationpath //kotlin/compiler:kotlin-stdlib)",
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
@@ -83,8 +85,8 @@ kt_bootstrap_library(
 
 kt_bootstrap_binary(
     name = "ksp2",
-    data = _KOTLIN_STDLIBS,
-    final_runtime_deps = _KOTLIN_STDLIBS,
+    data = _KSP2_RUNTIME_STDLIBS,
+    final_runtime_deps = _KSP2_RUNTIME_STDLIBS,
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     shade_rules = "//src/main/kotlin:shade.jarjar",
     visibility = ["//src:__subpackages__"],

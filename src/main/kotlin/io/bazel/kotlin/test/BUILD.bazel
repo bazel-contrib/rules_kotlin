@@ -17,6 +17,6 @@ kt_jvm_binary(
     ],
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/utils",
-        "@kotlin_rules_maven//:org_apache_commons_commons_compress",
+        "@rules_kotlin_maven_dev//:org_apache_commons_commons_compress",
     ],
 )

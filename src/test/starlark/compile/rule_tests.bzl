@@ -438,8 +438,6 @@ def test_jvm():
         compile_mnemonic = "KotlinCompile",
         additional_compile_libs = [
             "//kotlin/compiler:kotlin-stdlib",
-            "//kotlin/compiler:kotlin-stdlib-jdk7",
-            "//kotlin/compiler:kotlin-stdlib-jdk8",
             "//kotlin/compiler:annotations",
         ],
     )

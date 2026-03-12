@@ -57,6 +57,9 @@ test_suite(
 # Release target.
 release_archive(
     name = "rules_kotlin_release",
+    srcs = [
+        "rules_kotlin_maven_install.json",
+    ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
         "MODULE.release.bazel": "MODULE.bazel",

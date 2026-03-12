@@ -58,12 +58,12 @@ public class JdepsParserTest {
                   "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar",
                   "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.71/kotlin-stdlib-jdk7-1.3.71.jar",
                   "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.61/kotlin-stdlib-jdk8-1.3.61.jar",
-                  "external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar",
-                  "external/com_github_jetbrains_kotlin/lib/kotlin-reflect.jar",
-                  "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar",
-                  "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar",
-                  "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar",
-                  "external/com_github_jetbrains_kotlin/lib/kotlin-test.jar"
+                  "external/rules_kotlin_maven/lib/annotations-13.0.jar",
+                  "external/rules_kotlin_maven/lib/kotlin-reflect.jar",
+                  "external/rules_kotlin_maven/lib/kotlin-stdlib-jdk7.jar",
+                  "external/rules_kotlin_maven/lib/kotlin-stdlib-jdk8.jar",
+                  "external/rules_kotlin_maven/lib/kotlin-stdlib.jar",
+                  "external/rules_kotlin_maven/lib/kotlin-test.jar"
           );
 
   private static final String LABEL = "//cloud/qa/integrationtests/pkg/alt";
@@ -71,7 +71,7 @@ public class JdepsParserTest {
 
   private static final Predicate<String> IS_KOTLIN_IMPLICIT =
           JdepsParser.Companion.pathSuffixMatchingPredicate(
-                  Paths.get("external", "com_github_jetbrains_kotlin", "lib"),
+                  Paths.get("external", "rules_kotlin_maven", "lib"),
                   "kotlin-stdlib.jar",
                   "kotlin-stdlib-jdk7.jar",
                   "kotlin-stdlib-jdk8.jar");
@@ -112,11 +112,11 @@ public class JdepsParserTest {
     assertThat(depKinds(result, Kind.UNUSED))
         .containsExactly(
           toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.61/kotlin-stdlib-jdk8-1.3.61.jar"),
-          toPlatformPath("external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar"),
+          toPlatformPath("external/rules_kotlin_maven/lib/annotations-13.0.jar"),
           toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"),
-          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-reflect.jar"),
+          toPlatformPath("external/rules_kotlin_maven/lib/kotlin-reflect.jar"),
           toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar"),
-          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-test.jar")
+          toPlatformPath("external/rules_kotlin_maven/lib/kotlin-test.jar")
         );
 
     assertThat(depKinds(result, Kind.EXPLICIT))
@@ -130,9 +130,9 @@ public class JdepsParserTest {
         .containsExactly(
           toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-host-common/1.3.1/ktor-server-host-common-1.3.1.jar"),
           toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.71/kotlin-stdlib-jdk7-1.3.71.jar"),
-          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar"),
-          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar"),
-          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar")
+          toPlatformPath("external/rules_kotlin_maven/lib/kotlin-stdlib.jar"),
+          toPlatformPath("external/rules_kotlin_maven/lib/kotlin-stdlib-jdk7.jar"),
+          toPlatformPath("external/rules_kotlin_maven/lib/kotlin-stdlib-jdk8.jar")
         );
   }
 }

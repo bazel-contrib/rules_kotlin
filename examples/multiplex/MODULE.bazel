@@ -2,19 +2,4 @@ module(name = "multiplex-example")
 
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_kotlin", version = "1.9.5")
-bazel_dep(name = "rules_jvm_external", version = "6.10")
 bazel_dep(name = "bazel_features", version = "1.39.0")
-
-maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
-maven.install(
-    name = "maven_rules_kotlin_example",
-    artifacts = [
-        "junit:junit:4.13.2",
-        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.0.1",
-    ],
-    lock_file = "//:maven_install.json",
-    repositories = [
-        "https://repo1.maven.org/maven2",
-    ],
-)
-use_repo(maven, "maven_rules_kotlin_example")

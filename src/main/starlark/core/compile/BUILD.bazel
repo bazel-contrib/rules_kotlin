@@ -21,10 +21,12 @@ bzl_library(
 release_archive(
     name = "pkg",
     srcs = glob(
-        ["common.bzl"],
+        ["*.bzl"],
     ),
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
-    deps = [],
+    deps = [
+        "//src/main/starlark/core/compile/cli:pkg",
+    ],
 )

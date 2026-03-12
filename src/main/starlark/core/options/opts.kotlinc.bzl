@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 load("//src/main/starlark/core/options:convert.bzl", "convert")
 load("//src/main/starlark/core/options:derive.bzl", "derive")
+load(
+    "//src/main/starlark/core/repositories/kotlin:capabilities_2.3.bzl",
+    _KOTLIN_OPTS = "KOTLIN_OPTS",
+)
 
 _ALLOWED_SUPPRESS_LEVELS = [
     "error",

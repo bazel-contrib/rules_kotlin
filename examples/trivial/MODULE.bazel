@@ -30,5 +30,6 @@ maven.install(
         "https://maven-central.storage.googleapis.com/repos/central/data/",
         "https://repo1.maven.org/maven2",
     ],
+    resolver = "maven",
 )
 use_repo(maven, "maven_rules_kotlin_example")
