@@ -43,7 +43,7 @@ kt_jvm_test(
     visibility = ["//src/test:__subpackages__"],
     deps = [
         ":options_recorder_lib",
-        "@kotlin_rules_maven//:com_google_truth_truth",
-        "@kotlin_rules_maven//:junit_junit",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:junit_junit",
     ],
 )

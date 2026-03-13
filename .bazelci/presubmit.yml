@@ -58,6 +58,8 @@ matrix:
     - [ "--test_tag_filters=shard_0", "--local_test_jobs=3" ]
     - [ "--test_tag_filters=shard_1", "--local_test_jobs=3" ]
     - [ "--test_tag_filters=shard_2", "--local_test_jobs=3" ]
+  test_flags:
+    - [ "--enable_bzlmod=true" ]
 validate_config: 1
 bazel: 8.4.2
 buildifier:
