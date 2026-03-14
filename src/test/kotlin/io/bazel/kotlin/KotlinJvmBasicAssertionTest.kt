@@ -88,6 +88,18 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
   }
 
   @Test
+  fun testNativeLibraryRuntimeDeps() {
+    assertExecutableRunfileSucceeds(
+      "NativeLibraryPathBinary",
+      description = "kt_jvm_binary should load shared libraries from runtime_deps"
+    )
+    assertExecutableRunfileSucceeds(
+      "NativeLibraryPathTest",
+      description = "kt_jvm_test should load shared libraries from runtime_deps"
+    )
+  }
+
+  @Test
   fun testModuleNaming() {
     jarTestCase(
       "test_module_name_bin.jar",

@@ -1,5 +1,6 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
-load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
+load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
@@ -111,6 +112,27 @@ kt_jvm_library(
     visibility = ["//src/test/kotlin:__subpackages__"],
 )
 
+cc_binary(
+    name = "native_lib",
+    srcs = ["native/native_lib.cc"],
+    linkshared = 1,
+)
+
+kt_jvm_binary(
+    name = "NativeLibraryPathBinary",
+    srcs = ["native/NativeLibraryPathBinary.kt"],
+    main_class = "NativeLibraryPathBinaryKt",
+    runtime_deps = [":native_lib"],
+)
+
+kt_jvm_test(
+    name = "NativeLibraryPathTest",
+    srcs = ["native/NativeLibraryPathTest.kt"],
+    test_class = "NativeLibraryPathTest",
+    runtime_deps = [":native_lib"],
+    deps = ["@kotlin_rules_maven//:junit_junit"],
+)
+
 filegroup(
     name = "basic",
     srcs = [
@@ -126,6 +148,16 @@ filegroup(
         ":test_module_name_bin.jar",
         ":test_module_name_lib",
         ":test_module_name_lib-sources.jar",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "basic_test_data",
+    testonly = 1,
+    srcs = [
+        ":NativeLibraryPathBinary",
+        ":NativeLibraryPathTest",
     ],
     visibility = ["//visibility:public"],
 )

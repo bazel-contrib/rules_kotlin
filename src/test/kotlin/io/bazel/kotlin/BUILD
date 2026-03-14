@@ -36,7 +36,10 @@ kt_jvm_library(
 kt_rules_e2e_test(
     name = "KotlinJvmBasicAssertionTest",
     srcs = ["KotlinJvmBasicAssertionTest.kt"],
-    data = ["//src/test/data/jvm/basic"],
+    data = [
+        "//src/test/data/jvm/basic",
+        "//src/test/data/jvm/basic:basic_test_data",
+    ],
 )
 
 kt_rules_e2e_test(
