@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@bazel_skylib//lib:sets.bzl", _sets = "sets")
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "@rules_java//java:defs.bzl",
     "JavaInfo",
@@ -61,12 +60,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),
-        runtime_deps = [
-            java_info
-            for java_info in [_java_info(d) for d in runtime_deps]
-            if java_info != None
-        ],
-        native_libraries = [d[CcInfo] for d in runtime_deps if CcInfo in d],
+        runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 
 jvm_deps_utils = struct(

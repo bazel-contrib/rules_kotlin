@@ -42,48 +42,6 @@ load("//third_party:jarjar.bzl", "jarjar_action")
 def _artifact_short_path(artifact):
     return artifact.short_path
 
-def _native_library_artifact(library_to_link):
-    for field in [
-        "resolved_symlink_dynamic_library",
-        "dynamic_library",
-    ]:
-        artifact = getattr(library_to_link, field, None)
-        if artifact:
-            return artifact
-    return None
-
-def _native_library_jvm_flags(ctx, java_info):
-    native_library_dirs = []
-    seen_dirs = {}
-    for library_to_link in java_info.transitive_native_libraries.to_list():
-        artifact = _native_library_artifact(library_to_link)
-        if not artifact:
-            continue
-
-        short_path_dir = paths.dirname(artifact.short_path)
-        if short_path_dir in seen_dirs:
-            continue
-
-        seen_dirs[short_path_dir] = True
-        native_library_dirs.append(short_path_dir)
-
-    if not native_library_dirs:
-        return []
-
-    if is_windows(ctx):
-        workspace_prefix = ctx.workspace_name + "\\"
-        java_library_path = ctx.configuration.host_path_separator.join([
-            "%JAVA_RUNFILES%\\%s%s" % (workspace_prefix, path) if path != "." else "%JAVA_RUNFILES%\\%s" % ctx.workspace_name
-            for path in native_library_dirs
-        ])
-    else:
-        java_library_path = ctx.configuration.host_path_separator.join([
-            "${RUNPATH}%s" % path if path != "." else "${RUNPATH}"
-            for path in native_library_dirs
-        ])
-
-    return ["-Djava.library.path=%s" % java_library_path]
-
 def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), executable = None, *additional_providers):
     files = [ctx.outputs.jar]
     if providers.java.outputs.jdeps:
@@ -401,7 +359,7 @@ def kt_jvm_binary_impl(ctx):
         ctx,
         providers.java.transitive_runtime_jars,
         ctx.attr.main_class,
-        jvm_flags + _native_library_jvm_flags(ctx, providers.java),
+        jvm_flags,
     )
     if len(ctx.attr.srcs) == 0 and len(ctx.attr.deps) > 0:
         fail("deps without srcs is invalid. To add runtime classpath and resources, use runtime_deps.", attr = "deps")
@@ -467,7 +425,7 @@ def kt_jvm_junit_test_impl(ctx):
         jvm_flags = [
             "-ea",
             "-Dbazel.test_suite=%s" % test_class,
-        ] + jvm_flags + _native_library_jvm_flags(ctx, providers.java),
+        ] + jvm_flags,
         is_test = True,
     )
 

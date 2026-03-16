@@ -1,4 +1,3 @@
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test")
 
 kt_jvm_binary(
@@ -75,18 +74,4 @@ kt_jvm_test(
         ":source_without_prefix",
         "@nested//:printer",
     ],
-)
-
-cc_binary(
-    name = "native_resource_helper",
-    srcs = ["native/native_resource_helper.cc"],
-    linkshared = 1,
-)
-
-kt_jvm_test(
-    name = "native_library_test",
-    srcs = ["NativeLibraryPathTest.kt"],
-    main_class = "NativeLibraryPathTest",
-    test_class = "NativeLibraryPathTest",
-    runtime_deps = [":native_resource_helper"],
 )

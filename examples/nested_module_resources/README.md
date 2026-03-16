@@ -3,7 +3,6 @@
 ## What This Tests
 
 This example tests **resource path resolution across Bazel module boundaries** when using `resource_strip_prefix`.
-It also includes a `kt_jvm_test` that loads a shared native library from `runtime_deps`, so the example fails if `java.library.path` is not wired correctly.
 
 ## Problem Statement
 
