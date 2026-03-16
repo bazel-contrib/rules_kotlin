@@ -17,62 +17,62 @@
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 
-def _collect_native_deps_dirs(libraries):
-    """Extracts unique directory paths from a depset of LibraryToLink.
+def _get_lib_dir(lib):
+    """Returns the root-relative directory of a LibraryToLink, or None."""
+    f = lib.dynamic_library
+    if f == None:
+        f = lib.resolved_symlink_dynamic_library
+    if f == None:
+        f = lib.static_library
+    if f == None:
+        f = lib.pic_static_library
+    if f == None:
+        return None
+    return f.short_path.rsplit("/", 1)[0] if "/" in f.short_path else ""
 
-    Args:
-        libraries: depset of LibraryToLink objects
+def collect_native_lib_jvm_flags(ctx, deps, runtime_deps):
+    """Collects native library paths and returns JVM flags.
 
-    Returns:
-        A list of unique root-relative directory paths containing native libraries.
-    """
-    dirs = {}
-    for lib in libraries.to_list():
-        f = lib.dynamic_library
-        if f == None:
-            f = lib.resolved_symlink_dynamic_library
-        if f == None:
-            f = lib.static_library
-        if f == None:
-            f = lib.pic_static_library
-        if f != None:
-            dirs[f.short_path.rsplit("/", 1)[0] if "/" in f.short_path else ""] = True
-    return [d for d in dirs.keys() if d]
-
-def collect_native_lib_jvm_flags(ctx, runtime_deps):
-    """Collects native library paths from runtime_deps and returns JVM flags.
-
-    Mirrors rules_java's behavior: collects transitive native libraries from both
-    JavaInfo and CcInfo providers in runtime_deps, and produces a
-    -Djava.library.path flag using ${JAVA_RUNFILES}/workspace_name/ prefix.
+    Collects transitive native libraries from JavaInfo providers in deps and
+    runtime_deps, plus CcInfo linking_context from runtime_deps (for direct
+    cc_binary(linkshared=1) dependencies). Produces a -Djava.library.path flag
+    using ${JAVA_RUNFILES}/workspace_name/ prefix.
 
     Args:
         ctx: The rule context.
+        deps: List of compile dependency targets.
         runtime_deps: List of runtime dependency targets.
 
     Returns:
         A list containing a single -Djava.library.path flag, or an empty list.
     """
-    native_libs_depsets = []
-    for dep in runtime_deps:
+    dirs = {}
+
+    # Collect from JavaInfo.transitive_native_libraries (public API) across
+    # both deps and runtime_deps. This picks up native libraries that were
+    # propagated transitively via the native_libraries param on JavaInfo.
+    for dep in deps + runtime_deps:
         if JavaInfo in dep:
-            native_libs_depsets.append(dep[JavaInfo].transitive_native_libraries)
-        if CcInfo in dep:
-            cc_info = dep[CcInfo]
-            if hasattr(cc_info, "_legacy_transitive_native_libraries"):
-                native_libs_depsets.append(cc_info._legacy_transitive_native_libraries)
-            else:
-                native_libs_depsets.append(cc_info.transitive_native_libraries())
+            for lib in dep[JavaInfo].transitive_native_libraries.to_list():
+                d = _get_lib_dir(lib)
+                if d:
+                    dirs[d] = True
 
-    if not native_libs_depsets:
-        return []
+    # Also collect from CcInfo.linking_context on runtime_deps for direct
+    # cc_binary/cc_library dependencies that don't provide JavaInfo.
+    for dep in runtime_deps:
+        if CcInfo in dep and JavaInfo not in dep:
+            for linker_input in dep[CcInfo].linking_context.linker_inputs.to_list():
+                for lib in linker_input.libraries:
+                    d = _get_lib_dir(lib)
+                    if d:
+                        dirs[d] = True
 
-    native_libs_dirs = _collect_native_deps_dirs(depset(transitive = native_libs_depsets))
-    if not native_libs_dirs:
+    if not dirs:
         return []
 
     prefix = "${JAVA_RUNFILES}/" + ctx.workspace_name + "/"
-    return ["-Djava.library.path=" + ":".join([prefix + d for d in native_libs_dirs])]
+    return ["-Djava.library.path=" + ":".join([prefix + d for d in dirs.keys()])]
 
 def collect_native_libraries(*attr_lists):
     """Collects CcInfo providers from dependency attribute lists for JavaInfo's native_libraries param.
