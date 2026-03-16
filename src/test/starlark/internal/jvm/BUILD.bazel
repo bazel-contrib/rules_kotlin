@@ -1,6 +1,9 @@
 load(":jvm_deps_tests.bzl", "jvm_deps_test_suite")
 load(":kt_jvm_binary_env_test.bzl", "kt_jvm_binary_env_test_suite")
+load(":native_libs_test.bzl", "native_libs_test_suite")
 
 jvm_deps_test_suite(name = "jvm_tests")
 
 kt_jvm_binary_env_test_suite(name = "kt_jvm_binary_env_tests")
+
+native_libs_test_suite(name = "native_libs_tests")

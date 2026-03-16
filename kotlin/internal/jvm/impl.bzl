@@ -26,6 +26,10 @@ load(
     _compile = "compile",
 )
 load(
+    "//kotlin/internal/jvm:native_libs.bzl",
+    "collect_native_lib_jvm_flags",
+)
+load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
@@ -355,6 +359,7 @@ def kt_jvm_binary_impl(ctx):
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
         jvm_flags = ctx.fragments.java.default_jvm_opts
     jvm_flags.extend(ctx.attr.jvm_flags)
+    jvm_flags.extend(collect_native_lib_jvm_flags(ctx, ctx.attr.runtime_deps))
     launcher_result = _write_launcher_action(
         ctx,
         providers.java.transitive_runtime_jars,
@@ -418,6 +423,7 @@ def kt_jvm_junit_test_impl(ctx):
         jvm_flags = ctx.fragments.java.default_jvm_opts
 
     jvm_flags.extend(ctx.attr.jvm_flags)
+    jvm_flags.extend(collect_native_lib_jvm_flags(ctx, ctx.attr.runtime_deps))
     launcher_result = _write_launcher_action(
         ctx,
         runtime_jars,
