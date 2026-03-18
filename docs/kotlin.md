@@ -546,9 +546,11 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>, <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>,
                     <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>, <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>,
                     <a href="#define_kt_toolchain-experimental_multiplex_sandboxing">experimental_multiplex_sandboxing</a>, <a href="#define_kt_toolchain-supports_path_mapping">supports_path_mapping</a>,
-                    <a href="#define_kt_toolchain-experimental_build_tools_api">experimental_build_tools_api</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>,
-                    <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>,
-                    <a href="#define_kt_toolchain-target_settings">target_settings</a>)
+                    <a href="#define_kt_toolchain-experimental_build_tools_api">experimental_build_tools_api</a>, <a href="#define_kt_toolchain-experimental_kover_enabled">experimental_kover_enabled</a>,
+                    <a href="#define_kt_toolchain-experimental_kover_agent">experimental_kover_agent</a>, <a href="#define_kt_toolchain-experimental_kover_exclude">experimental_kover_exclude</a>,
+                    <a href="#define_kt_toolchain-experimental_kover_exclude_annotation">experimental_kover_exclude_annotation</a>, <a href="#define_kt_toolchain-experimental_kover_exclude_inherited_from">experimental_kover_exclude_inherited_from</a>,
+                    <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>, <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>,
+                    <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -575,6 +577,11 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-experimental_multiplex_sandboxing"></a>experimental_multiplex_sandboxing |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-supports_path_mapping"></a>supports_path_mapping |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-experimental_build_tools_api"></a>experimental_build_tools_api |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-experimental_kover_enabled"></a>experimental_kover_enabled |  <p align="center"> - </p>   |  `False` |
+| <a id="define_kt_toolchain-experimental_kover_agent"></a>experimental_kover_agent |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-experimental_kover_exclude"></a>experimental_kover_exclude |  <p align="center"> - </p>   |  `[]` |
+| <a id="define_kt_toolchain-experimental_kover_exclude_annotation"></a>experimental_kover_exclude_annotation |  <p align="center"> - </p>   |  `[]` |
+| <a id="define_kt_toolchain-experimental_kover_exclude_inherited_from"></a>experimental_kover_exclude_inherited_from |  <p align="center"> - </p>   |  `[]` |
 | <a id="define_kt_toolchain-javac_options"></a>javac_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_javac_options")` |
 | <a id="define_kt_toolchain-kotlinc_options"></a>kotlinc_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_kotlinc_options")` |
 | <a id="define_kt_toolchain-jvm_stdlibs"></a>jvm_stdlibs |  <p align="center"> - </p>   |  `None` |

@@ -45,6 +45,10 @@ load(
     _jvm_deps_utils = "jvm_deps_utils",
 )
 load(
+    "//kotlin/internal/jvm:kover.bzl",
+    _is_kover_enabled = "is_kover_enabled",
+)
+load(
     "//kotlin/internal/jvm:plugins.bzl",
     "is_ksp_processor_generating_java",
     _plugin_mappers = "mappers",
@@ -672,7 +676,7 @@ def _run_kt_builder_action(
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
     args.add_all("--kotlin_friend_paths", compile_deps.associate_jars, omit_if_empty = True)
-    args.add("--instrument_coverage", ctx.coverage_instrumented())
+    args.add("--instrument_coverage", ctx.coverage_instrumented() and not _is_kover_enabled(ctx))
 
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(

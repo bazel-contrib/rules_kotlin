@@ -24,6 +24,10 @@ load(
     _attrs = "attrs",
 )
 load(
+    "@rules_android//rules:common.bzl",
+    _common = "common",
+)
+load(
     "@rules_android//rules:java.bzl",
     _java = "java",
 )
@@ -46,6 +50,9 @@ load(
 load(
     "@rules_android//rules/android_local_test:impl.bzl",
     _BASE_PROCESSORS = "PROCESSORS",
+    _DEFAULT_GC_FLAGS = "DEFAULT_GC_FLAGS",
+    _DEFAULT_JIT_FLAGS = "DEFAULT_JIT_FLAGS",
+    _DEFAULT_VERIFY_FLAGS = "DEFAULT_VERIFY_FLAGS",
     _filter_jdeps = "filter_jdeps",
     _finalize = "finalize",
 )
@@ -66,6 +73,14 @@ load(
 load(
     "//kotlin/internal/jvm:jvm_deps.bzl",
     _jvm_deps_utils = "jvm_deps_utils",
+)
+load(
+    "//kotlin/internal/jvm:kover.bzl",
+    _create_kover_agent_actions = "create_kover_agent_actions",
+    _create_kover_metadata_action = "create_kover_metadata_action",
+    _get_kover_agent_files = "get_kover_agent_file",
+    _get_kover_jvm_flags = "get_kover_jvm_flags",
+    _is_kover_enabled = "is_kover_enabled",
 )
 
 _JACOCOCO_CLASS = "com.google.testing.coverage.JacocoCoverageRunner"
@@ -121,10 +136,31 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         getattr(ctx.attr, "deps", [])
     )
 
+    jvm_flags = []
+    transitive = []
+
     if ctx.configuration.coverage_enabled:
-        deps.append(ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner)
-        java_start_class = _JACOCOCO_CLASS
-        coverage_start_class = ctx.attr.main_class
+        if _is_kover_enabled(ctx):
+            kover_agent_files = _get_kover_agent_files(ctx)
+            kover_output_file, kover_args_file = _create_kover_agent_actions(ctx, ctx.attr.name)
+            kover_output_metadata_file = _create_kover_metadata_action(
+                ctx,
+                ctx.attr.name,
+                ctx.attr.deps + ctx.attr.associates,
+                kover_output_file,
+            )
+
+            flags = _get_kover_jvm_flags(kover_agent_files, kover_args_file)
+            jvm_flags.append(flags)
+
+            transitive.extend([depset(kover_agent_files), depset([kover_args_file]), depset([kover_output_metadata_file])])
+
+            java_start_class = ctx.attr.main_class
+            coverage_start_class = None
+        else:
+            deps.append(ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner)
+            java_start_class = _JACOCOCO_CLASS
+            coverage_start_class = ctx.attr.main_class
     else:
         java_start_class = ctx.attr.main_class
         coverage_start_class = None
@@ -171,7 +207,6 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         runfiles.append(filtered_jdeps)
 
     # Append the security manager override
-    jvm_flags = []
     java_runtime = ctx.toolchains[_JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime
 
     _java_runtime_version = getattr(java_runtime, "version", 0)
@@ -189,13 +224,167 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
             android_properties_file = ctx.file.robolectric_properties_file.short_path,
             additional_jvm_flags = jvm_flags,
         ),
-        runfiles = ctx.runfiles(files = runfiles),
+        runfiles = ctx.runfiles(
+            files = runfiles,
+            transitive_files = depset(transitive = transitive),
+        ),
     )
+
+# TODO: follow up with Google to have rules_android provide better extensibility points
+def _process_stub(ctx, deploy_jar_ctx, jvm_ctx, stub_preprocess_ctx, **_unused_sub_ctxs):
+    runfiles = []
+
+    merged_instr = None
+    if ctx.configuration.coverage_enabled:
+        if not _is_kover_enabled(ctx):
+            merged_instr = ctx.actions.declare_file(ctx.label.name + "_merged_instr.jar")
+            _java.singlejar(
+                ctx,
+                [f for f in deploy_jar_ctx.classpath.to_list() if f.short_path.endswith(".jar")],
+                merged_instr,
+                mnemonic = "JavaDeployJar",
+                include_build_data = True,
+                java_toolchain = _common.get_java_toolchain(ctx),
+            )
+            runfiles.append(merged_instr)
+
+    stub = ctx.actions.declare_file(ctx.label.name)
+    classpath_file = ctx.actions.declare_file(ctx.label.name + "_classpath")
+    runfiles.append(classpath_file)
+    test_class = _get_test_class(ctx)
+    if not test_class:
+        fail("test_class could not be derived for " + str(ctx.label) +
+             ". Explicitly set test_class or move this source file to " +
+             "a java source root.")
+
+    _create_stub(
+        ctx,
+        stub_preprocess_ctx.substitutes,
+        stub,
+        classpath_file,
+        deploy_jar_ctx.classpath,
+        _get_jvm_flags(ctx, test_class, jvm_ctx.android_properties_file, jvm_ctx.additional_jvm_flags),
+        jvm_ctx.java_start_class,
+        jvm_ctx.coverage_start_class,
+        merged_instr,
+    )
+    return _ProviderInfo(
+        name = "stub_ctx",
+        value = struct(
+            stub = stub,
+        ),
+        runfiles = ctx.runfiles(
+            files = runfiles,
+            transitive_files = depset(
+                transitive = stub_preprocess_ctx.runfiles,
+            ),
+        ),
+    )
+
+def _get_test_class(ctx):
+    # Use the specified test_class if set
+    if ctx.attr.test_class != "":
+        return ctx.attr.test_class
+
+    # Use a heuristic based on the rule name and the "srcs" list
+    # to determine the primary Java class.
+    expected = "/" + ctx.label.name + ".java"
+    for f in ctx.attr.srcs:
+        path = f.label.package + "/" + f.label.name
+        if path.endswith(expected):
+            return _java.resolve_package(path[:-5])
+
+    # Last resort: Use the name and package name of the target.
+    return _java.resolve_package(ctx.label.package + "/" + ctx.label.name)
+
+def _create_stub(
+        ctx,
+        substitutes,
+        stub_file,
+        classpath_file,
+        runfiles,
+        jvm_flags,
+        java_start_class,
+        coverage_start_class,
+        merged_instr):
+    subs = {
+        # To avoid cracking open the depset, classpath is read from a separate
+        # file created in its own action. Needed as expand_template does not
+        # support ctx.actions.args().
+        "%classpath%": "$(eval echo $(<%s))" % (classpath_file.short_path),
+        "%java_start_class%": java_start_class,
+        "%jvm_flags%": " ".join(jvm_flags),
+        "%needs_runfiles%": "1",
+        "%runfiles_manifest_only%": "",
+        "%workspace_prefix%": ctx.workspace_name + "/",
+    }
+
+    if coverage_start_class:
+        prefix = ctx.attr._runfiles_root_prefix[_BuildSettingInfo].value
+        subs["%set_jacoco_metadata%"] = (
+            "export JACOCO_METADATA_JAR=${JAVA_RUNFILES}/" + prefix +
+            merged_instr.short_path
+        )
+        subs["%set_jacoco_main_class%"] = (
+            "export JACOCO_MAIN_CLASS=" + coverage_start_class
+        )
+        subs["%set_jacoco_java_runfiles_root%"] = (
+            "export JACOCO_JAVA_RUNFILES_ROOT=${JAVA_RUNFILES}/" + prefix
+        )
+    else:
+        subs["%set_jacoco_metadata%"] = ""
+        subs["%set_jacoco_main_class%"] = ""
+        subs["%set_jacoco_java_runfiles_root%"] = ""
+
+    subs.update(substitutes)
+
+    ctx.actions.expand_template(
+        template = _utils.only(_get_android_toolchain(ctx).java_stub.files.to_list()),
+        output = stub_file,
+        substitutions = subs,
+        is_executable = True,
+    )
+
+    args = ctx.actions.args()
+    args.add_joined(
+        runfiles,
+        join_with = ":",
+        map_each = _get_classpath,
+    )
+    args.set_param_file_format("multiline")
+    ctx.actions.write(
+        output = classpath_file,
+        content = args,
+    )
+    return stub_file
+
+def _get_classpath(s):
+    return "${J3}" + s.short_path
+
+def _get_jvm_flags(ctx, main_class, robolectric_properties_path, additional_jvm_flags):
+    return [
+        "-ea",
+        "-Dbazel.test_suite=" + main_class,
+        "-Drobolectric.offline=true",
+        "-Drobolectric-deps.properties=" + robolectric_properties_path,
+        "-Duse_framework_manifest_parser=true",
+        "-Drobolectric.logging=stdout",
+        "-Drobolectric.logging.enabled=true",
+        "-Dorg.robolectric.packagesToNotAcquire=com.google.testing.junit.runner.util",
+    ] + _DEFAULT_JIT_FLAGS + _DEFAULT_GC_FLAGS + _DEFAULT_VERIFY_FLAGS + additional_jvm_flags + [
+        ctx.expand_make_variables(
+            "jvm_flags",
+            ctx.expand_location(flag, ctx.attr.data),
+            {},
+        )
+        for flag in ctx.attr.jvm_flags
+    ]
 
 PROCESSORS = _processing_pipeline.replace(
     _BASE_PROCESSORS,
     ResourceProcessor = _process_resources,
     JvmProcessor = _process_jvm,
+    StubProcessor = _process_stub,
 )
 
 _PROCESSING_PIPELINE = _processing_pipeline.make_processing_pipeline(
