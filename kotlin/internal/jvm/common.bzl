@@ -18,6 +18,7 @@ load(
     "//kotlin/internal:defs.bzl",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
+load("//kotlin/internal/jvm:kover.bzl", _is_kover_enabled = "is_kover_enabled")
 load(
     "//src/main/starlark/core/compile:common.bzl",
     "find_launcher_maker",
@@ -204,7 +205,7 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
     prefix = "" if _is_absolute_target_platform_path(ctx, java_bin_path) else "${JAVA_RUNFILES}/"
     java_bin = "JAVABIN=${JAVABIN:-" + prefix + java_bin_path + "}"
 
-    if ctx.configuration.coverage_enabled:
+    if ctx.configuration.coverage_enabled and not _is_kover_enabled(ctx):
         jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
         classpath = ctx.configuration.host_path_separator.join(
             ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list() + jacocorunner.files.to_list()],
