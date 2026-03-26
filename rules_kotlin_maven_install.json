@@ -4,22 +4,24 @@
     "com.google.devtools.ksp:symbol-processing-aa": 1974172210,
     "com.google.devtools.ksp:symbol-processing-api": -1189957684,
     "com.google.devtools.ksp:symbol-processing-common-deps": -1141520232,
-    "org.jetbrains.kotlin:jvm-abi-gen": 876728307,
-    "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin": -1322562787,
-    "org.jetbrains.kotlin:kotlin-annotation-processing": -806679537,
-    "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": 1329845089,
-    "org.jetbrains.kotlin:kotlin-build-tools-impl": 1885601169,
-    "org.jetbrains.kotlin:kotlin-compiler": 788022559,
-    "org.jetbrains.kotlin:kotlin-daemon-client": 1140361618,
-    "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin": -1613555481,
-    "org.jetbrains.kotlin:kotlin-parcelize-compiler": -1510638271,
-    "org.jetbrains.kotlin:kotlin-parcelize-runtime": -2038052332,
-    "org.jetbrains.kotlin:kotlin-reflect": 812210075,
-    "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin": 1923769562,
-    "org.jetbrains.kotlin:kotlin-script-runtime": 832703830,
-    "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin": -769020766,
-    "org.jetbrains.kotlin:kotlin-stdlib": 1323510274,
-    "org.jetbrains.kotlin:kotlin-test": 913224018,
+    "org.jetbrains.kotlin:jvm-abi-gen": -1077091937,
+    "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin": -935951927,
+    "org.jetbrains.kotlin:kotlin-annotation-processing": -1211069509,
+    "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": 1866845197,
+    "org.jetbrains.kotlin:kotlin-build-tools-api": 233215763,
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": 1465024159,
+    "org.jetbrains.kotlin:kotlin-build-tools-impl": 368217661,
+    "org.jetbrains.kotlin:kotlin-compiler": -1140536117,
+    "org.jetbrains.kotlin:kotlin-daemon-client": 333923006,
+    "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin": -693058413,
+    "org.jetbrains.kotlin:kotlin-parcelize-compiler": 504849901,
+    "org.jetbrains.kotlin:kotlin-parcelize-runtime": 815600704,
+    "org.jetbrains.kotlin:kotlin-reflect": -1996849849,
+    "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin": 605684230,
+    "org.jetbrains.kotlin:kotlin-script-runtime": 1968261250,
+    "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin": 2042916302,
+    "org.jetbrains.kotlin:kotlin-stdlib": 1989385006,
+    "org.jetbrains.kotlin:kotlin-test": 958876286,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": 65903440,
     "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": -522427585,
     "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": -1040437304,
@@ -27,65 +29,69 @@
     "repositories": 582576641
   },
   "__RESOLVED_ARTIFACTS_HASH": {
-    "com.google.devtools.ksp:symbol-processing-aa": 825323849,
+    "com.google.devtools.ksp:symbol-processing-aa": -1318006025,
     "com.google.devtools.ksp:symbol-processing-aa:jar:sources": -842299336,
-    "com.google.devtools.ksp:symbol-processing-api": -663283867,
+    "com.google.devtools.ksp:symbol-processing-api": 1735307880,
     "com.google.devtools.ksp:symbol-processing-api:jar:sources": -474784713,
-    "com.google.devtools.ksp:symbol-processing-common-deps": 1975245499,
+    "com.google.devtools.ksp:symbol-processing-common-deps": 1266232402,
     "com.google.devtools.ksp:symbol-processing-common-deps:jar:sources": 676378417,
-    "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm": 1403395879,
+    "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm": -2081928242,
     "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm:jar:sources": -587895121,
-    "org.jetbrains.kotlin:jvm-abi-gen": 209391252,
-    "org.jetbrains.kotlin:jvm-abi-gen:jar:sources": 2057141211,
-    "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin": 1932512876,
-    "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin:jar:sources": 394198708,
-    "org.jetbrains.kotlin:kotlin-annotation-processing": -1287753706,
-    "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": -1799833906,
-    "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:jar:sources": -716509518,
-    "org.jetbrains.kotlin:kotlin-annotation-processing:jar:sources": -1578831105,
-    "org.jetbrains.kotlin:kotlin-build-tools-api": -1329319845,
-    "org.jetbrains.kotlin:kotlin-build-tools-api:jar:sources": 640270459,
-    "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": -449557954,
-    "org.jetbrains.kotlin:kotlin-build-tools-cri-impl:jar:sources": -1880056868,
-    "org.jetbrains.kotlin:kotlin-build-tools-impl": -991196987,
-    "org.jetbrains.kotlin:kotlin-build-tools-impl:jar:sources": 1988360842,
-    "org.jetbrains.kotlin:kotlin-compiler": -1825392838,
-    "org.jetbrains.kotlin:kotlin-compiler-embeddable": 20033961,
-    "org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:sources": 698885936,
-    "org.jetbrains.kotlin:kotlin-compiler-runner": 1792153385,
-    "org.jetbrains.kotlin:kotlin-compiler-runner:jar:sources": -1624119954,
-    "org.jetbrains.kotlin:kotlin-compiler:jar:sources": 995124660,
-    "org.jetbrains.kotlin:kotlin-daemon-client": 1949101440,
-    "org.jetbrains.kotlin:kotlin-daemon-client:jar:sources": -267977064,
-    "org.jetbrains.kotlin:kotlin-daemon-embeddable": -1831675731,
-    "org.jetbrains.kotlin:kotlin-daemon-embeddable:jar:sources": 1413085943,
-    "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin": 1032574863,
-    "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin:jar:sources": 1011001659,
-    "org.jetbrains.kotlin:kotlin-parcelize-compiler": -2115163439,
-    "org.jetbrains.kotlin:kotlin-parcelize-compiler:jar:sources": 1024815295,
-    "org.jetbrains.kotlin:kotlin-parcelize-runtime": -60496802,
-    "org.jetbrains.kotlin:kotlin-parcelize-runtime:jar:sources": 1024815295,
-    "org.jetbrains.kotlin:kotlin-reflect": 610604460,
-    "org.jetbrains.kotlin:kotlin-reflect:jar:sources": 1022984728,
-    "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin": -1352161332,
-    "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin:jar:sources": -219001793,
-    "org.jetbrains.kotlin:kotlin-script-runtime": -295102354,
-    "org.jetbrains.kotlin:kotlin-script-runtime:jar:sources": -1949877666,
-    "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin": -1482427971,
-    "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:jar:sources": 530732362,
-    "org.jetbrains.kotlin:kotlin-stdlib": -1235731037,
-    "org.jetbrains.kotlin:kotlin-stdlib-jdk7": -1773673678,
-    "org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:sources": -1903748553,
-    "org.jetbrains.kotlin:kotlin-stdlib-jdk8": 622187261,
-    "org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:sources": -1352095646,
-    "org.jetbrains.kotlin:kotlin-stdlib:jar:sources": -76949209,
-    "org.jetbrains.kotlin:kotlin-test": -1642297374,
-    "org.jetbrains.kotlin:kotlin-test:jar:sources": 572627437,
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": -1882559449,
+    "org.jetbrains.kotlin:jvm-abi-gen": -1592450969,
+    "org.jetbrains.kotlin:jvm-abi-gen:jar:sources": 2026927367,
+    "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin": 699815493,
+    "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin:jar:sources": 363984864,
+    "org.jetbrains.kotlin:kotlin-annotation-processing": -1984445825,
+    "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": -1861729404,
+    "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:jar:sources": -746723362,
+    "org.jetbrains.kotlin:kotlin-annotation-processing:jar:sources": -1609044949,
+    "org.jetbrains.kotlin:kotlin-build-tools-api": -1848415644,
+    "org.jetbrains.kotlin:kotlin-build-tools-api:jar:sources": 610056615,
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": 938612618,
+    "org.jetbrains.kotlin:kotlin-build-tools-compat:jar:sources": 2108547241,
+    "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": 757496386,
+    "org.jetbrains.kotlin:kotlin-build-tools-cri-impl:jar:sources": -1910270712,
+    "org.jetbrains.kotlin:kotlin-build-tools-impl": 1432209759,
+    "org.jetbrains.kotlin:kotlin-build-tools-impl:jar:sources": 1958146998,
+    "org.jetbrains.kotlin:kotlin-compiler": 211921497,
+    "org.jetbrains.kotlin:kotlin-compiler-embeddable": -1040404024,
+    "org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:sources": -1805281762,
+    "org.jetbrains.kotlin:kotlin-compiler-runner": -1855277681,
+    "org.jetbrains.kotlin:kotlin-compiler-runner:jar:sources": -1654333798,
+    "org.jetbrains.kotlin:kotlin-compiler:jar:sources": -1821386141,
+    "org.jetbrains.kotlin:kotlin-daemon-client": -699972166,
+    "org.jetbrains.kotlin:kotlin-daemon-client:jar:sources": -298190908,
+    "org.jetbrains.kotlin:kotlin-daemon-embeddable": 1085542005,
+    "org.jetbrains.kotlin:kotlin-daemon-embeddable:jar:sources": 1382872099,
+    "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin": 335679056,
+    "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin:jar:sources": 980787815,
+    "org.jetbrains.kotlin:kotlin-parcelize-compiler": 1533948819,
+    "org.jetbrains.kotlin:kotlin-parcelize-compiler:jar:sources": 994601451,
+    "org.jetbrains.kotlin:kotlin-parcelize-runtime": -135735944,
+    "org.jetbrains.kotlin:kotlin-parcelize-runtime:jar:sources": 994601451,
+    "org.jetbrains.kotlin:kotlin-reflect": -995031280,
+    "org.jetbrains.kotlin:kotlin-reflect:jar:sources": 992770884,
+    "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin": -1301367981,
+    "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin:jar:sources": -249215637,
+    "org.jetbrains.kotlin:kotlin-script-runtime": -803233219,
+    "org.jetbrains.kotlin:kotlin-script-runtime:jar:sources": -1980091510,
+    "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin": 804606820,
+    "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:jar:sources": 500518518,
+    "org.jetbrains.kotlin:kotlin-stdlib": 1982993890,
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk7": -1726649762,
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:sources": -1933962397,
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk8": 415976216,
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:sources": -1382309490,
+    "org.jetbrains.kotlin:kotlin-stdlib:jar:sources": -107163053,
+    "org.jetbrains.kotlin:kotlin-test": 1679587631,
+    "org.jetbrains.kotlin:kotlin-test:jar:sources": 542413593,
+    "org.jetbrains.kotlin:kotlin-tooling-core": -13727018,
+    "org.jetbrains.kotlin:kotlin-tooling-core:jar:sources": 1243292659,
+    "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": 998661838,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:sources": 1967060403,
-    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": -13139179,
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": 370806968,
     "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar:sources": -1103833809,
-    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": -539443734,
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": 385616031,
     "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:jar:sources": -1635775494,
     "org.jetbrains:annotations": 554168982,
     "org.jetbrains:annotations:jar:sources": 1226441379
@@ -121,164 +127,178 @@
     },
     "org.jetbrains.kotlin:jvm-abi-gen": {
       "shasums": {
-        "jar": "3626e9936334113514d5316fde8aeb00f98f17d66f60646382ccce9ca7e28229",
+        "jar": "3f1c157c2473a0fba7f86907a98bc92f07678c38e9d97e4508c4072d3445d3db",
         "sources": "c7f0c4f6f8825d591aebd4198285976f5156acdba41c6b5519a882d6a69659a7"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin": {
       "shasums": {
-        "jar": "3b60d5b2cf66648acd44204307e5555f88551c6d6140eac32e94db062cdcdace",
+        "jar": "4816d18985b54ef4091d146639cbaa3b3d31e957616b0c49f9654997f7c9067c",
         "sources": "ee12348b0f478fb6ceda6cee343d4c123e8cd11ce3aa63615a045f865e4e5d22"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-annotation-processing": {
       "shasums": {
-        "jar": "b0a015d27e778817e8e707b677ed2f79815a69b92f26645ab012f06155e1f6ed",
+        "jar": "c37b5216adf8b1a2afad78df0b2db93d9279b6514831919b83bed8d1c24acd2d",
         "sources": "7db77ab90f7ff39e70086d9db6d8b2ad83fa943c0a109f106ead4d94a17644a3"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": {
       "shasums": {
-        "jar": "092e7acd864995c0cdcc033ccb055e6440706aa9078fb41d027b28d8f36a9054",
+        "jar": "0be28c39e03f910cd07d9cea264bf1e6e734e999ba3af90f924c9a1dcd49a0d3",
         "sources": "455b88b78d991f74e468531497fb405b6f2471b0842663fa5304571cbc275cf8"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-build-tools-api": {
       "shasums": {
-        "jar": "fdc06dffa72df3671a109cc8b41cd5a7136c637ff54541d65beea52328aedefd",
+        "jar": "22f1ab223854b949099f6b259cef541d5b58a3643df9a49c4577c63c416e843b",
         "sources": "7e13326bfd85d1612a542c9923446248976389b389c955ec3d52e572076a14dc"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
+    },
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": {
+      "shasums": {
+        "jar": "44c307b4edd4cac51f960a8134112d664c93076700cda5e866e94d9a4296340e",
+        "sources": "964bc6f00a2e6793a2b2009cdfc0aeec237b71a23c12be610c80ccc127ae58de"
+      },
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": {
       "shasums": {
-        "jar": "f97fd44a30b7ab7428439deea170aca35f53ca7eb702f2e8da061a185b2058d5",
+        "jar": "54eced630f28124ccfe2e464e6cacc281e528a8a50a89725721554c9693548fe",
         "sources": "e37ee4d03e1afac684f9dba6f159a00e3da5e52251b754f0a78421152e35f4f1"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-build-tools-impl": {
       "shasums": {
-        "jar": "8346fdea242bf39b3de404b8bc44fcf211b94c76e78666a4e656e2caa2c354a7",
+        "jar": "9681bc2164a8bd9f6ddf4c085cf4a836b92d27506667d73bab9f6d855336c910",
         "sources": "70811a3216c3d8a1a7f5312d66e08fdd27ac3c94c970dca7c51c884901c5e8d3"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-compiler": {
       "shasums": {
-        "jar": "20c40bd8f76e76a93e71bedbe8215cddd7897953ed2442277f6eac5dae04072f",
-        "sources": "a0a822c636193357343ba9de95f23c7c765f523a25510dbf884e0f68edbf38d4"
+        "jar": "4198518f6d840f2f665b2e3c8319a854281f6af43790aca563e3f6b9c46bca68",
+        "sources": "1db90abfc3ef50f5c6e1addb9d8e1996fe4bd4e1cc7de15097b9a5e05f44d2ce"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-compiler-embeddable": {
       "shasums": {
-        "jar": "f22846a9a9321384fc1e49181a4bf29f591dd0e70e07f92dd9565b6a6f514fa1",
-        "sources": "6d3d8c7a8cdf0200e1452dce40758ed43125fcdd207aa3e0ffa85852e261e6c7"
+        "jar": "976f989d0b5f5d80e8e8a8ad4b73da0bfc27fdd965b9fa38362b2be79ecc1337",
+        "sources": "58fc34a5212c86e78af142c056b35e1682128fff1a66a9b59369de5a2575fc63"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-compiler-runner": {
       "shasums": {
-        "jar": "af42cce4477beec8f965b49921ca5e3eae2e1521f9745e6983ad56031c76f960",
+        "jar": "c069f30a403be70c8152f8aa9f25eccba188eead54263ae02af14421437a2208",
         "sources": "67a07d0bf582dd860e3ca0d0959bbfb3a71ee3162231292ccd5f2f23a66e120a"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-daemon-client": {
       "shasums": {
-        "jar": "5ff064c1cb7fbdedd851c0a67cfc712f804b605ceab64e43b5b91842f5b0ddb1",
+        "jar": "c71a7c1be8fbff04e0af45c9ee8cb7a61d8953bca6b8bf225a5719c725a90b44",
         "sources": "130e946436f3244b1fdc83b9c7d7b21c57319f50ed9deac110e16116beed55bd"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-daemon-embeddable": {
       "shasums": {
-        "jar": "84f40c07cea3d2e3513e8887e0cad3f10eef8c4742e83c089bbabf4cc6959e80",
+        "jar": "8870bab840b8087c96c4ddc06088b4aedf5131c408af3674306304f1f96af3f4",
         "sources": "0d70bf1b805fab1822dbe49514c8522087b6bb62213f5ae2e487b537beef9b6d"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin": {
       "shasums": {
-        "jar": "84a3631bb976d00e3ff5f2b39b615b73dcf4ec4b7521fb8c71ab0c57c2c9edb3",
+        "jar": "1ef20a13e78b5577b5bb85e8b4299314893783d998f3c621dc449d447961e218",
         "sources": "31c2346a4396e1c09cd9568e6f100450a5a222ce68cb2186108110aa243973ae"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-parcelize-compiler": {
       "shasums": {
-        "jar": "b986a354be72145dad0ed93a70ac1c6704e87ec46f0a07542dcf5beeaaf6013d",
+        "jar": "abfeabf066cf8b2cd51986ca3b660a38bf174562b59c5e97ee7b4ccf8dc72ce6",
         "sources": "f98535d3558a8e0b08ed7c993a3559c1b89ad12c335824172485fe05ebb8f606"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-parcelize-runtime": {
       "shasums": {
-        "jar": "1b8412aa69acb9fcc87980fe257db64dc982b086747246b66848c892d26a0956",
+        "jar": "ca84154e2701ebe146c832163d708d1d703159b910b9f611a10fb25c5ba90279",
         "sources": "f98535d3558a8e0b08ed7c993a3559c1b89ad12c335824172485fe05ebb8f606"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-reflect": {
       "shasums": {
-        "jar": "0bb2e05067985a17c56906a9e30a4a7d8e0fad015ce9bf21a066a3cf0d24763d",
+        "jar": "e346fa3c3ff4451f5f707a312887fd4c8555da48cc15fa9db2ba93c33f89f813",
         "sources": "8cbdca65092aa6888901e23c08c7d69d141544107a9bcc9aa47b5453d4dbcf7e"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin": {
       "shasums": {
-        "jar": "6e9e4d22b0a9b9b8bb535d66a7fc7983044f263a887ae20a5ae8b89984a870b4",
+        "jar": "1cf954af92ab6974f5ad510d1f76fff86c7a7d2c1ef4ab4ba22c2913ffa4bc9b",
         "sources": "3e381b9ad759061de0955b991df577154a9f55b95c33acc760c4b5ff65a2fe0e"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-script-runtime": {
       "shasums": {
-        "jar": "4f9d7484608c0c335e6605fb35c37b91989476290df8ee60d0e7487ba9aa0568",
+        "jar": "6fcdb7da6e65cf8cc43e5aabab94bdcc48825e7933686f8a1bf694eb88f8e00e",
         "sources": "275d90c0c92e9680aff9c013394f3f395bc46dc23762107c4fdccd9887a58561"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin": {
       "shasums": {
-        "jar": "43b24081cf1ca5f15d3ff03cba7044766df851ee028220df7e9870d848d54760",
+        "jar": "2c8c84a9902d04541828c77c1ddf953c8ea67a1d77d9aeefa8a063187165b2a5",
         "sources": "85934fdd0e2ec1136a80b1e6b8abbfdb09eddeb59be38df4d0c56e49f4740fba"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-stdlib": {
       "shasums": {
-        "jar": "0bc4285a139507a1a41b2d52584b7813c074159089f23b6eead21d192b7bcad7",
+        "jar": "0ae12504a5040ebaf37703908483420d1a5624dd1d93f357665f8c77c848a01e",
         "sources": "5c9707bb04725260c2c03d88a218dd4ea87749aefcc4663e71afa9559430f661"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-stdlib-jdk7": {
       "shasums": {
-        "jar": "89cb5fec54bdfeea8da529a1259c8bb0904d13ce3e683f29758243765497b5c3",
+        "jar": "18231e75c68026d90f5487c8dc753be307c273a5eed574cee5a7118dfb04bc14",
         "sources": "2534c8908432e06de73177509903d405b55f423dd4c2f747e16b92a2162611e6"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
       "shasums": {
-        "jar": "d68220fcd254608a43268df403aaabfff8503f3b0d52582c3256e03c9acf6b41",
+        "jar": "4d2f1d22a64efd04554108ba71297e10ff399fc0d61f56feb7a9266104be757d",
         "sources": "3cb6895054a0985bba591c165503fe4dd63a215af53263b67a071ccdc242bf6e"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlin:kotlin-test": {
       "shasums": {
-        "jar": "824d51362c78ef519eb86b3d147a1eeb17942cb2730af01b3ba1617b936594b0",
+        "jar": "d6c9ccf82f67e6cf7fdaf9e0cea419dac4dfa58620a1653d3dba45f544a289ac",
         "sources": "bce4ebcf90507cc14ea3857f65088d10fd1a305616da62a6e5b6be0735ccb456"
       },
-      "version": "2.3.20-RC2"
+      "version": "2.3.20"
+    },
+    "org.jetbrains.kotlin:kotlin-tooling-core": {
+      "shasums": {
+        "jar": "367142781299bc0f9120c1deec0e62934a1af9ea7f01aaa9c5a5354dc5d8d7d9",
+        "sources": "a19867e8faa77b57dea45b2c7d458cea3e3875641d47c2816854cff7e1f680b9"
+      },
+      "version": "2.3.20"
     },
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": {
       "shasums": {
@@ -325,6 +345,9 @@
     "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm": [
       "org.jetbrains.kotlin:kotlin-stdlib",
       "org.jetbrains:annotations"
+    ],
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": [
+      "org.jetbrains.kotlin:kotlin-tooling-core"
     ],
     "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": [
       "org.jetbrains.kotlin:kotlin-build-tools-api",
@@ -1704,6 +1727,10 @@
       "org.jetbrains.kotlin.buildtools.api.jvm.operations",
       "org.jetbrains.kotlin.buildtools.api.trackers",
       "org.jetbrains.kotlin.buildtools.internal"
+    ],
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": [
+      "org.jetbrains.kotlin.buildtools.internal.compat",
+      "org.jetbrains.kotlin.buildtools.internal.compat.arguments"
     ],
     "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": [
       "org.jetbrains.kotlin.buildtools.internal.cri",
@@ -3750,6 +3777,9 @@
     "org.jetbrains.kotlin:kotlin-test": [
       "kotlin.test"
     ],
+    "org.jetbrains.kotlin:kotlin-tooling-core": [
+      "org.jetbrains.kotlin.tooling.core"
+    ],
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": [
       "_COROUTINE",
       "kotlinx.coroutines",
@@ -3808,6 +3838,8 @@
       "org.jetbrains.kotlin:kotlin-annotation-processing:jar:sources",
       "org.jetbrains.kotlin:kotlin-build-tools-api",
       "org.jetbrains.kotlin:kotlin-build-tools-api:jar:sources",
+      "org.jetbrains.kotlin:kotlin-build-tools-compat",
+      "org.jetbrains.kotlin:kotlin-build-tools-compat:jar:sources",
       "org.jetbrains.kotlin:kotlin-build-tools-cri-impl",
       "org.jetbrains.kotlin:kotlin-build-tools-cri-impl:jar:sources",
       "org.jetbrains.kotlin:kotlin-build-tools-impl",
@@ -3844,6 +3876,8 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlin:kotlin-test",
       "org.jetbrains.kotlin:kotlin-test:jar:sources",
+      "org.jetbrains.kotlin:kotlin-tooling-core",
+      "org.jetbrains.kotlin:kotlin-tooling-core:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",

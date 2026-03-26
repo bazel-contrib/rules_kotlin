@@ -110,6 +110,62 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "BtapiPluginArgumentsTest",
+    srcs = ["jvm/btapi/BtapiPluginArgumentsTest.kt"],
+    deps = [
+        "//kotlin/compiler:kotlin-test",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:junit_junit",
+    ],
+)
+
+kt_rules_test(
+    name = "BtapiCompilerCacheTest",
+    srcs = ["jvm/btapi/BtapiCompilerCacheTest.kt"],
+    deps = [
+        "//kotlin/compiler:kotlin-test",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:junit_junit",
+    ],
+)
+
+kt_rules_test(
+    name = "ToolchainSpecTest",
+    srcs = ["jvm/ToolchainSpecTest.kt"],
+    deps = [
+        "//kotlin/compiler:kotlin-test",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:junit_junit",
+    ],
+)
+
+kt_rules_test(
+    name = "KotlinBuilderProtoArgsTest",
+    srcs = ["KotlinBuilderProtoArgsTest.kt"],
+    deps = [
+        "//kotlin/compiler:kotlin-test",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:junit_junit",
+    ],
+)
+
+kt_rules_test(
+    name = "KotlinBtapiJvmTaskExecutorTest",
+    size = "large",
+    srcs = ["jvm/btapi/KotlinBtapiJvmTaskExecutorTest.kt"],
+    deps = [
+        "//kotlin/compiler:kotlin-test",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "@rules_kotlin_maven_dev//:com_google_truth_truth",
+        "@rules_kotlin_maven_dev//:junit_junit",
+    ],
+)
+
+kt_rules_test(
     name = "Ksp2TaskTest",
     srcs = ["Ksp2TaskTest.kt"],
     deps = [
@@ -123,15 +179,20 @@ kt_rules_test(
 test_suite(
     name = "tasks_tests",
     tests = [
+        ":BtapiCompilerCacheTest",
+        ":BtapiPluginArgumentsTest",
         ":JdepsMergerTest",
         ":JdepsParserTest",
+        ":KotlinBtapiJvmTaskExecutorTest",
         ":KotlinBuilderJvmAbiTest",
         ":KotlinBuilderJvmBasicTest",
         ":KotlinBuilderJvmCoverageTest",
         ":KotlinBuilderJvmJdepsTest",
         ":KotlinBuilderJvmKaptTest",
         ":KotlinBuilderJvmStrictDepsTest",
+        ":KotlinBuilderProtoArgsTest",
         ":KotlinJvmTaskExecutorTest",
         ":Ksp2TaskTest",
+        ":ToolchainSpecTest",
     ],
 )

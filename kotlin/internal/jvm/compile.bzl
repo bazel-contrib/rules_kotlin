@@ -213,7 +213,7 @@ def _new_plugins_from(targets):
         all_plugins[plugin.id] = plugin
 
     if plugins_without_phase:
-        fail("has plugin without a phase defined: %s" % cfgs_without_plugin)
+        fail("has plugin without a phase defined: %s" % plugins_without_phase)
 
     all_plugin_cfgs = {}
     cfgs_without_plugin = []
@@ -249,6 +249,7 @@ def _new_plugin_from(all_cfgs, plugins_for_phase):
     return struct(
         classpath = depset(transitive = classpath),
         data = depset(transitive = data),
+        ids = [p.id for p in plugins_for_phase],
         options = options,
     )
 
@@ -564,6 +565,13 @@ def _run_kt_builder_action(
 
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    runtime_inputs = [toolchains.kt.btapi_runtime_classpath] if toolchains.kt.experimental_build_tools_api else []
+    internal_plugin_inputs = [
+        toolchains.kt.internal_jvm_abi_gen,
+        toolchains.kt.internal_skip_code_gen,
+        toolchains.kt.internal_kapt,
+        toolchains.kt.internal_jdeps_gen,
+    ] if toolchains.kt.experimental_build_tools_api else []
 
     args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
     for f, path in outputs.items():
@@ -577,6 +585,12 @@ def _run_kt_builder_action(
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
     args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
+    if toolchains.kt.experimental_build_tools_api:
+        args.add_all("--btapi_runtime_classpath", toolchains.kt.btapi_runtime_classpath)
+        args.add("--jdeps_jar", toolchains.kt.internal_jdeps_gen)
+        args.add("--abi_gen_jar", toolchains.kt.internal_jvm_abi_gen)
+        args.add("--skip_code_gen_jar", toolchains.kt.internal_skip_code_gen)
+        args.add("--kapt_jar", toolchains.kt.internal_kapt)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
@@ -605,6 +619,12 @@ def _run_kt_builder_action(
         plugins.stubs_phase.classpath,
         omit_if_empty = True,
     )
+    if toolchains.kt.experimental_build_tools_api:
+        args.add_all(
+            "--stubs_plugins",
+            plugins.stubs_phase.ids,
+            omit_if_empty = True,
+        )
 
     args.add_all(
         "--stubs_plugin_options",
@@ -618,6 +638,12 @@ def _run_kt_builder_action(
         plugins.compile_phase.classpath,
         omit_if_empty = True,
     )
+    if toolchains.kt.experimental_build_tools_api:
+        args.add_all(
+            "--compiler_plugins",
+            plugins.compile_phase.ids,
+            omit_if_empty = True,
+        )
 
     args.add_all(
         "--compiler_plugin_options",
@@ -656,8 +682,8 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars,
-            transitive = [
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + internal_plugin_inputs,
+            transitive = runtime_inputs + [
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,
                 transitive_runtime_jars,

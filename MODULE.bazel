@@ -11,7 +11,7 @@ proto_version_parts = proto_version.split(".")
 
 proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
 
-kotlin_version = "2.3.20-RC2"
+kotlin_version = "2.3.20"
 
 bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_cc", version = "0.0.16")
@@ -77,6 +77,8 @@ maven.install(
     name = "rules_kotlin_maven",
     artifacts = [
         "org.jetbrains:annotations:13.0",
+        "org.jetbrains.kotlin:kotlin-build-tools-api:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-build-tools-compat:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-daemon-client:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-stdlib:{}".format(kotlin_version),

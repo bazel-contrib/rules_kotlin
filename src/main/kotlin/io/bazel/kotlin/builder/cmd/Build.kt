@@ -21,6 +21,7 @@ import io.bazel.kotlin.builder.tasks.CompileKotlin
 import io.bazel.kotlin.builder.tasks.KotlinBuilder
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.tasks.jvm.btapi.KotlinBtapiJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.worker.Worker
 import kotlin.system.exitProcess
@@ -39,9 +40,10 @@ object Build {
             toolchain.jdepsGen,
           )
         val compilerBuilder = KotlinToolchain.KotlincInvokerBuilder(toolchain)
-        val jvmTaskExecutor = KotlinJvmTaskExecutor(compilerBuilder, plugins)
-        val builder = KotlinBuilder(jvmTaskExecutor)
-        start(CompileKotlin(builder))
+        val legacyJvmTaskExecutor = KotlinJvmTaskExecutor(compilerBuilder, plugins)
+        val btapiJvmTaskExecutor = KotlinBtapiJvmTaskExecutor()
+        val builder = KotlinBuilder(legacyJvmTaskExecutor, btapiJvmTaskExecutor)
+        btapiJvmTaskExecutor.use { start(CompileKotlin(builder)) }
       }.run(::exitProcess)
   }
 }

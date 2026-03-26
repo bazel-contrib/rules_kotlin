@@ -26,8 +26,7 @@ import java.util.ServiceLoader
  * Wrapper for KSP2 invocation using direct API calls.
  *
  * This class is compiled against KSP2 classes (via neverlink_deps) and loaded
- * at runtime in a classloader that has the KSP2 jars. This follows the same
- * pattern as BuildToolsAPICompiler.
+ * at runtime in a classloader that has the KSP2 jars.
  */
 @Suppress("unused")
 class Ksp2Invoker(

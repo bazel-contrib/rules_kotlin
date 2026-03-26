@@ -60,6 +60,11 @@ def _kotlin_toolchain_impl(ctx):
                 ))
 
     runtime_providers = [target[JavaInfo] for target in ctx.attr.jvm_runtime if JavaInfo in target]
+    build_tools_info = ctx.attr.build_tools_impl[JavaInfo]
+    build_tools_runtime_classpath = depset(
+        direct = build_tools_info.runtime_output_jars,
+        transitive = [build_tools_info.transitive_runtime_jars],
+    )
 
     toolchain = dict(
         language_version = ctx.attr.language_version,
@@ -71,6 +76,11 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
+        btapi_runtime_classpath = build_tools_runtime_classpath,
+        internal_jvm_abi_gen = ctx.file.internal_jvm_abi_gen,
+        internal_skip_code_gen = ctx.file.internal_skip_code_gen,
+        internal_jdeps_gen = ctx.file.internal_jdeps_gen,
+        internal_kapt = ctx.file.internal_kapt,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -120,6 +130,12 @@ _kt_toolchain = rule(
                 "2.2",
                 "2.3",
             ],
+        ),
+        "build_tools_impl": attr.label(
+            doc = "Kotlin runtime: kotlin-build-tools-impl artifact.",
+            providers = [JavaInfo],
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-build-tools-impl"),
         ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
@@ -187,6 +203,30 @@ _kt_toolchain = rule(
             doc = """Compile using abi jars. Can be disabled for an individual target using the tag
             `kt_abi_plugin_incompatible`""",
             default = False,
+        ),
+        "internal_jdeps_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: jdeps-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:jdeps-gen"),
+        ),
+        "internal_jvm_abi_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: jvm-abi-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:jvm-abi-gen"),
+        ),
+        "internal_kapt": attr.label(
+            doc = "Internal Kotlin builder plugin: kotlin-annotation-processing-embeddable.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-annotation-processing-embeddable"),
+        ),
+        "internal_skip_code_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: skip-code-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:skip-code-gen"),
         ),
         "jacocorunner": attr.label(
             default = Label("@remote_java_tools//:jacoco_coverage_runner"),
@@ -343,6 +383,11 @@ def define_kt_toolchain(
         jvm_stdlibs = None,
         jvm_runtime = None,
         jacocorunner = None,
+        build_tools_impl = None,
+        internal_jvm_abi_gen = None,
+        internal_skip_code_gen = None,
+        internal_jdeps_gen = None,
+        internal_kapt = None,
         exec_compatible_with = None,
         target_compatible_with = None,
         target_settings = None):
@@ -372,6 +417,11 @@ def define_kt_toolchain(
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
         jacocorunner = jacocorunner,
+        build_tools_impl = build_tools_impl,
+        internal_jvm_abi_gen = internal_jvm_abi_gen,
+        internal_skip_code_gen = internal_skip_code_gen,
+        internal_jdeps_gen = internal_jdeps_gen,
+        internal_kapt = internal_kapt,
         jvm_stdlibs = jvm_stdlibs if jvm_stdlibs != None else [
             Label("//kotlin/compiler:annotations"),
             Label("//kotlin/compiler:kotlin-stdlib"),
