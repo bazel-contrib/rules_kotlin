@@ -32,7 +32,7 @@ register_toolchains("@androidsdk//:all")
 
 bazel_dep(name = "bazel_features", version = "1.39.0")
 bazel_dep(name = "bazel_lib", version = "3.1.0")
-bazel_dep(name = "rules_shell", version = "0.4.1")
+bazel_dep(name = "rules_shell", version = "0.7.1")
 bazel_dep(name = "bazel_worker_api", version = "0.0.10")
 bazel_dep(name = "bazel_worker_java", version = "0.0.10")
 
