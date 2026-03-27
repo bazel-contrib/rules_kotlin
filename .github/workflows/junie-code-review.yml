@@ -1,0 +1,27 @@
+name: Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+
+      - uses: JetBrains/junie-github-action@2815c780bf88716528f975ecae5abfe06648b9b2 # v1.3.4
+        with:
+          junie_api_key: ${{ secrets.JUNIE_API_KEY }}
+          # Update the same comment on subsequent Junie runs instead of adding new comments
+          use_single_comment: true
+          # Alternatively, write your custom review instructions in the prompt field
+          # instead of using the built-in "code-review" value
+          prompt: "code-review"
+
