@@ -13,7 +13,7 @@ proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
 
 bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_cc", version = "0.0.16")
-bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_python", version = "0.23.1")
