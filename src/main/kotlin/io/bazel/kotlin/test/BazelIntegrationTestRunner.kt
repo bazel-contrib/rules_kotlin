@@ -116,8 +116,16 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
                 "--test_output=all",
                 "//...",
               ).onFailThrow()
+              // Kover-compatible coverage run (no lcov dependency, runs on all platforms)
+              bazel.run(
+                workspace,
+                *systemFlags,
+                "coverage",
+                *commandFlags,
+                *coverageTargets,
+              ).onFailThrow()
               if (isWindows) {
-                println("Skipping coverage on Windows integration runs.")
+                println("Skipping lcov coverage on Windows integration runs.")
               } else {
                 bazel.run(
                   workspace,
