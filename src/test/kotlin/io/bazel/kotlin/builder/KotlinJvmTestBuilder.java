@@ -22,6 +22,7 @@ import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
+import io.bazel.kotlin.builder.tasks.jvm.btapi.KotlinBtapiJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
@@ -89,6 +90,17 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     @SafeVarargs
     public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
         return executeTask(jvmTaskExecutor()::execute, setup);
+    }
+
+    @SafeVarargs
+    public final Dep runBtapiCompileTask(Consumer<TaskBuilder>... setup) {
+        return executeTask(
+                (ctx, task) -> {
+                    try (KotlinBtapiJvmTaskExecutor executor = new KotlinBtapiJvmTaskExecutor()) {
+                        executor.execute(ctx, task, KotlinAbstractTestBuilder.toolchainSpecForTest());
+                    }
+                },
+                setup);
     }
 
     private static KotlinJvmTaskExecutor jvmTaskExecutor() {

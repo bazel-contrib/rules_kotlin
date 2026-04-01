@@ -154,15 +154,15 @@ message JvmCompilationTask {
       repeated string processorpaths = 8;
       // Kotlin stubs phase compiler plugin options
       repeated string stubs_plugin_options = 9;
-      // Kotlin stubs phase compiler plugin options
+      // Kotlin stubs phase compiler plugin IDs
       repeated string stubs_plugins = 10;
-      // Kotlin stubs phase compiler plugin options
+      // Kotlin stubs phase compiler plugin classpath
       repeated string stubs_plugin_classpath = 11;
       // Kotlin compiler phase compiler plugin options
       repeated string compiler_plugin_options = 12;
-      // Kotlin compiler phase compiler plugin options
+      // Kotlin compiler phase compiler plugin IDs
       repeated string compiler_plugins = 13;
-      // Kotlin compiler phase compiler plugin options
+      // Kotlin compiler phase compiler plugin classpath
       repeated string compiler_plugin_classpath = 14;
       // Java opts to be passed to java compiler
       repeated string javac_flags = 15;

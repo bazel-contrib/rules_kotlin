@@ -1,4 +1,4 @@
-load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("//kotlin:jvm.bzl", "kt_jvm_test")
 
 kt_jvm_test(
     name = "WorkerContextTest",
@@ -19,27 +19,6 @@ kt_jvm_test(
     ],
     test_class = "io.bazel.worker.InvocationWorkerTest",
     deps = [
-        "//src/main/kotlin/io/bazel/worker",
-        "@rules_kotlin_maven_dev//:com_google_truth_truth",
-    ],
-)
-
-kt_jvm_library(
-    name = "WorkerEnvironment",
-    srcs = ["WorkerEnvironment.kt"],
-    deps = [
-        "//src/main/kotlin/io/bazel/worker:worker_protocol_java_proto",
-    ],
-)
-
-kt_jvm_test(
-    name = "WorkerEnvironmentTest",
-    srcs = [
-        "WorkerEnvironmentTest.kt",
-    ],
-    test_class = "io.bazel.worker.WorkerEnvironmentTest",
-    deps = [
-        ":WorkerEnvironment",
         "//src/main/kotlin/io/bazel/worker",
         "@rules_kotlin_maven_dev//:com_google_truth_truth",
     ],

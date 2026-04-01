@@ -20,6 +20,7 @@ import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
@@ -45,7 +46,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
-abstract class KotlinAbstractTestBuilder<T> {
+public abstract class KotlinAbstractTestBuilder<T> {
     private static final Path BAZEL_TEST_DIR =
             FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"));
 
@@ -227,7 +228,7 @@ abstract class KotlinAbstractTestBuilder<T> {
                         .collect(Collectors.joining("\n", "directory " + type.name + " contents:\n", "")));
     }
 
-    static KotlinToolchain toolchainForTest() {
+    public static KotlinToolchain toolchainForTest() {
         return KotlinToolchain.createToolchain(
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-build-tools-impl").singleCompileJar()),
@@ -243,7 +244,25 @@ abstract class KotlinAbstractTestBuilder<T> {
         );
     }
 
-    static InternalCompilerPlugins internalPluginsForTest() {
+    public static ToolchainSpec toolchainSpecForTest() {
+        return new ToolchainSpec(
+                List.of(
+                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-build-tools-impl").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
+                ),
+                Path.of(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar())
+        );
+    }
+
+    public static InternalCompilerPlugins internalPluginsForTest() {
         return new InternalCompilerPlugins(
                 new KotlinToolchain.CompilerPlugin(
                         Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),

@@ -49,7 +49,7 @@ class KotlinJvmTaskExecutor(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
-    val compiler = compilerBuilder.build(context.info.buildToolsApi)
+    val compiler = compilerBuilder.build()
 
     val preprocessedTask =
       task

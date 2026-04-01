@@ -61,6 +61,15 @@ def _kotlin_toolchain_impl(ctx):
 
     runtime_providers = [target[JavaInfo] for target in ctx.attr.jvm_runtime if JavaInfo in target]
 
+    if ctx.attr.experimental_build_tools_api:
+        build_tools_info = ctx.attr.build_tools_impl[JavaInfo]
+        build_tools_runtime_classpath = depset(
+            direct = build_tools_info.runtime_output_jars,
+            transitive = [build_tools_info.transitive_runtime_jars],
+        )
+    else:
+        build_tools_runtime_classpath = depset()
+
     toolchain = dict(
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
@@ -71,6 +80,11 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
+        btapi_runtime_classpath = build_tools_runtime_classpath,
+        jvm_abi_gen = ctx.file.jvm_abi_gen if ctx.attr.experimental_build_tools_api else None,
+        skip_code_gen = ctx.file.skip_code_gen if ctx.attr.experimental_build_tools_api else None,
+        jdeps_gen = ctx.file.jdeps_gen if ctx.attr.experimental_build_tools_api else None,
+        kapt = ctx.file.kapt if ctx.attr.experimental_build_tools_api else None,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -122,6 +136,12 @@ _kt_toolchain = rule(
                 "2.2",
                 "2.3",
             ],
+        ),
+        "build_tools_impl": attr.label(
+            doc = "Kotlin runtime: kotlin-build-tools-impl artifact.",
+            providers = [JavaInfo],
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-build-tools-impl"),
         ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
@@ -201,12 +221,24 @@ _kt_toolchain = rule(
             doc = "Compiler options for javac",
             providers = [JavacOptions],
         ),
+        "jdeps_gen": attr.label(
+            doc = "Kotlin builder plugin: jdeps-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:jdeps-gen"),
+        ),
         "jdeps_merger": attr.label(
             doc = "the jdeps merger executable",
             default = Label("//src/main/kotlin:jdeps_merger"),
             executable = True,
             allow_files = True,
             cfg = "exec",
+        ),
+        "jvm_abi_gen": attr.label(
+            doc = "Kotlin builder plugin: jvm-abi-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:jvm-abi-gen"),
         ),
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
@@ -241,6 +273,12 @@ _kt_toolchain = rule(
                 "24",
                 "25",
             ],
+        ),
+        "kapt": attr.label(
+            doc = "Kotlin builder plugin: kotlin-annotation-processing-embeddable.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-annotation-processing-embeddable"),
         ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",
@@ -284,6 +322,12 @@ _kt_toolchain = rule(
                 "2.2",
                 "2.3",
             ],
+        ),
+        "skip_code_gen": attr.label(
+            doc = "Kotlin builder plugin: skip-code-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:skip-code-gen"),
         ),
         "supports_path_mapping": attr.bool(
             doc = """Enable path mapping for Kotlin actions. Requires experimental_multiplex_sandboxing.""",
@@ -355,6 +399,11 @@ def define_kt_toolchain(
         jvm_stdlibs = None,
         jvm_runtime = None,
         jacocorunner = None,
+        build_tools_impl = None,
+        jvm_abi_gen = None,
+        skip_code_gen = None,
+        jdeps_gen = None,
+        kapt = None,
         exec_compatible_with = None,
         target_compatible_with = None,
         target_settings = None):
@@ -386,6 +435,11 @@ def define_kt_toolchain(
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
         jacocorunner = jacocorunner,
+        build_tools_impl = build_tools_impl,
+        jvm_abi_gen = jvm_abi_gen,
+        skip_code_gen = skip_code_gen,
+        jdeps_gen = jdeps_gen,
+        kapt = kapt,
         jvm_stdlibs = jvm_stdlibs if jvm_stdlibs != None else [
             Label("//kotlin/compiler:annotations"),
             Label("//kotlin/compiler:kotlin-stdlib"),
