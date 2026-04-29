@@ -49,6 +49,7 @@ register_toolchains("//:custom_toolchain")
 """
 
 def _kotlin_toolchain_impl(ctx):
+    # Create neverlink JavaInfo providers using actual compile_jars (header jars) from stdlib targets.
     compile_time_providers = []
     for target in ctx.attr.jvm_stdlibs:
         if JavaInfo in target:
@@ -59,9 +60,16 @@ def _kotlin_toolchain_impl(ctx):
                     neverlink = True,
                 ))
 
-    runtime_providers = [target[JavaInfo] for target in ctx.attr.jvm_runtime if JavaInfo in target]
+    # For runtime, use actual JavaInfo providers (they contain proper runtime jars)
+    runtime_providers = [
+        target[JavaInfo]
+        for target in ctx.attr.jvm_runtime
+        if JavaInfo in target
+    ]
 
-    if ctx.attr.experimental_build_tools_api:
+    use_btapi = ctx.attr.experimental_build_tools_api[BuildSettingInfo].value
+
+    if use_btapi:
         build_tools_info = ctx.attr.build_tools_impl[JavaInfo]
         build_tools_runtime_classpath = depset(
             direct = build_tools_info.runtime_output_jars,
@@ -80,11 +88,14 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
+        snapshot_worker = ctx.attr.snapshot_worker,
+        build_tools_impl = ctx.attr.build_tools_impl,
+        experimental_build_tools_api = use_btapi,
         btapi_runtime_classpath = build_tools_runtime_classpath,
-        jvm_abi_gen = ctx.file.jvm_abi_gen if ctx.attr.experimental_build_tools_api else None,
-        skip_code_gen = ctx.file.skip_code_gen if ctx.attr.experimental_build_tools_api else None,
-        jdeps_gen = ctx.file.jdeps_gen if ctx.attr.experimental_build_tools_api else None,
-        kapt = ctx.file.kapt if ctx.attr.experimental_build_tools_api else None,
+        jvm_abi_gen = ctx.file.jvm_abi_gen if use_btapi else None,
+        skip_code_gen = ctx.file.skip_code_gen if use_btapi else None,
+        jdeps_gen = ctx.file.jdeps_gen if use_btapi else None,
+        kapt = ctx.file.kapt if use_btapi else None,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -100,7 +111,8 @@ def _kotlin_toolchain_impl(ctx):
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
-        experimental_build_tools_api = ctx.attr.experimental_build_tools_api,
+        experimental_incremental_compilation = ctx.attr.experimental_incremental_compilation[BuildSettingInfo].value,
+        experimental_ic_enable_logging = ctx.attr.experimental_ic_enable_logging[BuildSettingInfo].value,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -143,6 +155,10 @@ _kt_toolchain = rule(
             cfg = "exec",
             default = Label("//kotlin/compiler:kotlin-build-tools-impl"),
         ),
+        "experimental_build_tools_api": attr.label(
+            doc = "Enables experimental support for Build Tools API integration",
+            default = Label("//kotlin/settings:experimental_build_tools_api"),
+        ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
             print timing information. `trace` will cause the builder to print tracing messages. These tags can be
@@ -150,9 +166,13 @@ _kt_toolchain = rule(
             using `tags` attribute defined directly on the rules.""",
             allow_empty = True,
         ),
-        "experimental_build_tools_api": attr.bool(
-            doc = "Enables experimental support for Build Tools API integration",
-            default = False,
+        "experimental_ic_enable_logging": attr.label(
+            doc = "Enables incremental-compilation logging output.",
+            default = Label("//kotlin/settings:experimental_ic_enable_logging"),
+        ),
+        "experimental_incremental_compilation": attr.label(
+            doc = "Enables incremental compilation. Requires experimental_build_tools_api.",
+            default = Label("//kotlin/settings:experimental_incremental_compilation"),
         ),
         "experimental_multiplex_sandboxing": attr.bool(
             doc = """Run workers with multiplex sandboxing.""",
@@ -323,6 +343,13 @@ _kt_toolchain = rule(
                 "2.3",
             ],
         ),
+        "snapshot_worker": attr.label(
+            doc = "the snapshot worker executable",
+            default = Label("//src/main/kotlin:snapshot"),
+            executable = True,
+            allow_files = True,
+            cfg = "exec",
+        ),
         "skip_code_gen": attr.label(
             doc = "Kotlin builder plugin: skip-code-gen.",
             allow_single_file = True,
@@ -393,6 +420,8 @@ def define_kt_toolchain(
         experimental_multiplex_workers = None,
         experimental_multiplex_sandboxing = None,
         supports_path_mapping = None,
+        experimental_incremental_compilation = None,
+        experimental_ic_enable_logging = None,
         experimental_build_tools_api = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
@@ -430,6 +459,8 @@ def define_kt_toolchain(
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
+        experimental_incremental_compilation = experimental_incremental_compilation,
+        experimental_ic_enable_logging = experimental_ic_enable_logging,
         experimental_build_tools_api = experimental_build_tools_api,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,

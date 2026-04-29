@@ -1,0 +1,19 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@rules_java//java:defs.bzl", "java_library")
+
+java_library(
+    name = "java_dep",
+    srcs = glob(["j/*.java"]),
+)
+
+kt_jvm_library(
+    name = "exporter",
+    srcs = glob(["a/*.kt"]),
+    exports = [":java_dep"],
+)
+
+kt_jvm_library(
+    name = "consumer",
+    srcs = glob(["c/*.kt"]),
+    deps = [":exporter"],
+)

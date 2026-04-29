@@ -1,0 +1,12 @@
+=== Running initial build ===
+KotlinCompile //:a
+Non-incremental compilation will be performed: CLASSPATH_SNAPSHOT_NOT_FOUND
+compile iteration: a/A.kt
+compiler exit code: OK
+=== Applying modifications ===
+Updating: BUILD.bazel
+=== Running incremental build ===
+KotlinCompile //:a
+Non-incremental compilation will be performed: UNKNOWN_CHANGES_IN_GRADLE_INPUTS
+compile iteration: a/A.kt
+compiler exit code: OK

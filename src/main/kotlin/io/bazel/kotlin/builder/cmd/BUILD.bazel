@@ -92,3 +92,23 @@ kt_bootstrap_binary(
     visibility = ["//src:__subpackages__"],
     runtime_deps = [":ksp2_lib"],
 )
+
+kt_bootstrap_library(
+    name = "snapshot_lib",
+    srcs = ["Snapshot.kt"],
+    visibility = ["//src:__subpackages__"],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "//src/main/kotlin/io/bazel/worker",
+    ],
+)
+
+kt_bootstrap_binary(
+    name = "snapshot",
+    data = _KOTLIN_STDLIBS,
+    final_runtime_deps = _KOTLIN_STDLIBS,
+    main_class = "io.bazel.kotlin.builder.cmd.Snapshot",
+    shade_rules = "//src/main/kotlin:shade.jarjar",
+    visibility = ["//src:__subpackages__"],
+    runtime_deps = [":snapshot_lib"],
+)

@@ -1,0 +1,19 @@
+=== Running initial build ===
+KotlinCompile //:c
+Non-incremental compilation will be performed: CLASSPATH_SNAPSHOT_NOT_FOUND
+compile iteration: c/C.kt
+compiler exit code: OK
+KotlinCompile //:b
+compile iteration: b/B.kt
+compiler exit code: OK
+KotlinCompile //:a
+compile iteration: a/A.kt
+compiler exit code: OK
+=== Applying modifications ===
+Updating: c/C.kt
+=== Running incremental build ===
+KotlinCompile //:c
+compile iteration: c/C.kt
+compiler exit code: OK
+KotlinCompile //:a
+Incremental compilation completed

@@ -40,3 +40,17 @@ bool_flag(
     build_setting_default = True,
     visibility = ["//visibility:public"],
 )
+
+# --@rules_kotlin//kotlin/settings:experimental_incremental_compilation=False
+bool_flag(
+    name = "experimental_incremental_compilation",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# --@rules_kotlin//kotlin/settings:experimental_ic_enable_logging=True
+bool_flag(
+    name = "experimental_ic_enable_logging",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)

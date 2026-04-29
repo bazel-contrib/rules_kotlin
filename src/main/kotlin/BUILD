@@ -45,6 +45,12 @@ alias(
 )
 
 alias(
+    name = "snapshot",
+    actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:snapshot",
+    visibility = ["//visibility:public"],
+)
+
+alias(
     name = "compiler",
     actual = "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
     visibility = ["//visibility:public"],
@@ -61,6 +67,7 @@ release_archive(
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:snapshot_deploy.jar": "snapshot_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },

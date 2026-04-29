@@ -26,7 +26,9 @@ import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import kotlin.io.path.exists
 
 internal fun JvmCompilationTask.runPluginsBtapi(
@@ -90,7 +92,38 @@ internal fun JvmCompilationTask.ensureBtapiJdepsExists() {
   }
 
   val jdepsPath = Paths.get(outputs.jdeps)
-  if (!jdepsPath.exists()) {
-    writeJdeps(outputs.jdeps, emptyJdeps(info.label))
+  if (jdepsPath.exists()) {
+    cacheBtapiJdepsToIcDir()
+    return
   }
+
+  if (info.incrementalCompilation && directories.incrementalBaseDir.isNotEmpty()) {
+    val icDir = Paths.get(directories.incrementalBaseDir)
+    val cachedJdepsPath = icDir.resolve("cached.jdeps")
+    if (cachedJdepsPath.exists()) {
+      Files.copy(cachedJdepsPath, jdepsPath, StandardCopyOption.REPLACE_EXISTING)
+      return
+    }
+  }
+
+  writeJdeps(outputs.jdeps, emptyJdeps(info.label))
+}
+
+private fun JvmCompilationTask.cacheBtapiJdepsToIcDir() {
+  if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
+    return
+  }
+  if (outputs.jdeps.isEmpty()) {
+    return
+  }
+
+  val jdepsPath = Paths.get(outputs.jdeps)
+  if (!jdepsPath.exists()) {
+    return
+  }
+
+  val icDir = Paths.get(directories.incrementalBaseDir)
+  Files.createDirectories(icDir)
+  val cachedJdepsPath = icDir.resolve("cached.jdeps")
+  Files.copy(jdepsPath, cachedJdepsPath, StandardCopyOption.REPLACE_EXISTING)
 }

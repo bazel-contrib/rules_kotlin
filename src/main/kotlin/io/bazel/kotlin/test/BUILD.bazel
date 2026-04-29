@@ -20,3 +20,20 @@ kt_jvm_binary(
         "@rules_kotlin_maven_dev//:org_apache_commons_commons_compress",
     ],
 )
+
+kt_jvm_binary(
+    name = "ICIntegrationTestRunner",
+    srcs = [
+        "ICIntegrationTestRunner.kt",
+    ],
+    data = ["//:rules_kotlin_release"],
+    jvm_flags = [
+        "-D@rules_kotlin...rules_kotlin_release=$(rlocationpath //:rules_kotlin_release)",
+    ],
+    main_class = "io.bazel.kotlin.test.ICIntegrationTestRunner",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder/utils",
+        "@rules_kotlin_maven_dev//:org_apache_commons_commons_compress",
+    ],
+)

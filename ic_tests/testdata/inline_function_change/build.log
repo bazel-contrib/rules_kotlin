@@ -1,0 +1,20 @@
+=== Running initial build ===
+KotlinCompile //:a
+Non-incremental compilation will be performed: CLASSPATH_SNAPSHOT_NOT_FOUND
+compile iteration: a/TheClass.kt, a/usageA.kt
+compiler exit code: OK
+KotlinCompile //:b
+compile iteration: b/usageB.kt
+compiler exit code: OK
+=== Applying modifications ===
+Updating: a/TheClass.kt
+=== Running incremental build ===
+KotlinCompile //:a
+TheClass.kt is marked dirty: was modified since last time
+compile iteration: a/TheClass.kt
+compiler exit code: OK
+MembersChanged(fqName = TheClass, names = [getData])
+usageA.kt is marked dirty: dirty member TheClass#getData
+compile iteration: a/usageA.kt
+compiler exit code: OK
+Incremental compilation completed
