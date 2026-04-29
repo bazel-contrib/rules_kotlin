@@ -160,8 +160,12 @@ object ICIntegrationTestRunner {
         release.inputStream(),
       ),
     ).use { stream ->
+      val normalizedDestination = destination.toAbsolutePath().normalize()
       generateSequence(stream::getNextEntry).forEach { entry ->
-        val dest = destination.resolve(entry.name)
+        val dest = normalizedDestination.resolve(entry.name).normalize()
+        require(dest.startsWith(normalizedDestination)) {
+          "Refusing to extract archive entry outside destination: ${entry.name}"
+        }
         when {
           entry.isDirectory -> dest.createDirectories()
           entry.isFile -> Files.write(
@@ -175,20 +179,22 @@ object ICIntegrationTestRunner {
   }
 
   private fun copyWorkspace(src: Path, dst: Path) {
-    Files.walk(src).forEach { path ->
-      var relativePath = src.relativize(path).toString()
-      // Skip .new, .delete, and build.log files (build.log is only for comparison)
-      if (!relativePath.matches(ACTION_EXTENSION_REGEX) && !relativePath.endsWith("build.log")) {
-        // Rename BUILD.bazel.txt to BUILD.bazel (to avoid subpackage issues in the source tree)
-        if (relativePath.endsWith("BUILD.bazel.txt")) {
-          relativePath = relativePath.removeSuffix(".txt")
-        }
-        val target = dst.resolve(relativePath)
-        if (path.isDirectory()) {
-          target.createDirectories()
-        } else {
-          target.parent.createDirectories()
-          Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING)
+    Files.walk(src).use { paths ->
+      paths.forEach { path ->
+        var relativePath = src.relativize(path).toString()
+        // Skip .new, .delete, and build.log files (build.log is only for comparison)
+        if (!relativePath.matches(ACTION_EXTENSION_REGEX) && !relativePath.endsWith("build.log")) {
+          // Rename BUILD.bazel.txt to BUILD.bazel (to avoid subpackage issues in the source tree)
+          if (relativePath.endsWith("BUILD.bazel.txt")) {
+            relativePath = relativePath.removeSuffix(".txt")
+          }
+          val target = dst.resolve(relativePath)
+          if (path.isDirectory()) {
+            target.createDirectories()
+          } else {
+            target.parent.createDirectories()
+            Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING)
+          }
         }
       }
     }
@@ -202,30 +208,32 @@ object ICIntegrationTestRunner {
     val newSuffix = if (stage > 0) ".new$stage" else ".new"
     val actions = mutableListOf<String>()
 
-    Files.walk(testData).forEach { path ->
-      val name = path.name
-      when {
-        name.endsWith(newSuffix) -> {
-          // Copy .new file to replace original
-          var targetName = name.removeSuffix(newSuffix)
-          // Handle BUILD.bazel.txt -> BUILD.bazel rename (to match initial copy behavior)
-          if (targetName == "BUILD.bazel.txt") {
-            targetName = "BUILD.bazel"
+    Files.walk(testData).use { paths ->
+      paths.forEach { path ->
+        val name = path.name
+        when {
+          name.endsWith(newSuffix) -> {
+            // Copy .new file to replace original
+            var targetName = name.removeSuffix(newSuffix)
+            // Handle BUILD.bazel.txt -> BUILD.bazel rename (to match initial copy behavior)
+            if (targetName == "BUILD.bazel.txt") {
+              targetName = "BUILD.bazel"
+            }
+            val target = workingCopy.resolve(testData.relativize(path.parent)).resolve(targetName)
+            val action = "Updating: ${testData.relativize(path.parent).resolve(targetName)}"
+            println("  $action")
+            actions.add(action)
+            Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING)
           }
-          val target = workingCopy.resolve(testData.relativize(path.parent)).resolve(targetName)
-          val action = "Updating: ${testData.relativize(path.parent).resolve(targetName)}"
-          println("  $action")
-          actions.add(action)
-          Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING)
-        }
-        name.endsWith(deleteSuffix) -> {
-          // Delete original file
-          val targetName = name.removeSuffix(deleteSuffix)
-          val target = workingCopy.resolve(testData.relativize(path.parent)).resolve(targetName)
-          val action = "Deleting: ${testData.relativize(path.parent).resolve(targetName)}"
-          println("  $action")
-          actions.add(action)
-          Files.deleteIfExists(target)
+          name.endsWith(deleteSuffix) -> {
+            // Delete original file
+            val targetName = name.removeSuffix(deleteSuffix)
+            val target = workingCopy.resolve(testData.relativize(path.parent)).resolve(targetName)
+            val action = "Deleting: ${testData.relativize(path.parent).resolve(targetName)}"
+            println("  $action")
+            actions.add(action)
+            Files.deleteIfExists(target)
+          }
         }
       }
     }
@@ -415,7 +423,7 @@ object ICIntegrationTestRunner {
     resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
 
   sealed class Version : Comparable<Version> {
-    override fun compareTo(other: Version): Int = 1
+    abstract override fun compareTo(other: Version): Int
 
     class Head : Version() {
       override fun compareTo(other: Version): Int = (other as? Head)?.let { 0 } ?: 1

@@ -128,5 +128,5 @@ java_binary(
     data = KOTLIN_STDLIBS,
     main_class = "io.bazel.kotlin.builder.cmd.Snapshot",
     visibility = ["//visibility:public"],
-    runtime_deps = [":snapshot_worker"],
+    runtime_deps = [":snapshot_worker"] + KOTLIN_STDLIBS,
 )

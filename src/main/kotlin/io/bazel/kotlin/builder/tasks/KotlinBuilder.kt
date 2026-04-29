@@ -174,22 +174,22 @@ class KotlinBuilder(
       strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
       reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE)?.let {
-        treatInternalAsPrivateInAbiJar = it == "true"
+        treatInternalAsPrivateInAbiJar = it.toBoolean()
       }
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_PRIVATE_CLASSES)?.let {
-        removePrivateClassesInAbiJar = it == "true"
+        removePrivateClassesInAbiJar = it.toBoolean()
       }
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
-        removeDebugInfo = it == "true"
+        removeDebugInfo = it.toBoolean()
       }
       argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)?.let {
-        incrementalCompilation = it == "true"
+        incrementalCompilation = it.toBoolean()
       }
       argMap.optionalSingle(KotlinBuilderFlags.IC_ENABLE_LOGGING)?.let {
-        icEnableLogging = it == "true"
+        icEnableLogging = it.toBoolean()
       }
       argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
-        buildToolsApi = it == "true"
+        buildToolsApi = it.toBoolean()
       }
       this
     }
@@ -315,9 +315,7 @@ class KotlinBuilder(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
         )
 
-        val useAbsolutePath =
-          argMap
-            .optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION) == "true"
+        val useAbsolutePath = info.incrementalCompilation
 
         argMap
           .optional(KotlinBuilderFlags.SOURCES)

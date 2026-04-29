@@ -310,13 +310,13 @@ class BtapiCompiler(
         .sorted()
         .map { snapshotPath ->
           val path = Path.of(snapshotPath)
-          val contentHash =
+          val fingerprint =
             if (Files.exists(path)) {
-              Files.readAllBytes(path).contentHashCode()
+              "${Files.size(path)}:${Files.getLastModifiedTime(path).toMillis()}"
             } else {
-              0
+              "0:0"
             }
-          "$snapshotPath:$contentHash"
+          "$snapshotPath:$fingerprint"
         }.hashCode()
     return hash
   }

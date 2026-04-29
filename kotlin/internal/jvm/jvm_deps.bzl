@@ -26,7 +26,7 @@ def _java_info_snapshot_jars(target):
     java_info = _java_info(target)
     if java_info == None:
         return depset()
-    return depset(direct = java_info.runtime_output_jars)
+    return java_info.compile_jars
 
 def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""

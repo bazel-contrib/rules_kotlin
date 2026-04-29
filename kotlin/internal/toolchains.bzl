@@ -67,7 +67,7 @@ def _kotlin_toolchain_impl(ctx):
         if JavaInfo in target
     ]
 
-    use_btapi = ctx.attr.experimental_build_tools_api[BuildSettingInfo].value
+    use_btapi = ctx.attr.experimental_build_tools_api or ctx.attr._experimental_build_tools_api[BuildSettingInfo].value
 
     if use_btapi:
         build_tools_info = ctx.attr.build_tools_impl[JavaInfo]
@@ -155,9 +155,9 @@ _kt_toolchain = rule(
             cfg = "exec",
             default = Label("//kotlin/compiler:kotlin-build-tools-impl"),
         ),
-        "experimental_build_tools_api": attr.label(
+        "experimental_build_tools_api": attr.bool(
             doc = "Enables experimental support for Build Tools API integration",
-            default = Label("//kotlin/settings:experimental_build_tools_api"),
+            default = False,
         ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
@@ -377,6 +377,10 @@ _kt_toolchain = rule(
             Transitive deps required for compilation must be explicitly added. Using
             kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
             default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
+        ),
+        "_experimental_build_tools_api": attr.label(
+            doc = """Public build setting controlling Build Tools API support.""",
+            default = Label("//kotlin/settings:experimental_build_tools_api"),
         ),
         "_experimental_strict_associate_dependencies": attr.label(
             doc = """
