@@ -1,5 +1,4 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
+load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -67,31 +66,14 @@ java_library(
     ],
 )
 
-java_binary(
-    name = "jarjar_runner",
-    main_class = "org.pantsbuild.jarjar.Main",
-    visibility = ["//visibility:public"],
-    runtime_deps = ["@kotlin_rules_maven//:org_pantsbuild_jarjar"],
-)
-
-bzl_library(
-    name = "bzl",
-    srcs = [
-        "jarjar.bzl",
-        "@bazel_tools//tools:bzl_srcs",
-    ],
-)
-
 release_archive(
     name = "pkg",
     srcs = [
         "empty.jar",
         "empty.jdeps",
-        "jarjar.bzl",
         "java_stub_template.txt",
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
-        "jarjar_runner_deploy.jar": "jarjar.jar",
     },
 )

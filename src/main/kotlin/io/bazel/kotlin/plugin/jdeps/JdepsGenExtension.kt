@@ -46,7 +46,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.getAbbreviation
 import org.jetbrains.kotlin.types.typeUtil.supertypes
-
 /**
  * Kotlin compiler extension that tracks classes (and corresponding classpath jars) needed to
  * compile current kotlin target. Tracked data should include all classes whose changes could

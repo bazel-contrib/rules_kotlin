@@ -12,27 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_java//java:defs.bzl", "java_binary")
-
 exports_files([
     "empty.jar",
     "empty.jdeps",
     "java_stub_template.txt",
 ])
-
-java_binary(
-    name = "jarjar_runner",
-    main_class = "org.pantsbuild.jarjar.Main",
-    visibility = ["//visibility:public"],
-    runtime_deps = [":jarjar.jar"],
-)
-
-bzl_library(
-    name = "bzl",
-    srcs = [
-        "jarjar.bzl",
-        "@bazel_tools//tools:bzl_srcs",
-    ],
-    visibility = ["//visibility:public"],
-)

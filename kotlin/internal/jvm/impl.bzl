@@ -37,7 +37,16 @@ load(
     "is_windows",
 )
 load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
-load("//third_party:jarjar.bzl", "jarjar_action")
+
+def _jarjar_action(actions, rules, input, output, jarjar):
+    actions.run(
+        inputs = [rules, input],
+        outputs = [output],
+        executable = jarjar,
+        progress_message = "jarjar %%{label}",
+        arguments = ["process", rules.path, input.path, output.path],
+    )
+    return output
 
 def _artifact_short_path(artifact):
     return artifact.short_path
@@ -503,7 +512,7 @@ def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         return java_common.merge(deps) if deps else java_common.merge([])
 
     reshaded = [
-        jarjar_action(
+        _jarjar_action(
             actions = ctx.actions,
             jarjar = ctx.executable._jarjar,
             rules = ctx.file._kotlin_compiler_reshade_rules,

@@ -286,6 +286,138 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
+  fun `java annotation on class is an explict dep`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClass.kt",
+        """
+          package something
+
+          @JavaAnnotation
+          class AnotherClass {
+          }
+        """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .buildSorted()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `java annotation values on class are an explict dep`() {
+    val dependentTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "ClassToReference.kt",
+        """
+          package something;
+
+          @JavaAnnotation
+          class ClassToReference
+        """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+
+    val anotherDepTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClassToReference.kt",
+        """
+          package something;
+
+          @JavaAnnotation(modules = [ClassToReference::class])
+          class AnotherClassToReference
+        """
+      )
+      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClass.kt",
+        """
+          package something
+
+          @JavaAnnotation(modules = [AnotherClassToReference::class])
+          class AnotherClass {
+          }
+        """
+      )
+      c.addTransitiveDependencies(dependentTarget)
+      c.addDirectDependencies(anotherDepTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .addExplicitDep(anotherDepTarget.singleCompileJar())
+      .buildSorted()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `types referenced inside when statements are explicit deps`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClass.kt",
+        """
+          package something
+
+          import pkg.assertion.ExampleException
+
+          fun mapExceptions(exception: Exception) = when (exception) {
+              is ExampleException -> exception
+              else                -> exception
+          }
+        """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .buildSorted()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `java classes with inheritance`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClass.kt",
+        """
+          package something
+
+          class SomeClass : SomeClassWithInheritance.BaseClassCallback {
+          }
+        """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .buildSorted()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
   fun `java annotation on property is an explict dep`() {
     val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.setLabel("//:dependingTarget")

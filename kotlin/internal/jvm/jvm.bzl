@@ -544,7 +544,7 @@ _kt_compiler_deps_aspect = aspect(
         "_jarjar": attr.label(
             executable = True,
             cfg = "exec",
-            default = Label("//third_party:jarjar_runner"),
+            default = Label("@bazel_jar_jar//src/main/java/com/github/johnynek/jarjar:app"),
         ),
         "_kotlin_compiler_reshade_rules": attr.label(
             default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
@@ -631,7 +631,7 @@ Supports the following template values:
         "_jarjar": attr.label(
             executable = True,
             cfg = "exec",
-            default = Label("//third_party:jarjar_runner"),
+            default = Label("@bazel_jar_jar//src/main/java/com/github/johnynek/jarjar:app"),
         ),
         "_kotlin_compiler_reshade_rules": attr.label(
             default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@rules_java//java:defs.bzl", "java_binary")
+load("@bazel_jar_jar//:jar_jar.bzl", "jar_jar")
 load("//kotlin:lint.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_library")
-load("//third_party:jarjar.bzl", "jar_jar")
 
 def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibility = [], kotlinc_opts = [], **kwargs):
     """
