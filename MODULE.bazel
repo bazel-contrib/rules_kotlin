@@ -70,7 +70,7 @@ rbe_preconfig = use_repo_rule("@bazel_ci_rules//:rbe_repo.bzl", "rbe_preconfig")
 
 rbe_preconfig(
     name = "buildkite_config",
-    toolchain = "ubuntu2204",
+    toolchain = "ubuntu2404",
 )
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
