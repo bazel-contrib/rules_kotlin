@@ -65,6 +65,16 @@ def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(
         ),
     ] + list(additional_providers)
 
+def _expand_env(ctx):
+    return {
+        key: ctx.expand_make_variables(
+            "env",
+            ctx.expand_location(value, ctx.attr.data),
+            {},
+        )
+        for key, value in ctx.attr.env.items()
+    }
+
 def _is_absolute_target_platform_path(ctx, path):
     """Check if path is absolute, accounting for Windows drive letters."""
     if is_windows(ctx):
@@ -377,7 +387,7 @@ def kt_jvm_binary_impl(ctx):
         ),
         launcher_result.executable,
         RunEnvironmentInfo(
-            environment = ctx.attr.env,
+            environment = _expand_env(ctx),
             inherited_environment = ctx.attr.env_inherit,
         ),
     )
@@ -442,7 +452,7 @@ def kt_jvm_junit_test_impl(ctx):
         ),
         launcher_result.executable,
         # adds common test variables, including TEST_WORKSPACE.
-        testing.TestEnvironment(environment = ctx.attr.env, inherited_environment = ctx.attr.env_inherit),
+        testing.TestEnvironment(environment = _expand_env(ctx), inherited_environment = ctx.attr.env_inherit),
     )
 
 _KtCompilerPluginClasspathInfo = provider(
