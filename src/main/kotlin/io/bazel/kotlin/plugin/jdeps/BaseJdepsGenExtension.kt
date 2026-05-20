@@ -99,7 +99,7 @@ abstract class BaseJdepsGenExtension(
   }
 
   private fun doWriteJdeps(
-    directDeps: MutableList<String>,
+    directDeps: List<String>,
     targetLabel: String,
     explicitDeps: Map<String, List<String>>,
     implicitClassesCanonicalPaths: Set<String>,
@@ -144,7 +144,7 @@ abstract class BaseJdepsGenExtension(
   private fun doStrictDeps(
     compilerConfiguration: CompilerConfiguration,
     targetLabel: String,
-    directDeps: MutableList<String>,
+    directDeps: List<String>,
     explicitDeps: Map<String, List<String>>,
   ) {
     when (compilerConfiguration.getNotNull(JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS)) {

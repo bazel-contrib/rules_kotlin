@@ -18,14 +18,15 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.Deps
+import io.bazel.kotlin.builder.KotlinAbstractTestBuilder
 import io.bazel.kotlin.builder.tasks.KotlinBuilder
+import io.bazel.kotlin.builder.tasks.jvm.btapi.KotlinBtapiJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.worker.Status
 import io.bazel.worker.WorkerContext
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
 import java.nio.file.Files
 
 @RunWith(JUnit4::class)
@@ -41,7 +42,7 @@ class KotlinBuilderBuildTest {
     WorkerContext.run(named = "test") {
       doTask("build", sandboxDir = root) { taskContext ->
         exitCode =
-          KotlinBuilder(jvmTaskExecutor()).build(
+          KotlinBuilder(jvmTaskExecutor(), KotlinBtapiJvmTaskExecutor()).build(
             taskContext,
             args =
               listOf(
@@ -83,35 +84,10 @@ class KotlinBuilderBuildTest {
   }
 
   private fun jvmTaskExecutor(): KotlinJvmTaskExecutor {
-    val toolchain =
-      KotlinToolchain.createToolchain(
-        File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
-        File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
-        File(
-          Deps.Dep
-            .fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar")
-            .singleCompileJar(),
-        ),
-        File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
-        File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
-        File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-        File(
-          Deps.Dep
-            .fromLabel("//kotlin/compiler:kotlin-annotation-processing")
-            .singleCompileJar(),
-        ),
-        File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
-        File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
-        File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar()),
-      )
+    val toolchain = KotlinAbstractTestBuilder.toolchainForTest()
     return KotlinJvmTaskExecutor(
       KotlinToolchain.KotlincInvokerBuilder(toolchain),
-      InternalCompilerPlugins(
-        toolchain.jvmAbiGen,
-        toolchain.skipCodeGen,
-        toolchain.kapt3Plugin,
-        toolchain.jdepsGen,
-      ),
+      KotlinAbstractTestBuilder.internalPluginsForTest(),
     )
   }
 }

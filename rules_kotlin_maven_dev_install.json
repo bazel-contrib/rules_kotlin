@@ -7,7 +7,6 @@
     "com.google.auto.value:auto-value": 1146221104,
     "com.google.auto.value:auto-value-annotations": -1101276935,
     "com.google.code.findbugs:jsr305": 495355163,
-    "com.google.code.gson:gson": -1146526807,
     "com.google.dagger:dagger": 1304516772,
     "com.google.dagger:dagger-compiler": 1028126946,
     "com.google.dagger:dagger-producers": -860209456,
@@ -24,15 +23,13 @@
     "javax.inject:javax.inject": -297932879,
     "junit:junit": 373369075,
     "org.apache.commons:commons-compress": -1310119682,
-    "org.codehaus.plexus:plexus-utils": 1634344571,
-    "org.jetbrains.kotlin:kotlin-metadata-jvm": 17228464,
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core": 1254427323,
+    "org.jetbrains.kotlin:kotlin-metadata-jvm": 261759038,
     "repositories": 582576641
   },
   "__RESOLVED_ARTIFACTS_HASH": {
     "com.eed3si9n.jarjar:jarjar": 1838835399,
     "com.eed3si9n.jarjar:jarjar:jar:sources": 903276703,
-    "com.google.auto.service:auto-service": -1487611887,
+    "com.google.auto.service:auto-service": -1912507896,
     "com.google.auto.service:auto-service-annotations": 262983930,
     "com.google.auto.service:auto-service-annotations:jar:sources": -1392999316,
     "com.google.auto.service:auto-service:jar:sources": -1296332334,
@@ -40,64 +37,64 @@
     "com.google.auto.value:auto-value-annotations": 641018093,
     "com.google.auto.value:auto-value-annotations:jar:sources": -315473772,
     "com.google.auto.value:auto-value:jar:sources": 1982175049,
-    "com.google.auto:auto-common": -1425245725,
+    "com.google.auto:auto-common": -1667883792,
     "com.google.auto:auto-common:jar:sources": -542679945,
     "com.google.code.findbugs:jsr305": 870839855,
     "com.google.code.findbugs:jsr305:jar:sources": -935881202,
-    "com.google.code.gson:gson": 50257904,
-    "com.google.code.gson:gson:jar:sources": 275910111,
+    "com.google.code.gson:gson": -1575757252,
+    "com.google.code.gson:gson:jar:sources": -350708227,
     "com.google.dagger:dagger": 875179613,
-    "com.google.dagger:dagger-compiler": 1511246626,
+    "com.google.dagger:dagger-compiler": -1789364175,
     "com.google.dagger:dagger-compiler:jar:sources": 671838778,
-    "com.google.dagger:dagger-producers": 56284338,
+    "com.google.dagger:dagger-producers": 701525829,
     "com.google.dagger:dagger-producers:jar:sources": 118085986,
-    "com.google.dagger:dagger-spi": -1445247775,
+    "com.google.dagger:dagger-spi": 181481294,
     "com.google.dagger:dagger-spi:jar:sources": 799959681,
     "com.google.dagger:dagger:jar:sources": 758099566,
-    "com.google.devtools.ksp:symbol-processing-api": -1919668222,
+    "com.google.devtools.ksp:symbol-processing-api": 596274367,
     "com.google.devtools.ksp:symbol-processing-api:jar:sources": 858565805,
-    "com.google.errorprone:error_prone_annotations": -140447182,
-    "com.google.errorprone:error_prone_annotations:jar:sources": 1162312431,
+    "com.google.errorprone:error_prone_annotations": 98076041,
+    "com.google.errorprone:error_prone_annotations:jar:sources": -976208747,
     "com.google.errorprone:javac-shaded": 1621944613,
     "com.google.errorprone:javac-shaded:jar:sources": 1578813588,
-    "com.google.googlejavaformat:google-java-format": 395640802,
+    "com.google.googlejavaformat:google-java-format": 153002735,
     "com.google.googlejavaformat:google-java-format:jar:sources": 409931302,
     "com.google.guava:failureaccess": -718864417,
     "com.google.guava:failureaccess:jar:sources": -527872939,
-    "com.google.guava:guava": -1228437618,
-    "com.google.guava:guava:jar:sources": -2127214593,
+    "com.google.guava:guava": -1322848894,
+    "com.google.guava:guava:jar:sources": 1675478802,
     "com.google.guava:listenablefuture": 1079558157,
-    "com.google.j2objc:j2objc-annotations": -404209759,
-    "com.google.j2objc:j2objc-annotations:jar:sources": 1852793670,
+    "com.google.j2objc:j2objc-annotations": 248818742,
+    "com.google.j2objc:j2objc-annotations:jar:sources": -378364028,
     "com.google.protobuf:protobuf-java": 1957269082,
-    "com.google.protobuf:protobuf-java-util": -2063472123,
+    "com.google.protobuf:protobuf-java-util": -444395857,
     "com.google.protobuf:protobuf-java-util:jar:sources": 1148567382,
     "com.google.protobuf:protobuf-java:jar:sources": 1812626912,
-    "com.google.truth:truth": -905038776,
+    "com.google.truth:truth": 1931779524,
     "com.google.truth:truth:jar:sources": 1518815563,
     "com.googlecode.java-diff-utils:diffutils": -799723261,
     "com.googlecode.java-diff-utils:diffutils:jar:sources": -1898874389,
-    "com.squareup.moshi:moshi": 742282205,
-    "com.squareup.moshi:moshi-kotlin": 1555345853,
-    "com.squareup.moshi:moshi-kotlin-codegen": 1314034399,
+    "com.squareup.moshi:moshi": 575896037,
+    "com.squareup.moshi:moshi-kotlin": -1497744021,
+    "com.squareup.moshi:moshi-kotlin-codegen": -576429670,
     "com.squareup.moshi:moshi-kotlin-codegen:jar:sources": 1601805489,
     "com.squareup.moshi:moshi-kotlin:jar:sources": -948970528,
     "com.squareup.moshi:moshi:jar:sources": 121064118,
-    "com.squareup.okio:okio-jvm": -1591357752,
+    "com.squareup.okio:okio-jvm": 1652953145,
     "com.squareup.okio:okio-jvm:jar:sources": -528986820,
     "com.squareup:javapoet": -2135371934,
     "com.squareup:javapoet:jar:sources": -54658965,
-    "com.squareup:kotlinpoet": -956847095,
-    "com.squareup:kotlinpoet-jvm": 1558438132,
+    "com.squareup:kotlinpoet": -1923622366,
+    "com.squareup:kotlinpoet-jvm": -1311591444,
     "com.squareup:kotlinpoet-jvm:jar:sources": -1772502751,
-    "com.squareup:kotlinpoet-ksp": 501046869,
+    "com.squareup:kotlinpoet-ksp": 117692857,
     "com.squareup:kotlinpoet-ksp:jar:sources": -1001181557,
-    "com.squareup:kotlinpoet:jar:sources": -826803759,
+    "com.squareup:kotlinpoet:jar:sources": 969482478,
     "commons-codec:commons-codec": -1161719307,
     "commons-codec:commons-codec:jar:sources": 963281664,
     "commons-io:commons-io": -807333807,
     "commons-io:commons-io:jar:sources": -1339271077,
-    "dev.zacsweers.autoservice:auto-service-ksp": 2067104670,
+    "dev.zacsweers.autoservice:auto-service-ksp": -1873710640,
     "dev.zacsweers.autoservice:auto-service-ksp:jar:sources": 537498971,
     "jakarta.inject:jakarta.inject-api": 188991469,
     "jakarta.inject:jakarta.inject-api:jar:sources": -1584622703,
@@ -115,26 +112,20 @@
     "org.apache.commons:commons-lang3:jar:sources": -1567774740,
     "org.checkerframework:checker-compat-qual": -1467856161,
     "org.checkerframework:checker-compat-qual:jar:sources": 896082574,
-    "org.checkerframework:checker-qual": -778702181,
-    "org.checkerframework:checker-qual:jar:sources": 358883619,
-    "org.codehaus.plexus:plexus-utils": 612567575,
-    "org.codehaus.plexus:plexus-utils:jar:sources": -1161470753,
+    "org.checkerframework:checker-qual": 628949150,
+    "org.checkerframework:checker-qual:jar:sources": -309007815,
     "org.hamcrest:hamcrest-core": 649657847,
     "org.hamcrest:hamcrest-core:jar:sources": -1646511374,
-    "org.jetbrains.kotlin:kotlin-metadata-jvm": 317900594,
-    "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources": -1351155643,
-    "org.jetbrains.kotlin:kotlin-reflect": 633705220,
-    "org.jetbrains.kotlin:kotlin-reflect:jar:sources": 681255358,
-    "org.jetbrains.kotlin:kotlin-stdlib": 7230454,
-    "org.jetbrains.kotlin:kotlin-stdlib-common": -1695006459,
-    "org.jetbrains.kotlin:kotlin-stdlib-common:jar:sources": 1871613908,
-    "org.jetbrains.kotlin:kotlin-stdlib-jdk7": -1550210296,
+    "org.jetbrains.kotlin:kotlin-metadata-jvm": -156611443,
+    "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources": 2087143251,
+    "org.jetbrains.kotlin:kotlin-reflect": 261707901,
+    "org.jetbrains.kotlin:kotlin-reflect:jar:sources": 1553214411,
+    "org.jetbrains.kotlin:kotlin-stdlib": -596863732,
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk7": -883831815,
     "org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:sources": -1337794929,
-    "org.jetbrains.kotlin:kotlin-stdlib-jdk8": -1415041167,
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk8": 988683174,
     "org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:sources": 1198294854,
-    "org.jetbrains.kotlin:kotlin-stdlib:jar:sources": -1886221917,
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core": -916025741,
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources": -1493138165,
+    "org.jetbrains.kotlin:kotlin-stdlib:jar:sources": 1119042874,
     "org.jetbrains:annotations": 554168982,
     "org.jetbrains:annotations:jar:sources": 1226441379,
     "org.jspecify:jspecify": 117231129,
@@ -145,10 +136,6 @@
     "org.ow2.asm:asm-tree": -1593303232,
     "org.ow2.asm:asm-tree:jar:sources": -9096772,
     "org.ow2.asm:asm:jar:sources": 2137835992
-  },
-  "conflict_resolution": {
-    "com.google.errorprone:error_prone_annotations:2.23.0": "com.google.errorprone:error_prone_annotations:2.26.1",
-    "com.google.guava:guava:33.0.0-jre": "com.google.guava:guava:33.2.1-jre"
   },
   "artifacts": {
     "com.eed3si9n.jarjar:jarjar": {
@@ -202,10 +189,10 @@
     },
     "com.google.code.gson:gson": {
       "shasums": {
-        "jar": "4241c14a7727c34feea6507ec801318a3d4a90f070e4525681079fb94ee4c593",
-        "sources": "eee1cc5c1f4267ee194cc245777e68084738ef390acd763354ce0ff6bfb7bcc1"
+        "jar": "d3999291855de495c94c743761b8ab5176cfeabe281a5ab0d8e8d45326fd703e",
+        "sources": "ba5bddb1a89eb721fcca39f3b34294532060f851e2407a82d82134a41eec4719"
       },
-      "version": "2.10.1"
+      "version": "2.8.9"
     },
     "com.google.dagger:dagger": {
       "shasums": {
@@ -244,10 +231,10 @@
     },
     "com.google.errorprone:error_prone_annotations": {
       "shasums": {
-        "jar": "de25f2d9a2156529bd765f51d8efdfc0dfa7301e04efb9cc75b7f10cf5d0e0fb",
-        "sources": "32b1720fa97a3d7f24fc017014e285d812ff66a5b6c5c1819e165bfe6fdc2110"
+        "jar": "ec6f39f068b6ff9ac323c68e28b9299f8c0a80ca512dccb1d4a70f40ac3ec054",
+        "sources": "5b4504609bb93d3c24b87cd839cf0bb7d878135d0a917a05081d0dc9b2a9973f"
       },
-      "version": "2.26.1"
+      "version": "2.23.0"
     },
     "com.google.errorprone:javac-shaded": {
       "shasums": {
@@ -272,10 +259,10 @@
     },
     "com.google.guava:guava": {
       "shasums": {
-        "jar": "452b2d9787b7d366fa8cf5ed9a1c40404542d05effa7a598da03bbbbb76d9f31",
-        "sources": "cce2aba265b7e1260c21f37af6d074bc2c322743dcedc27c573bc342b2d99c79"
+        "jar": "f4d85c3e4d411694337cb873abea09b242b664bb013320be6105327c45991537",
+        "sources": "0c17d911785e8a606d091aa6740d6d520f307749c2bddf6e35066d52fe0036e5"
       },
-      "version": "33.2.1-jre"
+      "version": "33.0.0-jre"
     },
     "com.google.guava:listenablefuture": {
       "shasums": {
@@ -285,10 +272,10 @@
     },
     "com.google.j2objc:j2objc-annotations": {
       "shasums": {
-        "jar": "88241573467ddca44ffd4d74aa04c2bbfd11bf7c17e0c342c94c9de7a70a7c64",
-        "sources": "bd60019a0423c3a025ef6ab24fe0761f5f45ffb48a8cca74a01b678de1105d38"
+        "jar": "f02a95fa1a5e95edb3ed859fd0fb7df709d121a35290eff8b74dce2ab7f4d6ed",
+        "sources": "7413eed41f111453a08837f5ac680edded7faed466cbd35745e402e13f4cc3f5"
       },
-      "version": "3.0.0"
+      "version": "2.8"
     },
     "com.google.protobuf:protobuf-java": {
       "shasums": {
@@ -355,10 +342,10 @@
     },
     "com.squareup:kotlinpoet": {
       "shasums": {
-        "jar": "7cbf7f4330170f9459d15c105fae6e13784cb37855fd68cf2826dfa0b5deb676",
-        "sources": "57313a605d93021318e6dd3aad20758183783644311732de4afa19b94a269664"
+        "jar": "2887ada1ca03dd83baa2758640d87e840d1907564db0ef88d2289c868a980492",
+        "sources": "240a885acd6e3f3852644dc9e5820f4330fa2656b2c2c68ce67b04ae829dc89d"
       },
-      "version": "1.13.2"
+      "version": "1.11.0"
     },
     "com.squareup:kotlinpoet-jvm": {
       "shasums": {
@@ -453,17 +440,10 @@
     },
     "org.checkerframework:checker-qual": {
       "shasums": {
-        "jar": "ccaedd33af0b7894d9f2f3b644f4d19e43928e32902e61ac4d10777830f5aac7",
-        "sources": "efb65eb479f61f53c6dcafbd42ed59dad09b0a0d5a7f44b7bc68df25c2dcf8fd"
+        "jar": "2f9f245bf68e4259d610894f2406dc1f6363dc639302bd566e8272e4f4541172",
+        "sources": "8308220bbdd4e12b49fa06a91de685faf9cc1a376464478c80845be3e87b7d4f"
       },
-      "version": "3.42.0"
-    },
-    "org.codehaus.plexus:plexus-utils": {
-      "shasums": {
-        "jar": "83ee748b12d06afb0ad4050a591132b3e8025fbb1990f1ed002e8b73293e69b4",
-        "sources": "ec01853bc765eddc0accf19993482c14ab0aa59dccec4efd361ef23649153935"
-      },
-      "version": "3.0.24"
+      "version": "3.41.0"
     },
     "org.hamcrest:hamcrest-core": {
       "shasums": {
@@ -474,31 +454,24 @@
     },
     "org.jetbrains.kotlin:kotlin-metadata-jvm": {
       "shasums": {
-        "jar": "00590f26a5a768777f04252c6cf93c016a3361a6bc93636df67375ad4d19557d",
-        "sources": "2ededf948f1afd503217a772c95718a41494e757762206216f4c1b42ada64585"
+        "jar": "2de0a3133f1d4f640de4977309efb422b0a80331b4ff6dd0f8f52489c2ce17a9",
+        "sources": "5ddad3d64871b6dbfdab3b5a65adb5541dcc6f71f5ef67036dfab4f7796b2e67"
       },
-      "version": "2.3.21"
+      "version": "2.4.0-RC"
     },
     "org.jetbrains.kotlin:kotlin-reflect": {
       "shasums": {
-        "jar": "a65166445bb85ef816cde127279fe0017d2b7cc439b3b972390e1b736d64e94c",
-        "sources": "ca0683bab01b6ce2ad97d9fa7575ad6204b32d3814dc722b9519bcdfc7315abf"
+        "jar": "8a6cd5a3cf092acee274ce2c444dc36eefdb631579859dd4d857b3309a529c91",
+        "sources": "3b1b29047a65940f2da4e2e71f969e2e2de343e69dce00c6fe9e333b99565d44"
       },
-      "version": "1.9.24"
+      "version": "1.8.21"
     },
     "org.jetbrains.kotlin:kotlin-stdlib": {
       "shasums": {
-        "jar": "6f64eac736db9434dd6925b4a518b9d1d17177652320c37916cf9ba3ce7d7d7a",
-        "sources": "8693386ae174f7e4a91eb82c5c632d169d236704da24f78b9c8c84d87af2fd64"
+        "jar": "263bdc679e1f62012db7b091796279b6d71cf36f4797a98ff1ace05835f201c8",
+        "sources": "c05e6ead31a9bc17a6fbd5029c4824307992a012546aafb3800f27d1c7ee42be"
       },
-      "version": "2.3.21"
-    },
-    "org.jetbrains.kotlin:kotlin-stdlib-common": {
-      "shasums": {
-        "jar": "8601e004d74d4be5e871f6c43a730b482ce4dff45082b08924d5d69d33c9f7d1",
-        "sources": "61a4a7b3a7664ac64020e3a87627207413ce9f28e5ffb54452c546e69fbab8eb"
-      },
-      "version": "1.4.0"
+      "version": "2.1.21"
     },
     "org.jetbrains.kotlin:kotlin-stdlib-jdk7": {
       "shasums": {
@@ -513,13 +486,6 @@
         "sources": "40e9a80f6b953d12389623760d438e69914098d0c4d7053f70f90533ec041259"
       },
       "version": "1.8.21"
-    },
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core": {
-      "shasums": {
-        "jar": "4cd24a06b2a253110d8afd250e9eec6c6faafea6463d740824743d637e761f12",
-        "sources": "37131e26d85c4d8c7e16b05e524ce00998aee543e6d77b6f0351a475f9f6815e"
-      },
-      "version": "1.4.2"
     },
     "org.jetbrains:annotations": {
       "shasums": {
@@ -556,6 +522,22 @@
       },
       "version": "9.8"
     }
+  },
+  "conflict_resolution": {
+    "com.squareup:kotlinpoet:1.13.2": "com.squareup:kotlinpoet:1.11.0",
+    "org.apache.commons:commons-lang3:3.8.1": "org.apache.commons:commons-lang3:3.14.0",
+    "org.checkerframework:checker-compat-qual:2.5.3": "org.checkerframework:checker-compat-qual:2.5.5",
+    "org.jetbrains.kotlin:kotlin-reflect:1.6.10": "org.jetbrains.kotlin:kotlin-reflect:1.8.21",
+    "org.jetbrains.kotlin:kotlin-reflect:1.9.24": "org.jetbrains.kotlin:kotlin-reflect:1.8.21",
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10": "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.21",
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0": "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.21",
+    "org.jetbrains.kotlin:kotlin-stdlib:1.8.21": "org.jetbrains.kotlin:kotlin-stdlib:2.1.21",
+    "org.jetbrains.kotlin:kotlin-stdlib:1.9.21": "org.jetbrains.kotlin:kotlin-stdlib:2.1.21",
+    "org.jetbrains.kotlin:kotlin-stdlib:1.9.24": "org.jetbrains.kotlin:kotlin-stdlib:2.1.21",
+    "org.jetbrains.kotlin:kotlin-stdlib:2.0.0": "org.jetbrains.kotlin:kotlin-stdlib:2.1.21",
+    "org.jetbrains.kotlin:kotlin-stdlib:2.1.20": "org.jetbrains.kotlin:kotlin-stdlib:2.1.21",
+    "org.jetbrains.kotlin:kotlin-stdlib:2.4.0-RC": "org.jetbrains.kotlin:kotlin-stdlib:2.1.21",
+    "org.ow2.asm:asm:9.3": "org.ow2.asm:asm:9.8"
   },
   "dependencies": {
     "com.eed3si9n.jarjar:jarjar": [
@@ -700,10 +682,6 @@
     "org.jetbrains.kotlin:kotlin-stdlib-jdk8": [
       "org.jetbrains.kotlin:kotlin-stdlib",
       "org.jetbrains.kotlin:kotlin-stdlib-jdk7"
-    ],
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core": [
-      "org.jetbrains.kotlin:kotlin-stdlib",
-      "org.jetbrains.kotlin:kotlin-stdlib-common"
     ],
     "org.ow2.asm:asm-commons": [
       "org.ow2.asm:asm",
@@ -1143,21 +1121,10 @@
       "org.checkerframework.common.reflection.qual",
       "org.checkerframework.common.returnsreceiver.qual",
       "org.checkerframework.common.subtyping.qual",
-      "org.checkerframework.common.util.count.report.qual",
+      "org.checkerframework.common.util.report.qual",
       "org.checkerframework.common.value.qual",
       "org.checkerframework.dataflow.qual",
       "org.checkerframework.framework.qual"
-    ],
-    "org.codehaus.plexus:plexus-utils": [
-      "org.codehaus.plexus.util",
-      "org.codehaus.plexus.util.cli",
-      "org.codehaus.plexus.util.cli.shell",
-      "org.codehaus.plexus.util.dag",
-      "org.codehaus.plexus.util.introspection",
-      "org.codehaus.plexus.util.io",
-      "org.codehaus.plexus.util.reflection",
-      "org.codehaus.plexus.util.xml",
-      "org.codehaus.plexus.util.xml.pull"
     ],
     "org.hamcrest:hamcrest-core": [
       "org.hamcrest",
@@ -1242,8 +1209,7 @@
       "kotlin.reflect.jvm.internal.impl.util",
       "kotlin.reflect.jvm.internal.impl.util.capitalizeDecapitalize",
       "kotlin.reflect.jvm.internal.impl.util.collectionUtils",
-      "kotlin.reflect.jvm.internal.impl.utils",
-      "kotlin.reflect.jvm.internal.impl.utils.addToStdlib"
+      "kotlin.reflect.jvm.internal.impl.utils"
     ],
     "org.jetbrains.kotlin:kotlin-stdlib": [
       "kotlin",
@@ -1293,20 +1259,6 @@
       "kotlin.time.jdk8",
       "kotlin.uuid"
     ],
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core": [
-      "kotlinx.coroutines",
-      "kotlinx.coroutines.channels",
-      "kotlinx.coroutines.debug",
-      "kotlinx.coroutines.debug.internal",
-      "kotlinx.coroutines.flow",
-      "kotlinx.coroutines.flow.internal",
-      "kotlinx.coroutines.internal",
-      "kotlinx.coroutines.intrinsics",
-      "kotlinx.coroutines.scheduling",
-      "kotlinx.coroutines.selects",
-      "kotlinx.coroutines.sync",
-      "kotlinx.coroutines.test"
-    ],
     "org.jetbrains:annotations": [
       "org.intellij.lang.annotations",
       "org.jetbrains.annotations"
@@ -1327,77 +1279,17 @@
   },
   "repositories": {
     "https://maven-central.storage.googleapis.com/repos/central/data/": [
-      "com.eed3si9n.jarjar:jarjar",
-      "com.eed3si9n.jarjar:jarjar:jar:sources",
-      "com.google.auto.service:auto-service",
-      "com.google.auto.service:auto-service-annotations",
-      "com.google.auto.service:auto-service-annotations:jar:sources",
-      "com.google.auto.service:auto-service:jar:sources",
-      "com.google.auto.value:auto-value",
-      "com.google.auto.value:auto-value-annotations",
-      "com.google.auto.value:auto-value-annotations:jar:sources",
-      "com.google.auto.value:auto-value:jar:sources",
-      "com.google.auto:auto-common",
-      "com.google.auto:auto-common:jar:sources",
       "com.google.code.findbugs:jsr305",
       "com.google.code.findbugs:jsr305:jar:sources",
-      "com.google.code.gson:gson",
-      "com.google.code.gson:gson:jar:sources",
-      "com.google.dagger:dagger",
-      "com.google.dagger:dagger-compiler",
-      "com.google.dagger:dagger-compiler:jar:sources",
-      "com.google.dagger:dagger-producers",
-      "com.google.dagger:dagger-producers:jar:sources",
-      "com.google.dagger:dagger-spi",
-      "com.google.dagger:dagger-spi:jar:sources",
-      "com.google.dagger:dagger:jar:sources",
-      "com.google.devtools.ksp:symbol-processing-api",
-      "com.google.devtools.ksp:symbol-processing-api:jar:sources",
-      "com.google.errorprone:error_prone_annotations",
-      "com.google.errorprone:error_prone_annotations:jar:sources",
       "com.google.errorprone:javac-shaded",
       "com.google.errorprone:javac-shaded:jar:sources",
       "com.google.googlejavaformat:google-java-format",
       "com.google.googlejavaformat:google-java-format:jar:sources",
-      "com.google.guava:failureaccess",
-      "com.google.guava:failureaccess:jar:sources",
-      "com.google.guava:guava",
-      "com.google.guava:guava:jar:sources",
       "com.google.guava:listenablefuture",
-      "com.google.j2objc:j2objc-annotations",
-      "com.google.j2objc:j2objc-annotations:jar:sources",
-      "com.google.protobuf:protobuf-java",
-      "com.google.protobuf:protobuf-java-util",
-      "com.google.protobuf:protobuf-java-util:jar:sources",
-      "com.google.protobuf:protobuf-java:jar:sources",
       "com.google.truth:truth",
       "com.google.truth:truth:jar:sources",
       "com.googlecode.java-diff-utils:diffutils",
       "com.googlecode.java-diff-utils:diffutils:jar:sources",
-      "com.squareup.moshi:moshi",
-      "com.squareup.moshi:moshi-kotlin",
-      "com.squareup.moshi:moshi-kotlin-codegen",
-      "com.squareup.moshi:moshi-kotlin-codegen:jar:sources",
-      "com.squareup.moshi:moshi-kotlin:jar:sources",
-      "com.squareup.moshi:moshi:jar:sources",
-      "com.squareup.okio:okio-jvm",
-      "com.squareup.okio:okio-jvm:jar:sources",
-      "com.squareup:javapoet",
-      "com.squareup:javapoet:jar:sources",
-      "com.squareup:kotlinpoet",
-      "com.squareup:kotlinpoet-jvm",
-      "com.squareup:kotlinpoet-jvm:jar:sources",
-      "com.squareup:kotlinpoet-ksp",
-      "com.squareup:kotlinpoet-ksp:jar:sources",
-      "com.squareup:kotlinpoet:jar:sources",
-      "commons-codec:commons-codec",
-      "commons-codec:commons-codec:jar:sources",
-      "commons-io:commons-io",
-      "commons-io:commons-io:jar:sources",
-      "dev.zacsweers.autoservice:auto-service-ksp",
-      "dev.zacsweers.autoservice:auto-service-ksp:jar:sources",
-      "jakarta.inject:jakarta.inject-api",
-      "jakarta.inject:jakarta.inject-api:jar:sources",
       "javax.annotation:javax.annotation-api",
       "javax.annotation:javax.annotation-api:jar:sources",
       "javax.inject:javax.inject",
@@ -1406,160 +1298,14 @@
       "junit:junit:jar:sources",
       "net.ltgt.gradle.incap:incap",
       "net.ltgt.gradle.incap:incap:jar:sources",
-      "org.apache.commons:commons-compress",
-      "org.apache.commons:commons-compress:jar:sources",
-      "org.apache.commons:commons-lang3",
-      "org.apache.commons:commons-lang3:jar:sources",
       "org.checkerframework:checker-compat-qual",
       "org.checkerframework:checker-compat-qual:jar:sources",
-      "org.checkerframework:checker-qual",
-      "org.checkerframework:checker-qual:jar:sources",
-      "org.codehaus.plexus:plexus-utils",
-      "org.codehaus.plexus:plexus-utils:jar:sources",
       "org.hamcrest:hamcrest-core",
       "org.hamcrest:hamcrest-core:jar:sources",
-      "org.jetbrains.kotlin:kotlin-metadata-jvm",
-      "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources",
-      "org.jetbrains.kotlin:kotlin-reflect",
-      "org.jetbrains.kotlin:kotlin-reflect:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib",
-      "org.jetbrains.kotlin:kotlin-stdlib-common",
-      "org.jetbrains.kotlin:kotlin-stdlib-common:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
-      "org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
       "org.jetbrains:annotations",
-      "org.jetbrains:annotations:jar:sources",
-      "org.jspecify:jspecify",
-      "org.jspecify:jspecify:jar:sources",
-      "org.ow2.asm:asm",
-      "org.ow2.asm:asm-commons",
-      "org.ow2.asm:asm-commons:jar:sources",
-      "org.ow2.asm:asm-tree",
-      "org.ow2.asm:asm-tree:jar:sources",
-      "org.ow2.asm:asm:jar:sources"
+      "org.jetbrains:annotations:jar:sources"
     ],
-    "https://maven.google.com/": [
-      "com.eed3si9n.jarjar:jarjar",
-      "com.eed3si9n.jarjar:jarjar:jar:sources",
-      "com.google.auto.service:auto-service",
-      "com.google.auto.service:auto-service-annotations",
-      "com.google.auto.service:auto-service-annotations:jar:sources",
-      "com.google.auto.service:auto-service:jar:sources",
-      "com.google.auto.value:auto-value",
-      "com.google.auto.value:auto-value-annotations",
-      "com.google.auto.value:auto-value-annotations:jar:sources",
-      "com.google.auto.value:auto-value:jar:sources",
-      "com.google.auto:auto-common",
-      "com.google.auto:auto-common:jar:sources",
-      "com.google.code.findbugs:jsr305",
-      "com.google.code.findbugs:jsr305:jar:sources",
-      "com.google.code.gson:gson",
-      "com.google.code.gson:gson:jar:sources",
-      "com.google.dagger:dagger",
-      "com.google.dagger:dagger-compiler",
-      "com.google.dagger:dagger-compiler:jar:sources",
-      "com.google.dagger:dagger-producers",
-      "com.google.dagger:dagger-producers:jar:sources",
-      "com.google.dagger:dagger-spi",
-      "com.google.dagger:dagger-spi:jar:sources",
-      "com.google.dagger:dagger:jar:sources",
-      "com.google.devtools.ksp:symbol-processing-api",
-      "com.google.devtools.ksp:symbol-processing-api:jar:sources",
-      "com.google.errorprone:error_prone_annotations",
-      "com.google.errorprone:error_prone_annotations:jar:sources",
-      "com.google.errorprone:javac-shaded",
-      "com.google.errorprone:javac-shaded:jar:sources",
-      "com.google.googlejavaformat:google-java-format",
-      "com.google.googlejavaformat:google-java-format:jar:sources",
-      "com.google.guava:failureaccess",
-      "com.google.guava:failureaccess:jar:sources",
-      "com.google.guava:guava",
-      "com.google.guava:guava:jar:sources",
-      "com.google.guava:listenablefuture",
-      "com.google.j2objc:j2objc-annotations",
-      "com.google.j2objc:j2objc-annotations:jar:sources",
-      "com.google.protobuf:protobuf-java",
-      "com.google.protobuf:protobuf-java-util",
-      "com.google.protobuf:protobuf-java-util:jar:sources",
-      "com.google.protobuf:protobuf-java:jar:sources",
-      "com.google.truth:truth",
-      "com.google.truth:truth:jar:sources",
-      "com.googlecode.java-diff-utils:diffutils",
-      "com.googlecode.java-diff-utils:diffutils:jar:sources",
-      "com.squareup.moshi:moshi",
-      "com.squareup.moshi:moshi-kotlin",
-      "com.squareup.moshi:moshi-kotlin-codegen",
-      "com.squareup.moshi:moshi-kotlin-codegen:jar:sources",
-      "com.squareup.moshi:moshi-kotlin:jar:sources",
-      "com.squareup.moshi:moshi:jar:sources",
-      "com.squareup.okio:okio-jvm",
-      "com.squareup.okio:okio-jvm:jar:sources",
-      "com.squareup:javapoet",
-      "com.squareup:javapoet:jar:sources",
-      "com.squareup:kotlinpoet",
-      "com.squareup:kotlinpoet-jvm",
-      "com.squareup:kotlinpoet-jvm:jar:sources",
-      "com.squareup:kotlinpoet-ksp",
-      "com.squareup:kotlinpoet-ksp:jar:sources",
-      "com.squareup:kotlinpoet:jar:sources",
-      "commons-codec:commons-codec",
-      "commons-codec:commons-codec:jar:sources",
-      "commons-io:commons-io",
-      "commons-io:commons-io:jar:sources",
-      "dev.zacsweers.autoservice:auto-service-ksp",
-      "dev.zacsweers.autoservice:auto-service-ksp:jar:sources",
-      "jakarta.inject:jakarta.inject-api",
-      "jakarta.inject:jakarta.inject-api:jar:sources",
-      "javax.annotation:javax.annotation-api",
-      "javax.annotation:javax.annotation-api:jar:sources",
-      "javax.inject:javax.inject",
-      "javax.inject:javax.inject:jar:sources",
-      "junit:junit",
-      "junit:junit:jar:sources",
-      "net.ltgt.gradle.incap:incap",
-      "net.ltgt.gradle.incap:incap:jar:sources",
-      "org.apache.commons:commons-compress",
-      "org.apache.commons:commons-compress:jar:sources",
-      "org.apache.commons:commons-lang3",
-      "org.apache.commons:commons-lang3:jar:sources",
-      "org.checkerframework:checker-compat-qual",
-      "org.checkerframework:checker-compat-qual:jar:sources",
-      "org.checkerframework:checker-qual",
-      "org.checkerframework:checker-qual:jar:sources",
-      "org.codehaus.plexus:plexus-utils",
-      "org.codehaus.plexus:plexus-utils:jar:sources",
-      "org.hamcrest:hamcrest-core",
-      "org.hamcrest:hamcrest-core:jar:sources",
-      "org.jetbrains.kotlin:kotlin-metadata-jvm",
-      "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources",
-      "org.jetbrains.kotlin:kotlin-reflect",
-      "org.jetbrains.kotlin:kotlin-reflect:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib",
-      "org.jetbrains.kotlin:kotlin-stdlib-common",
-      "org.jetbrains.kotlin:kotlin-stdlib-common:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
-      "org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
-      "org.jetbrains:annotations",
-      "org.jetbrains:annotations:jar:sources",
-      "org.jspecify:jspecify",
-      "org.jspecify:jspecify:jar:sources",
-      "org.ow2.asm:asm",
-      "org.ow2.asm:asm-commons",
-      "org.ow2.asm:asm-commons:jar:sources",
-      "org.ow2.asm:asm-tree",
-      "org.ow2.asm:asm-tree:jar:sources",
-      "org.ow2.asm:asm:jar:sources"
-    ],
+    "https://maven.google.com/": [],
     "https://repo1.maven.org/maven2/": [
       "com.eed3si9n.jarjar:jarjar",
       "com.eed3si9n.jarjar:jarjar:jar:sources",
@@ -1648,8 +1394,6 @@
       "org.checkerframework:checker-compat-qual:jar:sources",
       "org.checkerframework:checker-qual",
       "org.checkerframework:checker-qual:jar:sources",
-      "org.codehaus.plexus:plexus-utils",
-      "org.codehaus.plexus:plexus-utils:jar:sources",
       "org.hamcrest:hamcrest-core",
       "org.hamcrest:hamcrest-core:jar:sources",
       "org.jetbrains.kotlin:kotlin-metadata-jvm",
@@ -1657,15 +1401,11 @@
       "org.jetbrains.kotlin:kotlin-reflect",
       "org.jetbrains.kotlin:kotlin-reflect:jar:sources",
       "org.jetbrains.kotlin:kotlin-stdlib",
-      "org.jetbrains.kotlin:kotlin-stdlib-common",
-      "org.jetbrains.kotlin:kotlin-stdlib-common:jar:sources",
       "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
       "org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:sources",
       "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
       "org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:sources",
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources",
       "org.jspecify:jspecify",
@@ -1680,11 +1420,6 @@
   },
   "services": {
     "com.google.auto.service:auto-service": {
-      "javax.annotation.processing.Processor": [
-        "com.google.auto.service.processor.AutoServiceProcessor"
-      ]
-    },
-    "com.google.auto.service:auto-service:jar:sources": {
       "javax.annotation.processing.Processor": [
         "com.google.auto.service.processor.AutoServiceProcessor"
       ]
@@ -1739,11 +1474,6 @@
         "kotlin.metadata.jvm.internal.JvmMetadataExtensions"
       ]
     },
-    "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources": {
-      "kotlin.metadata.internal.extensions.MetadataExtensions": [
-        "kotlin.metadata.jvm.internal.JvmMetadataExtensions"
-      ]
-    },
     "org.jetbrains.kotlin:kotlin-reflect": {
       "kotlin.reflect.jvm.internal.impl.builtins.BuiltInsLoader": [
         "kotlin.reflect.jvm.internal.impl.serialization.deserialization.builtins.BuiltInsLoaderImpl"
@@ -1755,5 +1485,6 @@
       ]
     }
   },
+  "skipped": [],
   "version": "3"
 }
