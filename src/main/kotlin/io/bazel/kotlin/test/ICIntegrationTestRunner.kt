@@ -168,10 +168,12 @@ object ICIntegrationTestRunner {
         }
         when {
           entry.isDirectory -> dest.createDirectories()
-          entry.isFile -> Files.write(
-            dest.apply { parent.createDirectories() },
-            stream.readBytes(),
-          )
+          entry.isFile -> {
+            dest.parent.createDirectories()
+            Files.newOutputStream(dest).use { output ->
+              stream.copyTo(output)
+            }
+          }
           else -> throw NotImplementedError(entry.toString())
         }
       }
@@ -500,10 +502,16 @@ object ICIntegrationTestRunner {
             )
           }
           process.destroyForcibly()
+          val exitCode =
+            if (process.waitFor(5, TimeUnit.SECONDS)) {
+              process.exitValue().toString()
+            } else {
+              "terminated"
+            }
           return Result.failure(
             AssertionError(
               """
-              $this ${args.joinToString(" ")} exited ${process.waitFor()}:
+              $this ${args.joinToString(" ")} exited $exitCode:
               stdout:
               ${stdOut.get().toString(UTF_8)}
               stderr:

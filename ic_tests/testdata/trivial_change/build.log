@@ -1,6 +1,6 @@
 === Running initial build ===
 KotlinCompile //:a
-[IC INFO] Non-incremental compilation will be performed: CLASSPATH_SNAPSHOT_NOT_FOUND
+Non-incremental compilation will be performed: Classpath snapshot not found
 compile iteration: a/A.kt
 compiler exit code: OK
 KotlinCompile //:b

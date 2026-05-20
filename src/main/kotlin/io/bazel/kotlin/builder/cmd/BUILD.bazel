@@ -29,6 +29,8 @@ kt_bootstrap_binary(
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin:jdeps-gen",
+        # Keep the BTA API after compiler plugins that shade older copies.
+        "//kotlin/compiler:kotlin-build-tools-api",
     ],
     jvm_flags = [
         "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath //kotlin/compiler:kotlinx-serialization-core-jvm)",

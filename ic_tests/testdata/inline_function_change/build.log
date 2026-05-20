@@ -1,6 +1,6 @@
 === Running initial build ===
 KotlinCompile //:a
-Non-incremental compilation will be performed: CLASSPATH_SNAPSHOT_NOT_FOUND
+Non-incremental compilation will be performed: Classpath snapshot not found
 compile iteration: a/TheClass.kt, a/usageA.kt
 compiler exit code: OK
 KotlinCompile //:b
@@ -15,6 +15,8 @@ compile iteration: a/TheClass.kt
 compiler exit code: OK
 MembersChanged(fqName = TheClass, names = [getData])
 usageA.kt is marked dirty: dirty member TheClass#getData
-compile iteration: a/usageA.kt
+compile iteration:
+a/usageA.kt
+a/TheClass.kt
 compiler exit code: OK
 Incremental compilation completed

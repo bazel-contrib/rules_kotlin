@@ -105,14 +105,14 @@ class SnapshotTask : Work {
         toolchains.createBuildSession()
       }
 
-    val operation = toolchains.jvm.createClasspathSnapshottingOperation(inputJar)
-    operation.set(
+    val operationBuilder = toolchains.jvm.classpathSnapshottingOperationBuilder(inputJar)
+    operationBuilder.set(
       JvmClasspathSnapshottingOperation.GRANULARITY,
       ClassSnapshotGranularity.CLASS_MEMBER_LEVEL,
     )
-    operation.set(PARSE_INLINED_LOCAL_CLASSES, true)
+    operationBuilder.set(PARSE_INLINED_LOCAL_CLASSES, true)
 
-    val snapshot = buildSession.executeOperation(operation)
+    val snapshot = buildSession.executeOperation(operationBuilder.build())
 
     // Write to temp file then atomically move for safety
     Files.createDirectories(outputSnapshot.parent)

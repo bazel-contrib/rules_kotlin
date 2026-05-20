@@ -597,22 +597,51 @@ def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
         toolchain = _TOOLCHAIN_TYPE,
     )
 
-def _run_non_kotlin_dep_snapshot_actions(ctx, toolchains, non_kotlin_classpath_snapshot_jars):
-    if not toolchains.kt.experimental_incremental_compilation:
-        return []
+def _compile_jar_path_set(jars):
+    return {
+        jar.path: True
+        for jar in jars
+    }
 
-    snapshots = []
-    for i, input_jar in enumerate(non_kotlin_classpath_snapshot_jars):
-        output_snapshot = ctx.actions.declare_file("%s.non-kotlin-dep-%d.classpath-snapshot" % (ctx.label.name, i))
+def _stdlib_compile_jar_path_set(toolchains):
+    return _compile_jar_path_set(toolchains.kt.jvm_stdlibs.compile_jars.to_list())
+
+def _run_compile_classpath_snapshot_actions(ctx, toolchains, compile_jars, non_kotlin_classpath_snapshot_jars):
+    if not toolchains.kt.experimental_incremental_compilation:
+        return struct(
+            classpath_snapshots = [],
+            non_kotlin_classpath_snapshots = [],
+        )
+
+    stdlib_jar_paths = _stdlib_compile_jar_path_set(toolchains)
+    non_kotlin_jar_paths = _compile_jar_path_set(non_kotlin_classpath_snapshot_jars)
+    classpath_snapshots = []
+    non_kotlin_classpath_snapshots = []
+    snapshot_index = 0
+    seen_jar_paths = {}
+    for input_jar in compile_jars:
+        if input_jar.path in seen_jar_paths:
+            continue
+        seen_jar_paths[input_jar.path] = True
+        if input_jar.path in stdlib_jar_paths:
+            continue
+
+        output_snapshot = ctx.actions.declare_file("%s.classpath-%d.classpath-snapshot" % (ctx.label.name, snapshot_index))
+        snapshot_index += 1
         _run_snapshot_action(
             ctx = ctx,
             toolchains = toolchains,
             input_jar = input_jar,
             output_snapshot = output_snapshot,
         )
-        snapshots.append(output_snapshot)
+        classpath_snapshots.append(output_snapshot)
+        if input_jar.path in non_kotlin_jar_paths:
+            non_kotlin_classpath_snapshots.append(output_snapshot)
 
-    return snapshots
+    return struct(
+        classpath_snapshots = classpath_snapshots,
+        non_kotlin_classpath_snapshots = non_kotlin_classpath_snapshots,
+    )
 
 def _run_kt_builder_action(
         ctx,
@@ -900,7 +929,7 @@ def _kt_jvm_produce_output_jar_actions(
         _run_snapshot_action(
             ctx = ctx,
             toolchains = toolchains,
-            input_jar = output_jar,
+            input_jar = compile_jar,
             output_snapshot = classpath_snapshot,
         )
 
@@ -1017,9 +1046,10 @@ def _run_kt_java_builder_actions(
     kt_stubs_for_java = []
     has_kt_sources = srcs.kt or srcs.src_jars
 
-    non_kotlin_classpath_snapshots = _run_non_kotlin_dep_snapshot_actions(
+    classpath_snapshot_inputs = _run_compile_classpath_snapshot_actions(
         ctx = ctx,
         toolchains = toolchains,
+        compile_jars = compile_deps.compile_jars.to_list(),
         non_kotlin_classpath_snapshot_jars = compile_deps.non_kotlin_classpath_snapshot_jars,
     )
 
@@ -1092,8 +1122,8 @@ def _run_kt_java_builder_actions(
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = outputs,
-            classpath_snapshots = compile_deps.classpath_snapshots + non_kotlin_classpath_snapshots,
-            non_kotlin_classpath_snapshots = non_kotlin_classpath_snapshots,
+            classpath_snapshots = classpath_snapshot_inputs.classpath_snapshots,
+            non_kotlin_classpath_snapshots = classpath_snapshot_inputs.non_kotlin_classpath_snapshots,
             build_kotlin = True,
             mnemonic = "KotlinCompile",
         )
