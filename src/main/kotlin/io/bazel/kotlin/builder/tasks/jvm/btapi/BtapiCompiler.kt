@@ -233,7 +233,10 @@ class BtapiCompiler(
       try {
         args.applyArgumentStrings(pathArgumentStrings)
       } catch (e: CompilerArgumentsParseException) {
-        throw IllegalArgumentException("Invalid classpath or friend path arguments: ${e.message}", e)
+        throw IllegalArgumentException(
+          "Invalid classpath or friend path arguments: ${e.message}",
+          e,
+        )
       }
     }
   }

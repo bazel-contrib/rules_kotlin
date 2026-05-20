@@ -105,18 +105,20 @@ class KotlinBuilder(
     taskContext: WorkerContext.TaskContext,
     args: List<String>,
   ): Int {
-    val (argMap, compileContext) = buildContext(taskContext, args)
+    var compileContext: CompilationTaskContext? = null
     var success = false
     var status = 0
     try {
+      val (argMap, builtCompileContext) = buildContext(taskContext, args)
+      compileContext = builtCompileContext
       @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
-      when (compileContext.info.platform) {
+      when (builtCompileContext.info.platform) {
         Platform.JVM,
         Platform.ANDROID,
-        -> executeJvmTask(compileContext, taskContext.directory, argMap)
+        -> executeJvmTask(builtCompileContext, taskContext.directory, argMap)
 
         Platform.UNRECOGNIZED -> throw IllegalStateException(
-          "unrecognized platform: ${compileContext.info}",
+          "unrecognized platform: ${builtCompileContext.info}",
         )
       }
       success = true
@@ -127,7 +129,7 @@ class KotlinBuilder(
       taskContext.error(throwable) { "Uncaught exception" }
       status = 1
     } finally {
-      compileContext.finalize(success)
+      compileContext?.finalize(success)
     }
     return status
   }
@@ -143,10 +145,30 @@ class KotlinBuilder(
       } ?: args
 
     val argMap = ArgMaps.from(lines)
+    validateDeclaredOutputPaths(argMap)
     val info = buildTaskInfo(argMap).build()
     val context =
       CompilationTaskContext(info, ctx.asPrintStream())
     return Pair(argMap, context)
+  }
+
+  private fun validateDeclaredOutputPaths(argMap: ArgMap) {
+    listOf(
+      KotlinBuilderFlags.OUTPUT,
+      KotlinBuilderFlags.OUTPUT_SRCJAR,
+      KotlinBuilderFlags.OUTPUT_JDEPS,
+      KotlinBuilderFlags.ABI_JAR,
+      KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR,
+      KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR,
+      KotlinBuilderFlags.GENERATED_CLASS_JAR,
+    ).forEach { flag ->
+      argMap.optionalSingle(flag)?.let { outputPath ->
+        val path = Path.of(outputPath)
+        require(!Files.isDirectory(path)) {
+          "${flag.flag} must point to a file, but found a directory: $outputPath"
+        }
+      }
+    }
   }
 
   fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
