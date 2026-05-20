@@ -662,7 +662,7 @@ def _run_kt_builder_action(
     args.add("--ic_enable_logging", toolchains.kt.experimental_ic_enable_logging)
     args.add_all("--classpath_snapshots", classpath_snapshots, omit_if_empty = True)
     args.add_all("--non_kotlin_classpath_snapshots", non_kotlin_classpath_snapshots, omit_if_empty = True)
-    
+
     args.add("--build_tools_api", use_btapi)
     if use_btapi:
         args.add_all("--btapi_runtime_classpath", toolchains.kt.btapi_runtime_classpath)
@@ -1026,8 +1026,15 @@ def _run_kt_java_builder_actions(
     # Run KAPT
     if has_kt_sources and annotation_processors:
         kapt_outputs = _run_kapt_builder_actions(
-            ctx, rule_kind, toolchains, srcs, compile_deps, deps_artifacts,
-            annotation_processors, transitive_runtime_jars, plugins,
+            ctx,
+            rule_kind,
+            toolchains,
+            srcs,
+            compile_deps,
+            deps_artifacts,
+            annotation_processors,
+            transitive_runtime_jars,
+            plugins,
         )
         generated_kapt_src_jars.append(kapt_outputs.ap_generated_src_jar)
         output_jars.append(kapt_outputs.kapt_generated_class_jar)

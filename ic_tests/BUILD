@@ -46,11 +46,11 @@ test_suite(
     name = "ic_tests_suite",
     tags = ["ic"],
     tests = [
+        "exported_java_dep_snapshot_change",
         "inline_function_change",
         "jvm_target_change",
         "kotlinc_flags_change",
         "plugin_options_change",
-        "exported_java_dep_snapshot_change",
         "transitive_snapshot_change",
         "trivial_change",
     ],

@@ -28,8 +28,8 @@ import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget
-import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import java.io.File
@@ -295,16 +295,43 @@ class BtapiCompiler(
   private fun computeArgsHash(task: JvmCompilationTask): Long {
     var hash = 0L
     hash = hash * 31 + task.info.moduleName.hashCode()
-    hash = hash * 31 + task.info.toolchainInfo.jvm.jvmTarget.hashCode()
-    hash = hash * 31 + task.info.toolchainInfo.common.apiVersion.hashCode()
-    hash = hash * 31 + task.info.toolchainInfo.common.languageVersion.hashCode()
-    hash = hash * 31 + task.info.passthroughFlagsList.sorted().hashCode()
-    hash = hash * 31 + task.inputs.compilerPluginsList.sorted().hashCode()
-    hash = hash * 31 + task.inputs.compilerPluginOptionsList.sorted().hashCode()
-    hash = hash * 31 + task.inputs.compilerPluginClasspathList.sorted().hashCode()
-    hash = hash * 31 + task.inputs.stubsPluginsList.sorted().hashCode()
-    hash = hash * 31 + task.inputs.stubsPluginOptionsList.sorted().hashCode()
-    hash = hash * 31 + task.inputs.stubsPluginClasspathList.sorted().hashCode()
+    hash = hash * 31 +
+      task.info.toolchainInfo.jvm.jvmTarget
+        .hashCode()
+    hash = hash * 31 +
+      task.info.toolchainInfo.common.apiVersion
+        .hashCode()
+    hash = hash * 31 +
+      task.info.toolchainInfo.common.languageVersion
+        .hashCode()
+    hash = hash * 31 +
+      task.info.passthroughFlagsList
+        .sorted()
+        .hashCode()
+    hash = hash * 31 +
+      task.inputs.compilerPluginsList
+        .sorted()
+        .hashCode()
+    hash = hash * 31 +
+      task.inputs.compilerPluginOptionsList
+        .sorted()
+        .hashCode()
+    hash = hash * 31 +
+      task.inputs.compilerPluginClasspathList
+        .sorted()
+        .hashCode()
+    hash = hash * 31 +
+      task.inputs.stubsPluginsList
+        .sorted()
+        .hashCode()
+    hash = hash * 31 +
+      task.inputs.stubsPluginOptionsList
+        .sorted()
+        .hashCode()
+    hash = hash * 31 +
+      task.inputs.stubsPluginClasspathList
+        .sorted()
+        .hashCode()
     hash = hash * 31 +
       task.inputs.nonKotlinClasspathSnapshotsList
         .sorted()

@@ -155,16 +155,16 @@ _kt_toolchain = rule(
             cfg = "exec",
             default = Label("//kotlin/compiler:kotlin-build-tools-impl"),
         ),
-        "experimental_build_tools_api": attr.bool(
-            doc = "Enables experimental support for Build Tools API integration",
-            default = False,
-        ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
             print timing information. `trace` will cause the builder to print tracing messages. These tags can be
             enabled via the defines `kt_timings=1` and `kt_trace=1`. These can also be enabled on a per target bases by
             using `tags` attribute defined directly on the rules.""",
             allow_empty = True,
+        ),
+        "experimental_build_tools_api": attr.bool(
+            doc = "Enables experimental support for Build Tools API integration",
+            default = False,
         ),
         "experimental_ic_enable_logging": attr.label(
             doc = "Enables incremental-compilation logging output.",
@@ -343,18 +343,18 @@ _kt_toolchain = rule(
                 "2.3",
             ],
         ),
+        "skip_code_gen": attr.label(
+            doc = "Kotlin builder plugin: skip-code-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:skip-code-gen"),
+        ),
         "snapshot_worker": attr.label(
             doc = "the snapshot worker executable",
             default = Label("//src/main/kotlin:snapshot"),
             executable = True,
             allow_files = True,
             cfg = "exec",
-        ),
-        "skip_code_gen": attr.label(
-            doc = "Kotlin builder plugin: skip-code-gen.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//src/main/kotlin:skip-code-gen"),
         ),
         "supports_path_mapping": attr.bool(
             doc = """Enable path mapping for Kotlin actions. Requires experimental_multiplex_sandboxing.""",
@@ -372,15 +372,15 @@ _kt_toolchain = rule(
             cfg = "target",
             default = Label("//third_party:empty.jdeps"),
         ),
+        "_experimental_build_tools_api": attr.label(
+            doc = """Public build setting controlling Build Tools API support.""",
+            default = Label("//kotlin/settings:experimental_build_tools_api"),
+        ),
         "_experimental_prune_transitive_deps": attr.label(
             doc = """If enabled, compilation is performed against only direct dependencies.
             Transitive deps required for compilation must be explicitly added. Using
             kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
             default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
-        ),
-        "_experimental_build_tools_api": attr.label(
-            doc = """Public build setting controlling Build Tools API support.""",
-            default = Label("//kotlin/settings:experimental_build_tools_api"),
         ),
         "_experimental_strict_associate_dependencies": attr.label(
             doc = """

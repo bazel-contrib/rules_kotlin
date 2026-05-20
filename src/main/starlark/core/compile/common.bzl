@@ -53,8 +53,8 @@ KtJvmInfo = provider(
         "outputs": "output jars produced by this rule. [intelij-aspect]",
         "srcs": "the source files. [intelij-aspect]",
         "transitive_classpath_snapshots": "Transitive classpath snapshots for IC invalidation.",
-        "transitive_non_kotlin_classpath_snapshot_jars": "Transitive non-Kotlin compile jars that still need local snapshot generation.",
         "transitive_compile_time_jars": "Returns the transitive set of Jars required to build the target. [intellij-aspect]",
+        "transitive_non_kotlin_classpath_snapshot_jars": "Transitive non-Kotlin compile jars that still need local snapshot generation.",
         "transitive_source_jars": "Returns the Jars containing source files of the current target and all of its transitive dependencies. [intellij-aspect]",
     },
 )
