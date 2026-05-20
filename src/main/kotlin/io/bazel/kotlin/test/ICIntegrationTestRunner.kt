@@ -15,24 +15,23 @@
  */
 package io.bazel.kotlin.test
 
-import io.bazel.kotlin.builder.utils.BazelRunFiles
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import java.io.BufferedInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.io.OutputStream
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.bazelBinary
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.buildWorkspaceFlags
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.fileSystem
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.onFailThrow
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.parseVersion
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.ProcessResult
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.releaseArchive
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.run
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.testTmpDir
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.unpackRelease
+import io.bazel.kotlin.test.BazelIntegrationTestSupport.workspaceDirectory
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.util.concurrent.Callable
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.zip.GZIPInputStream
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
-import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 
@@ -51,11 +50,11 @@ object ICIntegrationTestRunner {
 
   @JvmStatic
   fun main(args: Array<String>) {
-    val fs = FileSystems.getDefault()
-    val bazel = fs.getPath(System.getenv("BIT_BAZEL_BINARY"))
-    val workspace = fs.getPath(System.getenv("BIT_WORKSPACE_DIR"))
-    val testTmpDir = fs.getPath(System.getenv("TEST_TMPDIR"))
-    val workingCopy = testTmpDir.resolve("workspace")
+    val fs = fileSystem()
+    val bazel = bazelBinary(fs)
+    val workspace = workspaceDirectory(fs)
+    val tmpDir = testTmpDir(fs)
+    val workingCopy = tmpDir.resolve("workspace")
 
     // Expected log is in the workspace directory
     val expectedLogPath = workspace.resolve("build.log")
@@ -64,11 +63,8 @@ object ICIntegrationTestRunner {
     }
 
     // Unpack the release tarball
-    val unpack = testTmpDir.resolve("rules_kotlin")
-    val release = BazelRunFiles.resolveVerifiedFromProperty(
-      fs,
-      "@rules_kotlin...rules_kotlin_release",
-    )
+    val unpack = tmpDir.resolve("rules_kotlin")
+    val release = releaseArchive(fs)
     unpackRelease(release, unpack)
 
     // Copy workspace excluding .new/.delete files
@@ -152,32 +148,6 @@ object ICIntegrationTestRunner {
     }
 
     println("=== IC Integration Test PASSED ===")
-  }
-
-  private fun unpackRelease(release: Path, destination: Path) {
-    TarArchiveInputStream(
-      GZIPInputStream(
-        release.inputStream(),
-      ),
-    ).use { stream ->
-      val normalizedDestination = destination.toAbsolutePath().normalize()
-      generateSequence(stream::getNextEntry).forEach { entry ->
-        val dest = normalizedDestination.resolve(entry.name).normalize()
-        require(dest.startsWith(normalizedDestination)) {
-          "Refusing to extract archive entry outside destination: ${entry.name}"
-        }
-        when {
-          entry.isDirectory -> dest.createDirectories()
-          entry.isFile -> {
-            dest.parent.createDirectories()
-            Files.newOutputStream(dest).use { output ->
-              stream.copyTo(output)
-            }
-          }
-          else -> throw NotImplementedError(entry.toString())
-        }
-      }
-    }
   }
 
   private fun copyWorkspace(src: Path, dst: Path) {
@@ -368,180 +338,4 @@ object ICIntegrationTestRunner {
     return false
   }
 
-  /**
-   * Returns a pair of (startupFlags, commandFlags).
-   * Startup flags (like --bazelrc) must come before the command.
-   * Command flags (like --enable_bzlmod) come after the command.
-   */
-  private fun buildWorkspaceFlags(workspace: Path, unpack: Path, version: Version): Pair<Array<String>, Array<String>> {
-    val startupFlags = mutableListOf<String>()
-    val commandFlags = mutableListOf<String>()
-
-    // Bazelrc is a startup option
-    val bazelRc = findBazelRc(workspace, version)
-    startupFlags.add("--bazelrc=$bazelRc")
-
-    // bzlmod/workspace handling - these are command flags
-    if (workspace.hasModule()) {
-      commandFlags.add("--enable_bzlmod=true")
-      commandFlags.add("--override_module=rules_kotlin=$unpack")
-      if (version >= Version.Known(7, 0, 0)) {
-        commandFlags.add("--enable_workspace=false")
-      }
-    } else if (workspace.hasWorkspace()) {
-      commandFlags.add("--override_repository=rules_kotlin=$unpack")
-      commandFlags.add("--enable_bzlmod=false")
-      if (version >= Version.Known(7, 0, 0)) {
-        commandFlags.add("--enable_workspace=true")
-      }
-    }
-
-    return Pair(startupFlags.toTypedArray(), commandFlags.toTypedArray())
-  }
-
-  private fun findBazelRc(workspace: Path, version: Version): String {
-    return when (version) {
-      is Version.Head -> {
-        sequenceOf(".bazelrc.head", ".bazelrc")
-          .map(workspace::resolve)
-          .firstOrNull(Path::exists)
-          ?.toString()
-          ?: "/dev/null"
-      }
-      is Version.Known -> {
-        val parts = listOf(version.major, version.minor, version.patch)
-        (parts.size downTo 0).asSequence()
-          .map { idx -> "." + parts.subList(0, idx).joinToString("-") }
-          .map { suffix -> workspace.resolve(".bazelrc$suffix") }
-          .firstOrNull(Path::exists)
-          ?.toString()
-          ?: "/dev/null"
-      }
-    }
-  }
-
-  private fun Path.hasModule() = resolve("MODULE").exists() || resolve("MODULE.bazel").exists()
-  private fun Path.hasWorkspace() =
-    resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
-
-  sealed class Version : Comparable<Version> {
-    abstract override fun compareTo(other: Version): Int
-
-    class Head : Version() {
-      override fun compareTo(other: Version): Int = (other as? Head)?.let { 0 } ?: 1
-    }
-
-    class Known(val major: Int, val minor: Int, val patch: Int) : Version() {
-      override fun compareTo(other: Version): Int {
-        return (other as? Known)?.let {
-          when {
-            other.major > major -> -1
-            other.major < major -> 1
-            other.minor > minor -> -1
-            other.minor < minor -> 1
-            other.patch > patch -> -1
-            other.patch < patch -> 1
-            else -> 0
-          }
-        } ?: -1
-      }
-    }
-  }
-
-  private val VERSION_REGEX = Regex("""(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)([^.]*)""")
-
-  private fun Result<ProcessResult>.parseVersion(): Version {
-    ok { result ->
-      result.stdOut.toString(UTF_8).split("\n")
-        .find(String::isNotEmpty)?.let { line ->
-          if ("no_version" in line) {
-            return Version.Head()
-          }
-          VERSION_REGEX.find(line.trim())?.let { matchResult ->
-            return Version.Known(
-              major = matchResult.groups["major"]?.value?.toInt() ?: 0,
-              minor = matchResult.groups["minor"]?.value?.toInt() ?: 0,
-              patch = matchResult.groups["patch"]?.value?.toInt() ?: 0,
-            )
-          }
-        }
-      throw IllegalStateException("Bazel version not available")
-    }
-  }
-
-  data class ProcessResult(
-    val exit: Int,
-    val stdOut: ByteArray,
-    val stdErr: ByteArray,
-  )
-
-  private fun Result<ProcessResult>.onFailThrow() = onFailure {
-    throw it
-  }
-
-  private inline fun <R> Result<ProcessResult>.ok(action: (ProcessResult) -> R) = fold(
-    onSuccess = action,
-    onFailure = { err -> throw err },
-  )
-
-  private fun Path.run(inDirectory: Path, vararg args: String): Result<ProcessResult> =
-    ProcessBuilder().command(this.toString(), *args).directory(inDirectory.toFile()).start()
-      .let { process ->
-        println("Running [$fileName ${args.joinToString(" ")}]...")
-        val executor = Executors.newCachedThreadPool()
-        try {
-          val stdOut = executor.submit(process.inputStream.streamTo(System.out))
-          val stdErr = executor.submit(process.errorStream.streamTo(System.out))
-          if (process.waitFor(600, TimeUnit.SECONDS) && process.exitValue() == 0) {
-            return Result.success(
-              ProcessResult(
-                exit = 0,
-                stdErr = stdErr.get(),
-                stdOut = stdOut.get(),
-              ),
-            )
-          }
-          process.destroyForcibly()
-          val exitCode =
-            if (process.waitFor(5, TimeUnit.SECONDS)) {
-              process.exitValue().toString()
-            } else {
-              "terminated"
-            }
-          return Result.failure(
-            AssertionError(
-              """
-              $this ${args.joinToString(" ")} exited $exitCode:
-              stdout:
-              ${stdOut.get().toString(UTF_8)}
-              stderr:
-              ${stdErr.get().toString(UTF_8)}
-              """.trimIndent(),
-            ),
-          )
-        } finally {
-          executor.shutdown()
-          executor.awaitTermination(1, TimeUnit.SECONDS)
-        }
-      }
-
-  private fun InputStream.streamTo(out: OutputStream): Callable<ByteArray> {
-    return Callable {
-      val result = ByteArrayOutputStream()
-      BufferedInputStream(this).apply {
-        val buffer = ByteArray(4096)
-        var read = 0
-        do {
-          if (Thread.currentThread().isInterrupted) {
-            out.flush()
-            break
-          }
-          result.write(buffer, 0, read)
-          out.write(buffer, 0, read)
-          read = read(buffer)
-        } while (read != -1)
-      }
-      return@Callable result.toByteArray()
-    }
-  }
 }

@@ -14,7 +14,7 @@
 
 load("//kotlin:core.bzl", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-load(":ksp_test.bzl", "ksp_action_test", "ksp_conflicting_options_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_single_action_test")
+load(":ksp_test.bzl", "ksp_action_test", "ksp_conflicting_options_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_processor_classpath_test", "ksp_single_action_test")
 
 # Simple KSP plugin for testing (uses moshi which generates Kotlin code)
 kt_ksp_plugin(
@@ -140,6 +140,11 @@ ksp_options_action_test(
     target_under_test = ":ksp_test_lib_with_options",
 )
 
+ksp_processor_classpath_test(
+    name = "ksp_processor_classpath_test",
+    target_under_test = ":ksp_test_lib",
+)
+
 # Test that conflicting KSP option keys across plugins fail analysis
 ksp_conflicting_options_test(
     name = "ksp_conflicting_options_test",
@@ -155,6 +160,7 @@ test_suite(
         ":ksp_outputs_test",
         ":ksp_plugin_empty_options_provider_test",
         ":ksp_plugin_options_provider_test",
+        ":ksp_processor_classpath_test",
         ":ksp_single_action_test",
     ],
 )

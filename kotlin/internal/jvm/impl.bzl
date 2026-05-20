@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
@@ -534,7 +535,7 @@ def kt_compiler_plugin_impl(ctx):
 
     deps = ctx.attr.deps
     info = None
-    if ctx.attr.target_embedded_compiler:
+    if ctx.attr.target_embedded_compiler and not ctx.attr._experimental_build_tools_api[BuildSettingInfo].value:
         info = java_common.merge([
             i
             for d in deps

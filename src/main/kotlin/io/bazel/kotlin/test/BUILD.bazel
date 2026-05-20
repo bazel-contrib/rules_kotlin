@@ -4,6 +4,7 @@ kt_jvm_binary(
     name = "BazelIntegrationTestRunner",
     srcs = [
         "BazelIntegrationTestRunner.kt",
+        "BazelIntegrationTestSupport.kt",
     ],
     data = [
         "//:rules_kotlin_release",
@@ -24,6 +25,7 @@ kt_jvm_binary(
 kt_jvm_binary(
     name = "ICIntegrationTestRunner",
     srcs = [
+        "BazelIntegrationTestSupport.kt",
         "ICIntegrationTestRunner.kt",
     ],
     data = ["//:rules_kotlin_release"],

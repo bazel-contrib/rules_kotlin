@@ -15,6 +15,7 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm.btapi
 
+import io.bazel.kotlin.builder.tasks.jvm.X_FRIENDS_PATH_SEPARATOR
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.BaseIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
@@ -65,6 +66,9 @@ class BtapiCompiler(
     init {
       System.setProperty(ZIP_CRC_PROPERTY, ZIP_CRC_VALUE)
     }
+
+    internal fun formatFriendPathsArg(friendPaths: List<String>): String =
+      "-Xfriend-paths=${friendPaths.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
   }
 
   private val lazyBuildSession = lazy { toolchains.createBuildSession() }
@@ -226,7 +230,7 @@ class BtapiCompiler(
       .map { Path.of(it).toAbsolutePath().toString() }
       .takeIf { it.isNotEmpty() }
       ?.let {
-        pathArgumentStrings.add("-Xfriend-paths=${it.joinToString(File.pathSeparator)}")
+        pathArgumentStrings.add(formatFriendPathsArg(it))
       }
 
     if (pathArgumentStrings.isNotEmpty()) {

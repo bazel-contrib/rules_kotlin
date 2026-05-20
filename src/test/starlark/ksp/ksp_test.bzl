@@ -179,6 +179,69 @@ def _ksp_options_action_test_impl(ctx):
 
 ksp_options_action_test = analysistest.make(_ksp_options_action_test_impl)
 
+def _values_for_flag(argv, flag):
+    values = []
+    last_flag = None
+
+    if argv == None:
+        return values
+
+    for arg in argv:
+        value = None
+        if arg == "--":
+            break
+        if arg.startswith("-"):
+            if "=" in arg:
+                last_flag, value = arg.split("=", 1)
+            else:
+                last_flag = arg
+        elif last_flag:
+            value = arg
+        else:
+            continue
+
+        if value and last_flag == flag:
+            values.append(value)
+
+    return values
+
+def _contains_substring(values, needle):
+    for value in values:
+        if needle in value:
+            return True
+    return False
+
+def _ksp_processor_classpath_test_impl(ctx):
+    env = analysistest.begin(ctx)
+
+    actions = analysistest.target_actions(env)
+    ksp2_actions = [a for a in actions if a.mnemonic == "KotlinKsp2"]
+    asserts.equals(env, 1, len(ksp2_actions), "Should have exactly one KotlinKsp2 action")
+
+    action = ksp2_actions[0]
+    processor_classpath = _values_for_flag(action.argv, "--processor_classpath")
+    input_paths = [artifact.path for artifact in action.inputs.to_list()]
+
+    asserts.true(
+        env,
+        _contains_substring(processor_classpath, "kotlin-stdlib"),
+        "KotlinKsp2 processor classpath should include kotlin-stdlib: %s" % processor_classpath,
+    )
+    asserts.true(
+        env,
+        _contains_substring(processor_classpath, "symbol-processing-api"),
+        "KotlinKsp2 processor classpath should include symbol-processing-api: %s" % processor_classpath,
+    )
+    asserts.true(
+        env,
+        _contains_substring(input_paths, "kotlin-stdlib"),
+        "KotlinKsp2 action inputs should include kotlin-stdlib: %s" % input_paths,
+    )
+
+    return analysistest.end(env)
+
+ksp_processor_classpath_test = analysistest.make(_ksp_processor_classpath_test_impl)
+
 def _ksp_conflicting_options_test_impl(ctx):
     """Verify that conflicting KSP option keys across plugins fail analysis."""
     env = analysistest.begin(ctx)
@@ -203,6 +266,7 @@ def ksp_test_suite(name):
         tests = [
             ":ksp_outputs_test",
             ":ksp_action_test",
+            ":ksp_processor_classpath_test",
             ":ksp_single_action_test",
             ":ksp_plugin_options_provider_test",
             ":ksp_plugin_empty_options_provider_test",

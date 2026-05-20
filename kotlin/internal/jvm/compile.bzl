@@ -515,12 +515,18 @@ def _run_ksp_builder_actions(
         ctx.attr._ksp2_kotlinx_coroutines[JavaInfo].runtime_output_jars,
     )
 
+    # KSP2 also needs the Kotlin stdlib runtime on the isolated processor classpath.
+    # Before KSP2 used an isolated classloader, these classes leaked in from the worker runtime.
+    # Keep them explicit here so example workspaces do not depend on that implementation detail.
+    ksp2_runtime_stdlib_jars = toolchains.kt.jvm_stdlibs.runtime_output_jars
+
     # Get the KSP2 invoker JAR (contains Ksp2Invoker class loaded via reflection)
     ksp2_invoker_jars = toolchains.kt.ksp2_invoker[JavaInfo].runtime_output_jars
 
     # Add processor JARs - includes KSP2 API JARs, invoker JAR, and user processor JARs
     args.add_all("--processor_classpath", ksp2_invoker_jars)
     args.add_all("--processor_classpath", ksp2_api_jars)
+    args.add_all("--processor_classpath", ksp2_runtime_stdlib_jars)
     if transitive_runtime_jars:
         args.add_all("--processor_classpath", transitive_runtime_jars)
 
@@ -533,7 +539,7 @@ def _run_ksp_builder_actions(
     ctx.actions.run(
         mnemonic = "KotlinKsp2",
         inputs = depset(
-            direct = all_source_files + srcs.src_jars + ksp2_invoker_jars,
+            direct = all_source_files + srcs.src_jars + ksp2_invoker_jars + ksp2_runtime_stdlib_jars,
             transitive = [
                 compile_deps.compile_jars,
                 transitive_runtime_jars,
