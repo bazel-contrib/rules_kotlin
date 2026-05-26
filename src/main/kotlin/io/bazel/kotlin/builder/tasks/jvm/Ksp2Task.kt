@@ -66,6 +66,7 @@ class Ksp2Task : Work {
       JVM_TARGET("--jvm_target"),
       JDK_HOME("--jdk_home"),
       KSP_OPTIONS("--ksp_options"),
+      EXPERIMENTAL_PSI_RESOLUTION("--experimental_psi_resolution"),
     }
 
     fun parseKspOptions(entries: List<String>): Map<String, String> =
@@ -180,6 +181,8 @@ class Ksp2Task : Work {
       val kspClassLoader = URLClassLoader(processorUrls, ClassLoader.getSystemClassLoader())
 
       val processorOptions = parseKspOptions(argMap.optional(Ksp2Flags.KSP_OPTIONS) ?: emptyList())
+      val experimentalPsiResolution =
+        argMap.optionalSingle(Ksp2Flags.EXPERIMENTAL_PSI_RESOLUTION)?.toBoolean() ?: false
 
       // Load Ksp2Invoker via reflection (it's compiled against KSP2 classes)
       val invokerClass = kspClassLoader.loadClass("io.bazel.kotlin.ksp2.Ksp2Invoker")
@@ -206,6 +209,7 @@ class Ksp2Task : Work {
           String::class.java, // apiVersion
           File::class.java, // jdkHome
           Map::class.java, // processorOptions
+          Boolean::class.javaPrimitiveType, // experimentalPsiResolution
           Int::class.java, // logLevel
         )
 
@@ -229,6 +233,7 @@ class Ksp2Task : Work {
           argMap.optionalSingle(Ksp2Flags.API_VERSION),
           argMap.optionalSingle(Ksp2Flags.JDK_HOME)?.let { File(it) },
           processorOptions,
+          experimentalPsiResolution,
           1, // logLevel
         ) as Int
 

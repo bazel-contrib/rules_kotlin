@@ -48,3 +48,11 @@ bool_flag(
     build_setting_default = True,
     visibility = ["//visibility:public"],
 )
+
+# --@rules_kotlin//kotlin/settings:experimental_ksp2_psi_resolution=True
+# Enables KSP2's experimental PSI-based symbol resolution strategy.
+bool_flag(
+    name = "experimental_ksp2_psi_resolution",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)

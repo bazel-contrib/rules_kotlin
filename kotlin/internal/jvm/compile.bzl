@@ -508,6 +508,10 @@ def _run_ksp_builder_actions(
     for key, value in ksp_options.items():
         args.add("--ksp_options", "%s=%s" % (key, value))
 
+    # Toolchain-level KSP2 configuration
+    if toolchains.kt.experimental_ksp2_psi_resolution:
+        args.add("--experimental_psi_resolution", "true")
+
     # Run KSP2 via dedicated worker (separate from kotlinc worker)
     # Single action: staging + KSP2 + packaging all happen in the worker
     ctx.actions.run(

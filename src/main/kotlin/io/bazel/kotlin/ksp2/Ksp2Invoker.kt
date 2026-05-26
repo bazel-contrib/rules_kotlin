@@ -56,6 +56,7 @@ class Ksp2Invoker(
     apiVersion: String?,
     jdkHome: File?,
     processorOptions: Map<String, String> = emptyMap(),
+    experimentalPsiResolution: Boolean = false,
     logLevel: Int = 1,
   ): Int {
     // Load processors via ServiceLoader from the provided classloader
@@ -84,6 +85,7 @@ class Ksp2Invoker(
           jdkHome?.let { this.jdkHome = it }
           this.processorOptions = processorOptions
           this.mapAnnotationArgumentsInJava = true
+          this.experimentalPsiResolution = experimentalPsiResolution
         }.build()
 
     // Create logger and execute

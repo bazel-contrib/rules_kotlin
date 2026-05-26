@@ -100,6 +100,7 @@ def _kotlin_toolchain_impl(ctx):
         jacocorunner = ctx.attr.jacocorunner,
         experimental_prune_transitive_deps = ctx.attr._experimental_prune_transitive_deps[BuildSettingInfo].value,
         experimental_strict_associate_dependencies = ctx.attr._experimental_strict_associate_dependencies[BuildSettingInfo].value,
+        experimental_ksp2_psi_resolution = ctx.attr._experimental_ksp2_psi_resolution[BuildSettingInfo].value,
     )
 
     return [
@@ -325,6 +326,11 @@ _kt_toolchain = rule(
             their intended exposure by only exposing the direct java outputs. Using
             kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
             default = Label("//kotlin/settings:experimental_strict_associate_dependencies"),
+        ),
+        "_experimental_ksp2_psi_resolution": attr.label(
+            doc = """If enabled, KSP2 uses its experimental PSI-based symbol resolution strategy
+            (KSPJvmConfig.experimentalPsiResolution) instead of the default Analysis API strategy.""",
+            default = Label("//kotlin/settings:experimental_ksp2_psi_resolution"),
         ),
         "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),
     },
