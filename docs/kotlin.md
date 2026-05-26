@@ -607,7 +607,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "a8cfc1d62cd4d0de4d04f42575e40135bd620588c17d568a20eb9c7c259af14f", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.3.21")` |
-| <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "9c6df9fc16708ba3e6a2cc0040a9b8520710b7d8ef4d6f79dca5092d256535d1", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.7")` |
+| <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "7f462f48a966051e733df463938c35d6da1c3c7191cc889fe5e3b04c7d91b5ab", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.9")` |
 
 
 <a id="versions.use_repository"></a>
