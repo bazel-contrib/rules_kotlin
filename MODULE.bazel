@@ -66,12 +66,9 @@ register_toolchains("//kotlin/internal:default_toolchain")
 bazel_dep(name = "rules_jvm_external", version = "7.0")
 bazel_dep(name = "bazel_ci_rules", version = "2.0.0")
 
-rbe_preconfig = use_repo_rule("@bazel_ci_rules//:rbe_repo.bzl", "rbe_preconfig")
-
-rbe_preconfig(
-    name = "buildkite_config",
-    toolchain = "ubuntu2404",
-)
+rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension")
+rbe.config(name = "rbe_ubuntu", preset = "ubuntu")
+use_repo(rbe, "rbe_ubuntu")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
