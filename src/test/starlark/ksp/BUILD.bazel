@@ -14,7 +14,7 @@
 
 load("//kotlin:core.bzl", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-load(":ksp_test.bzl", "ksp_action_test", "ksp_conflicting_options_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_single_action_test")
+load(":ksp_test.bzl", "ksp_action_test", "ksp_conflicting_options_test", "ksp_javac_excludes_srcjars_test", "ksp_javac_includes_srcjars_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_single_action_test")
 
 # Simple KSP plugin for testing (uses moshi which generates Kotlin code)
 kt_ksp_plugin(
@@ -146,11 +146,65 @@ ksp_conflicting_options_test(
     target_under_test = ":ksp_test_lib_with_conflicting_options",
 )
 
+# KSP plugin with generates_java=True for testing javac srcjar inclusion
+kt_ksp_plugin(
+    name = "moshi_plugin_generates_java",
+    generates_java = True,
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+# Mixed Java+Kotlin with KSP (generates_java=False) — KSP srcjars must NOT go to javac
+kt_jvm_library(
+    name = "ksp_mixed_no_java_gen",
+    srcs = [
+        "TestHelper.java",
+        "TestModel.kt",
+    ],
+    plugins = [":moshi_plugin"],
+    deps = [
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+    ],
+)
+
+# Mixed Java+Kotlin with KSP (generates_java=True) — KSP srcjars must go to javac
+kt_jvm_library(
+    name = "ksp_mixed_with_java_gen",
+    srcs = [
+        "TestHelper.java",
+        "TestModel.kt",
+    ],
+    plugins = [":moshi_plugin_generates_java"],
+    deps = [
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+    ],
+)
+
+# Test that KSP srcjars are excluded from javac when generates_java=False
+ksp_javac_excludes_srcjars_test(
+    name = "ksp_javac_excludes_srcjars_test",
+    target_under_test = ":ksp_mixed_no_java_gen",
+)
+
+# Test that KSP srcjars are included in javac when generates_java=True
+ksp_javac_includes_srcjars_test(
+    name = "ksp_javac_includes_srcjars_test",
+    target_under_test = ":ksp_mixed_with_java_gen",
+)
+
 test_suite(
     name = "ksp_tests",
     tests = [
         ":ksp_action_test",
         ":ksp_conflicting_options_test",
+        ":ksp_javac_excludes_srcjars_test",
+        ":ksp_javac_includes_srcjars_test",
         ":ksp_options_action_test",
         ":ksp_outputs_test",
         ":ksp_plugin_empty_options_provider_test",

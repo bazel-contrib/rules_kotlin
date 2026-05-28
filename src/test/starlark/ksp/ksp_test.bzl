@@ -189,6 +189,73 @@ ksp_conflicting_options_test = analysistest.make(
     expect_failure = True,
 )
 
+def _find_javac_action(actions):
+    """Find the java_common.compile action by its -java.jar output."""
+    for a in actions:
+        for o in a.outputs.to_list():
+            if o.path.endswith("-java.jar"):
+                return a
+    return None
+
+def _has_ksp_srcjar_input(action):
+    """Check whether any input to an action is a KSP-generated srcjar."""
+    for i in action.inputs.to_list():
+        if i.path.endswith("-ksp-gensrc.jar"):
+            return True
+    return False
+
+def _ksp_javac_excludes_srcjars_when_not_generating_java_test_impl(ctx):
+    """When generates_java=False and Java sources exist, javac must not receive KSP srcjars."""
+    env = analysistest.begin(ctx)
+
+    actions = analysistest.target_actions(env)
+    javac_action = _find_javac_action(actions)
+
+    asserts.true(
+        env,
+        javac_action != None,
+        "Javac action should exist because target has Java sources",
+    )
+
+    if javac_action:
+        asserts.false(
+            env,
+            _has_ksp_srcjar_input(javac_action),
+            "Javac action should NOT have KSP srcjars when generates_java=False",
+        )
+
+    return analysistest.end(env)
+
+ksp_javac_excludes_srcjars_test = analysistest.make(
+    _ksp_javac_excludes_srcjars_when_not_generating_java_test_impl,
+)
+
+def _ksp_javac_includes_srcjars_when_generating_java_test_impl(ctx):
+    """When generates_java=True, javac must receive KSP srcjars."""
+    env = analysistest.begin(ctx)
+
+    actions = analysistest.target_actions(env)
+    javac_action = _find_javac_action(actions)
+
+    asserts.true(
+        env,
+        javac_action != None,
+        "Javac action should exist because KSP generates Java",
+    )
+
+    if javac_action:
+        asserts.true(
+            env,
+            _has_ksp_srcjar_input(javac_action),
+            "Javac action should have KSP srcjars when generates_java=True",
+        )
+
+    return analysistest.end(env)
+
+ksp_javac_includes_srcjars_test = analysistest.make(
+    _ksp_javac_includes_srcjars_when_generating_java_test_impl,
+)
+
 def ksp_test_suite(name):
     """Create test suite for KSP2 integration tests.
 
@@ -207,5 +274,7 @@ def ksp_test_suite(name):
             ":ksp_plugin_options_provider_test",
             ":ksp_plugin_empty_options_provider_test",
             ":ksp_options_action_test",
+            ":ksp_javac_excludes_srcjars_test",
+            ":ksp_javac_includes_srcjars_test",
         ],
     )
