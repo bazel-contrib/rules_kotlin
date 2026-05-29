@@ -67,8 +67,11 @@ bazel_dep(name = "rules_jvm_external", version = "7.0")
 bazel_dep(name = "bazel_ci_rules", version = "2.0.0")
 
 rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension")
-rbe.config(name = "rbe_ubuntu", preset = "ubuntu")
-use_repo(rbe, "rbe_ubuntu")
+rbe.config(
+    name = "buildkite_config",
+    preset = "ubuntu",
+)
+use_repo(rbe, "buildkite_config")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
