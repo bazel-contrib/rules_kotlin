@@ -256,6 +256,49 @@ ksp_javac_includes_srcjars_test = analysistest.make(
     _ksp_javac_includes_srcjars_when_generating_java_test_impl,
 )
 
+def _ksp_processor_classpath_isolation_test_impl(ctx):
+    """Verify KSP2 processor classpath excludes KAPT processor JARs."""
+    env = analysistest.begin(ctx)
+
+    actions = analysistest.target_actions(env)
+    ksp2_actions = [a for a in actions if a.mnemonic == "KotlinKsp2"]
+
+    asserts.equals(env, 1, len(ksp2_actions), "Should have exactly one KotlinKsp2 action")
+
+    argv = ksp2_actions[0].argv
+
+    # Collect all --processor_classpath values from argv
+    processor_classpath_entries = []
+    collecting = False
+    for arg in argv:
+        if arg == "--processor_classpath":
+            collecting = True
+        elif collecting and arg.startswith("--"):
+            collecting = False
+        elif collecting:
+            processor_classpath_entries.append(arg)
+
+    # KAPT processor JARs (autovalue) must NOT be on KSP2 processor classpath
+    kapt_jars_on_ksp = [e for e in processor_classpath_entries if "auto_value" in e or "auto-value" in e]
+    asserts.equals(
+        env,
+        0,
+        len(kapt_jars_on_ksp),
+        "KAPT processor JARs should not leak onto KSP2 --processor_classpath, found: %s" % kapt_jars_on_ksp,
+    )
+
+    # KSP processor JARs (moshi) SHOULD be present
+    ksp_jars = [e for e in processor_classpath_entries if "moshi" in e]
+    asserts.true(
+        env,
+        len(ksp_jars) > 0,
+        "KSP processor JARs (moshi) should be on KSP2 --processor_classpath",
+    )
+
+    return analysistest.end(env)
+
+ksp_processor_classpath_isolation_test = analysistest.make(_ksp_processor_classpath_isolation_test_impl)
+
 def ksp_test_suite(name):
     """Create test suite for KSP2 integration tests.
 
@@ -276,5 +319,6 @@ def ksp_test_suite(name):
             ":ksp_options_action_test",
             ":ksp_javac_excludes_srcjars_test",
             ":ksp_javac_includes_srcjars_test",
+            ":ksp_processor_classpath_isolation_test",
         ],
     )

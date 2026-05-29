@@ -35,7 +35,7 @@ def _kt_plugin_to_processorpath(processor):
 def _targets_to_annotation_processors(targets):
     plugins = []
     for t in targets:
-        if _KspPluginInfo in targets:
+        if _KspPluginInfo in t:
             # KSP plugins are handled by the KSP Kotlinc compiler plugin
             pass
         elif JavaPluginInfo in t:
@@ -81,12 +81,20 @@ def _targets_to_transitive_runtime_jars(targets):
             transitive.extend([plugin.plugins.processor_jars for plugin in t[_KspPluginInfo].plugins])
     return depset(transitive = transitive)
 
+def _targets_to_ksp_transitive_runtime_jars(targets):
+    transitive = []
+    for t in targets:
+        if _KspPluginInfo in t:
+            transitive.extend([plugin.plugins.processor_jars for plugin in t[_KspPluginInfo].plugins])
+    return depset(transitive = transitive)
+
 mappers = struct(
     targets_to_annotation_processors = _targets_to_annotation_processors,
     targets_to_ksp_annotation_processors = _targets_to_ksp_annotation_processors,
     targets_to_ksp_options = _targets_to_ksp_options,
     targets_to_annotation_processors_java_plugin_info = _targets_to_annotation_processors_java_plugin_info,
     targets_to_transitive_runtime_jars = _targets_to_transitive_runtime_jars,
+    targets_to_ksp_transitive_runtime_jars = _targets_to_ksp_transitive_runtime_jars,
     kt_plugin_to_processor = _kt_plugin_to_processor,
     kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
 )

@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_java//java:defs.bzl", "java_plugin")
 load("//kotlin:core.bzl", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-load(":ksp_test.bzl", "ksp_action_test", "ksp_conflicting_options_test", "ksp_javac_excludes_srcjars_test", "ksp_javac_includes_srcjars_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_single_action_test")
+load(":ksp_test.bzl", "ksp_action_test", "ksp_conflicting_options_test", "ksp_javac_excludes_srcjars_test", "ksp_javac_includes_srcjars_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_processor_classpath_isolation_test", "ksp_single_action_test")
 
 # Simple KSP plugin for testing (uses moshi which generates Kotlin code)
 kt_ksp_plugin(
@@ -158,6 +159,14 @@ kt_ksp_plugin(
     ],
 )
 
+# KAPT processor plugin for testing classpath isolation
+java_plugin(
+    name = "autovalue_plugin",
+    generates_api = 1,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
+)
+
 # Mixed Java+Kotlin with KSP (generates_java=False) — KSP srcjars must NOT go to javac
 kt_jvm_library(
     name = "ksp_mixed_no_java_gen",
@@ -186,6 +195,22 @@ kt_jvm_library(
     ],
 )
 
+# Target with both KAPT (autovalue) and KSP (moshi) plugins — verifies
+# that KAPT processor JARs do not leak onto the KSP2 processor classpath
+kt_jvm_library(
+    name = "ksp_test_lib_with_kapt",
+    srcs = ["TestModel.kt"],
+    plugins = [
+        ":autovalue_plugin",
+        ":moshi_plugin",
+    ],
+    deps = [
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+    ],
+)
+
 # Test that KSP srcjars are excluded from javac when generates_java=False
 ksp_javac_excludes_srcjars_test(
     name = "ksp_javac_excludes_srcjars_test",
@@ -196,6 +221,12 @@ ksp_javac_excludes_srcjars_test(
 ksp_javac_includes_srcjars_test(
     name = "ksp_javac_includes_srcjars_test",
     target_under_test = ":ksp_mixed_with_java_gen",
+)
+
+# Test that KSP2 processor classpath only contains KSP processor JARs
+ksp_processor_classpath_isolation_test(
+    name = "ksp_processor_classpath_isolation_test",
+    target_under_test = ":ksp_test_lib_with_kapt",
 )
 
 test_suite(
@@ -209,6 +240,7 @@ test_suite(
         ":ksp_outputs_test",
         ":ksp_plugin_empty_options_provider_test",
         ":ksp_plugin_options_provider_test",
+        ":ksp_processor_classpath_isolation_test",
         ":ksp_single_action_test",
     ],
 )
