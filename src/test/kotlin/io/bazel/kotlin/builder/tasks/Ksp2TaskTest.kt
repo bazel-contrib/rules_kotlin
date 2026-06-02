@@ -18,8 +18,10 @@ package io.bazel.kotlin.builder.tasks
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.Ksp2Flags
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.parseKspOptions
 import io.bazel.kotlin.builder.utils.ArgMap
+import java.net.URLClassLoader
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -185,5 +187,23 @@ class Ksp2TaskTest {
   @Test
   fun testParseKspOptionsEmptyList() {
     assertThat(parseKspOptions(emptyList())).isEmpty()
+  }
+
+  @Test
+  fun testProcessorClassLoaderUsesPlatformParent() {
+    val createProcessorClassLoader =
+      Ksp2Task.Companion::class.java.getDeclaredMethod(
+        "createProcessorClassLoader",
+        List::class.java,
+      )
+    createProcessorClassLoader.isAccessible = true
+
+    @Suppress("UNCHECKED_CAST")
+    val classLoader =
+      createProcessorClassLoader.invoke(Ksp2Task.Companion, emptyList<String>()) as URLClassLoader
+
+    classLoader.use {
+      assertThat(classLoader.parent).isSameInstanceAs(ClassLoader.getPlatformClassLoader())
+    }
   }
 }

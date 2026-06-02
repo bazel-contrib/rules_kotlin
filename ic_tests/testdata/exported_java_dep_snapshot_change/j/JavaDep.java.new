@@ -1,0 +1,7 @@
+package j;
+
+public class JavaDep {
+    public Long value() {
+        return 1L;
+    }
+}

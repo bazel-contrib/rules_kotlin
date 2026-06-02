@@ -1,0 +1,10 @@
+=== Running initial build ===
+KotlinCompile //:consumer
+compile iteration: c/C.kt
+compiler exit code: OK
+=== Applying modifications ===
+Updating: j/JavaDep.java
+=== Running incremental build ===
+KotlinCompile //:consumer
+compile iteration: c/C.kt
+compiler exit code: OK

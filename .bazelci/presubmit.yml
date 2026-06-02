@@ -78,6 +78,12 @@ tasks:
     <<: [ *ubuntu2204, *unittests ]
   ubuntu2204_integration_tests:
     <<: [ *ubuntu2204, *integration_tests ]
+  ubuntu2404_ic_tests:
+    name: "IC Tests"
+    <<: *ubuntu2404
+    test_flags: ${{ test_flags }}
+    test_targets:
+      - "//ic_tests:ic_tests_suite"
   windows_integration_tests:
     <<: [ *windows, *integration_tests_no_android ]
   windows_unittests:

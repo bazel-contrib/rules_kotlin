@@ -1,0 +1,15 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+
+kt_compiler_plugin(
+    name = "allopen_plugin",
+    id = "org.jetbrains.kotlin.allopen",
+    options = {"annotation": "plugin.allopen.OpenForTesting"},
+    deps = ["@rules_kotlin//kotlin/compiler:allopen-compiler-plugin"],
+)
+
+kt_jvm_library(
+    name = "a",
+    srcs = glob(["a/**/*.kt"]),
+    plugins = [":allopen_plugin"],
+)

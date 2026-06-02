@@ -45,6 +45,19 @@ bool_flag(
 
 bool_flag(
     name = "experimental_build_tools_api",
-    build_setting_default = True,
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+bool_flag(
+    name = "experimental_incremental_compilation",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# --@rules_kotlin//kotlin/settings:experimental_ic_enable_logging=True
+bool_flag(
+    name = "experimental_ic_enable_logging",
+    build_setting_default = False,
     visibility = ["//visibility:public"],
 )

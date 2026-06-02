@@ -618,6 +618,9 @@ Supports the following template values:
             dependencies, and will fail when running against a non-embeddable compiler.""",
             default = False,
         ),
+        "_experimental_build_tools_api": attr.label(
+            default = Label("//kotlin/settings:experimental_build_tools_api"),
+        ),
         "_jarjar": attr.label(
             executable = True,
             cfg = "exec",

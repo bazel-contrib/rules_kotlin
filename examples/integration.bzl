@@ -40,6 +40,27 @@ def derive_metadata(directory):
         )) > 0,
     )
 
+def _example_integration_test(
+        name,
+        bazel_version,
+        metadata,
+        tags,
+        test_runner):
+    bazel_integration_test(
+        name = name,
+        timeout = "eternal",
+        additional_env_inherit = [
+            "ANDROID_HOME",
+            "ANDROID_SDK_ROOT",
+            "ANDROID_NDK_HOME",
+        ],
+        bazel_version = bazel_version,
+        tags = tags,
+        test_runner = test_runner,
+        workspace_files = metadata.workspace_files,
+        workspace_path = metadata.directory,
+    )
+
 def example_integration_test_suite(
         name,
         metadata,
@@ -48,19 +69,12 @@ def example_integration_test_suite(
         if version in metadata.only or (not metadata.only and version not in metadata.exclude):
             clean_bazel_version = Label(version).name
             if metadata.has_module:
-                bazel_integration_test(
+                _example_integration_test(
                     name = "%s_%s_test" % (name, clean_bazel_version),
-                    timeout = "eternal",
-                    additional_env_inherit = [
-                        "ANDROID_HOME",
-                        "ANDROID_SDK_ROOT",
-                        "ANDROID_NDK_HOME",
-                    ],
                     bazel_version = version,
+                    metadata = metadata,
                     tags = tags + [clean_bazel_version, name],
                     test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",
-                    workspace_files = metadata.workspace_files,
-                    workspace_path = metadata.directory,
                 )
 
     native.test_suite(

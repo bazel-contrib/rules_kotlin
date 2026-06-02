@@ -1,0 +1,5 @@
+package c
+
+class C {
+  fun getValue(): Long = 1L
+}

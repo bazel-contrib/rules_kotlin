@@ -1,0 +1,12 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "a",
+    srcs = glob(["a/*.kt"]),
+)
+
+kt_jvm_library(
+    name = "b",
+    srcs = glob(["b/*.kt"]),
+    deps = [":a"],
+)

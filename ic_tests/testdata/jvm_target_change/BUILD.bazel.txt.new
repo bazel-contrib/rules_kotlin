@@ -1,0 +1,13 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options")
+
+kt_kotlinc_options(
+    name = "kotlinc_opts",
+    jvm_target = "17",
+)
+
+kt_jvm_library(
+    name = "a",
+    srcs = glob(["a/**/*.kt"]),
+    kotlinc_opts = ":kotlinc_opts",
+)

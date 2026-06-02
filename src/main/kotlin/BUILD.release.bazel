@@ -36,6 +36,11 @@ java_import(
 )
 
 java_import(
+    name = "snapshot_worker",
+    jars = ["snapshot_worker.jar"],
+)
+
+java_import(
     name = "ksp2_invoker",
     jars = ["ksp2_invoker.jar"],
     visibility = ["//visibility:public"],
@@ -116,4 +121,12 @@ java_binary(
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     visibility = ["//visibility:public"],
     runtime_deps = [":ksp2_worker"] + KSP2_RUNTIME_STDLIBS,
+)
+
+java_binary(
+    name = "snapshot",
+    data = KOTLIN_STDLIBS,
+    main_class = "io.bazel.kotlin.builder.cmd.Snapshot",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":snapshot_worker"] + KOTLIN_STDLIBS,
 )

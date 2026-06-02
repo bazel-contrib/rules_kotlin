@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.regex.Pattern
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -87,6 +88,10 @@ class KotlinBuilder(
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
+      INCREMENTAL_COMPILATION("--incremental_compilation"),
+      IC_ENABLE_LOGGING("--ic_enable_logging"),
+      CLASSPATH_SNAPSHOTS("--classpath_snapshots"),
+      NON_KOTLIN_CLASSPATH_SNAPSHOTS("--non_kotlin_classpath_snapshots"),
       BUILD_TOOLS_API("--build_tools_api"),
       BTAPI_RUNTIME_CLASSPATH("--btapi_runtime_classpath"),
       JDEPS_JAR("--jdeps_jar"),
@@ -100,18 +105,20 @@ class KotlinBuilder(
     taskContext: WorkerContext.TaskContext,
     args: List<String>,
   ): Int {
-    val (argMap, compileContext) = buildContext(taskContext, args)
+    var compileContext: CompilationTaskContext? = null
     var success = false
     var status = 0
     try {
+      val (argMap, builtCompileContext) = buildContext(taskContext, args)
+      compileContext = builtCompileContext
       @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
-      when (compileContext.info.platform) {
+      when (builtCompileContext.info.platform) {
         Platform.JVM,
         Platform.ANDROID,
-        -> executeJvmTask(compileContext, taskContext.directory, argMap)
+        -> executeJvmTask(builtCompileContext, taskContext.directory, argMap)
 
         Platform.UNRECOGNIZED -> throw IllegalStateException(
-          "unrecognized platform: ${compileContext.info}",
+          "unrecognized platform: ${builtCompileContext.info}",
         )
       }
       success = true
@@ -122,7 +129,7 @@ class KotlinBuilder(
       taskContext.error(throwable) { "Uncaught exception" }
       status = 1
     } finally {
-      compileContext.finalize(success)
+      compileContext?.finalize(success)
     }
     return status
   }
@@ -138,10 +145,30 @@ class KotlinBuilder(
       } ?: args
 
     val argMap = ArgMaps.from(lines)
+    validateDeclaredOutputPaths(argMap)
     val info = buildTaskInfo(argMap).build()
     val context =
       CompilationTaskContext(info, ctx.asPrintStream())
     return Pair(argMap, context)
+  }
+
+  private fun validateDeclaredOutputPaths(argMap: ArgMap) {
+    listOf(
+      KotlinBuilderFlags.OUTPUT,
+      KotlinBuilderFlags.OUTPUT_SRCJAR,
+      KotlinBuilderFlags.OUTPUT_JDEPS,
+      KotlinBuilderFlags.ABI_JAR,
+      KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR,
+      KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR,
+      KotlinBuilderFlags.GENERATED_CLASS_JAR,
+    ).forEach { flag ->
+      argMap.optionalSingle(flag)?.let { outputPath ->
+        val path = Path.of(outputPath)
+        require(!Files.isDirectory(path)) {
+          "${flag.flag} must point to a file, but found a directory: $outputPath"
+        }
+      }
+    }
   }
 
   fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
@@ -169,16 +196,22 @@ class KotlinBuilder(
       strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
       reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE)?.let {
-        treatInternalAsPrivateInAbiJar = it == "true"
+        treatInternalAsPrivateInAbiJar = it.toBoolean()
       }
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_PRIVATE_CLASSES)?.let {
-        removePrivateClassesInAbiJar = it == "true"
+        removePrivateClassesInAbiJar = it.toBoolean()
       }
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
-        removeDebugInfo = it == "true"
+        removeDebugInfo = it.toBoolean()
+      }
+      argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)?.let {
+        incrementalCompilation = it.toBoolean()
+      }
+      argMap.optionalSingle(KotlinBuilderFlags.IC_ENABLE_LOGGING)?.let {
+        icEnableLogging = it.toBoolean()
       }
       argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
-        buildToolsApi = it == "true"
+        buildToolsApi = it.toBoolean()
       }
       this
     }
@@ -243,43 +276,36 @@ class KotlinBuilder(
 
       with(root.directoriesBuilder) {
         val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
+        val outputJar = argMap.optionalSingle(KotlinBuilderFlags.OUTPUT)
         classes =
-          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
+          getOutputDirPath(info, workingDir, moduleName, "classes", outputJar).toString()
         javaClasses =
-          workingDir
-            .resolveNewDirectories(
-              getOutputDirPath(moduleName, "java_classes"),
-            ).toString()
+          getOutputDirPath(info, workingDir, moduleName, "java_classes", outputJar).toString()
         if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) {
           abiClasses =
-            workingDir
-              .resolveNewDirectories(
-                getOutputDirPath(moduleName, "abi_classes"),
-              ).toString()
+            getOutputDirPath(info, workingDir, moduleName, "abi_classes", outputJar).toString()
         }
         generatedClasses =
-          workingDir
-            .resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes"))
+          getOutputDirPath(info, workingDir, moduleName, "generated_classes", outputJar)
             .toString()
         temp =
-          workingDir
-            .resolveNewDirectories(
-              getOutputDirPath(moduleName, "temp"),
-            ).toString()
+          getOutputDirPath(info, workingDir, moduleName, "temp", outputJar).toString()
         generatedSources =
-          workingDir
-            .resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources"))
+          getOutputDirPath(info, workingDir, moduleName, "generated_sources", outputJar)
             .toString()
         generatedJavaSources =
-          workingDir
-            .resolveNewDirectories(getOutputDirPath(moduleName, "generated_java_sources"))
+          getOutputDirPath(info, workingDir, moduleName, "generated_java_sources", outputJar)
             .toString()
         generatedStubClasses =
-          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
+          getOutputDirPath(info, workingDir, moduleName, "stubs", outputJar).toString()
         coverageMetadataClasses =
-          workingDir
-            .resolveNewDirectories(getOutputDirPath(moduleName, "coverage-metadata"))
+          getOutputDirPath(info, workingDir, moduleName, "coverage-metadata", outputJar)
             .toString()
+        if (info.incrementalCompilation && outputJar != null) {
+          val outputPath = Paths.get(outputJar).toAbsolutePath()
+          val jarName = outputPath.fileName.toString().removeSuffix(".jar")
+          incrementalBaseDir = outputPath.resolveSibling("$jarName-ic").toString()
+        }
       }
 
       with(root.inputsBuilder) {
@@ -291,7 +317,6 @@ class KotlinBuilder(
 
         addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
-
         addAllStubsPluginOptions(
           argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
         )
@@ -312,9 +337,21 @@ class KotlinBuilder(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
         )
 
+        val useAbsolutePath = info.incrementalCompilation
+
         argMap
           .optional(KotlinBuilderFlags.SOURCES)
-          ?.iterator()
+          ?.map {
+            if (useAbsolutePath) {
+              FileSystems
+                .getDefault()
+                .getPath(it)
+                .toAbsolutePath()
+                .toString()
+            } else {
+              it
+            }
+          }?.iterator()
           ?.partitionJvmSources(
             { addKotlinSources(it) },
             { addJavaSources(it) },
@@ -324,6 +361,12 @@ class KotlinBuilder(
           ?.also {
             addAllSourceJars(it)
           }
+        addAllClasspathSnapshots(
+          argMap.optional(KotlinBuilderFlags.CLASSPATH_SNAPSHOTS) ?: emptyList(),
+        )
+        addAllNonKotlinClasspathSnapshots(
+          argMap.optional(KotlinBuilderFlags.NON_KOTLIN_CLASSPATH_SNAPSHOTS) ?: emptyList(),
+        )
       }
 
       with(root.infoBuilder) {
@@ -334,7 +377,21 @@ class KotlinBuilder(
     }
 
   private fun getOutputDirPath(
+    info: CompilationTaskInfo,
+    workingDir: Path,
     moduleName: String,
     dirName: String,
-  ) = "_kotlinc/${moduleName}_jvm/$dirName"
+    outputJar: String?,
+  ): Path {
+    if (info.incrementalCompilation && outputJar != null) {
+      val outputPath = Paths.get(outputJar).toAbsolutePath()
+      val outputDir = outputPath.parent
+      val jarName = outputPath.fileName.toString().removeSuffix(".jar")
+      val path = outputDir.resolve("_kotlin_incremental/$jarName/$dirName")
+      Files.createDirectories(path)
+      return path
+    }
+
+    return workingDir.resolveNewDirectories("_kotlinc/${moduleName}_jvm/$dirName")
+  }
 }
