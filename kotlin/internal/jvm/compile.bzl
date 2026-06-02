@@ -968,7 +968,7 @@ def _kt_jvm_produce_output_jar_actions(
         exports = compile_deps.exports,
         neverlink = getattr(ctx.attr, "neverlink", False),
         generated_source_jar = generated_source_jar,
-        generated_class_jar = annotation_processing.class_jar if annotation_processing else None,
+        generated_class_jar = generated_class_jar,
     )
 
     instrumented_files = coverage_common.instrumented_files_info(
@@ -1063,18 +1063,24 @@ def _run_kt_java_builder_actions(
     if has_kt_sources and annotation_processors:
         kapt_outputs = _run_kapt_builder_actions(
             ctx,
-            rule_kind,
-            toolchains,
-            srcs,
-            compile_deps,
-            deps_artifacts,
-            annotation_processors,
-            transitive_runtime_jars,
-            plugins,
+            rule_kind = rule_kind,
+            toolchains = toolchains,
+            srcs = srcs,
+            compile_deps = compile_deps,
+            deps_artifacts = deps_artifacts,
+            annotation_processors = annotation_processors,
+            transitive_runtime_jars = transitive_runtime_jars,
+            plugins = plugins,
         )
         generated_kapt_src_jars.append(kapt_outputs.ap_generated_src_jar)
         output_jars.append(kapt_outputs.kapt_generated_class_jar)
-        kt_stubs_for_java.append(JavaInfo(compile_jar = kapt_outputs.kapt_generated_stub_jar, output_jar = kapt_outputs.kapt_generated_stub_jar, neverlink = True))
+        kt_stubs_for_java.append(
+            JavaInfo(
+                compile_jar = kapt_outputs.kapt_generated_stub_jar,
+                output_jar = kapt_outputs.kapt_generated_stub_jar,
+                neverlink = True,
+            ),
+        )
 
     # Run KSP
     ksp_generated_class_jar = None
@@ -1139,7 +1145,16 @@ def _run_kt_java_builder_actions(
         if not annotation_processors or not srcs.kt:
             kt_stubs_for_java.append(JavaInfo(compile_jar = kt_compile_jar, output_jar = kt_runtime_jar, neverlink = True))
 
-        java_infos.append(JavaInfo(output_jar = kt_runtime_jar, compile_jar = kt_compile_jar, jdeps = kt_jdeps, deps = compile_deps.deps, runtime_deps = compile_deps.runtime_deps, exports = compile_deps.exports, neverlink = getattr(ctx.attr, "neverlink", False)))
+        kt_java_info = JavaInfo(
+            output_jar = kt_runtime_jar,
+            compile_jar = kt_compile_jar,
+            jdeps = kt_jdeps,
+            deps = compile_deps.deps,
+            runtime_deps = compile_deps.runtime_deps,
+            exports = compile_deps.exports,
+            neverlink = getattr(ctx.attr, "neverlink", False),
+        )
+        java_infos.append(kt_java_info)
     else:
         compile_jars_to_fold = []
 
@@ -1178,14 +1193,31 @@ def _run_kt_java_builder_actions(
         output_jars.extend([jars.class_jar for jars in java_outputs])
         java_infos.append(java_info)
 
-    _fold_jars_action(ctx, rule_kind, toolchains, compile_jar, compile_jars_to_fold, action_type = "Abi")
+    # Merge ABI jars into final compile jar.
+    _fold_jars_action(
+        ctx,
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        output_jar = compile_jar,
+        action_type = "Abi",
+        input_jars = compile_jars_to_fold,
+    )
 
     if toolchains.kt.jvm_emit_jdeps:
         jdeps_to_merge = [ji.outputs.jdeps for ji in java_infos if ji.outputs.jdeps]
         if jdeps_to_merge:
-            _run_merge_jdeps_action(ctx, toolchains, jdeps_to_merge, {"output": output_jdeps}, compile_deps.deps)
+            _run_merge_jdeps_action(
+                ctx = ctx,
+                toolchains = toolchains,
+                jdeps = jdeps_to_merge,
+                deps = compile_deps.deps,
+                outputs = {"output": output_jdeps},
+            )
         else:
-            ctx.actions.symlink(output = output_jdeps, target_file = toolchains.kt.empty_jdeps)
+            ctx.actions.symlink(
+                output = output_jdeps,
+                target_file = toolchains.kt.empty_jdeps,
+            )
 
     annotation_processing = None
     if annotation_processors or ksp_annotation_processors:
@@ -1196,7 +1228,11 @@ def _run_kt_java_builder_actions(
             ap_source_jar = ksp_generated_src_jar if is_ksp else ap_generated_src_jar,
         )
 
-    return struct(output_jars = output_jars, generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars, annotation_processing = annotation_processing)
+    return struct(
+        output_jars = output_jars,
+        generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
+        annotation_processing = annotation_processing,
+    )
 
 def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source_jar):
     """Creates the annotation_processing field for Kt to match what JavaInfo
@@ -1242,9 +1278,22 @@ def _export_only_providers(ctx, actions, attr, outputs):
     output_jdeps = None
     if toolchains.kt.jvm_emit_jdeps:
         output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
-        actions.symlink(output = output_jdeps, target_file = toolchains.kt.empty_jdeps)
-    java = JavaInfo(output_jar = toolchains.kt.empty_jar, compile_jar = toolchains.kt.empty_jar, deps = [_java_info(d) for d in attr.deps], exports = [_java_info(d) for d in getattr(attr, "exports", [])], neverlink = getattr(attr, "neverlink", False), jdeps = output_jdeps)
-    transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(attr.deps + getattr(attr, "associates", []) + getattr(attr, "exports", []))
+        actions.symlink(
+            output = output_jdeps,
+            target_file = toolchains.kt.empty_jdeps,
+        )
+
+    java = JavaInfo(
+        output_jar = toolchains.kt.empty_jar,
+        compile_jar = toolchains.kt.empty_jar,
+        deps = [_java_info(d) for d in attr.deps],
+        exports = [_java_info(d) for d in getattr(attr, "exports", [])],
+        neverlink = getattr(attr, "neverlink", False),
+        jdeps = output_jdeps,
+    )
+    transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(
+        attr.deps + getattr(attr, "associates", []) + getattr(attr, "exports", []),
+    )
     transitive_non_kotlin_classpath_snapshot_jars = depset(
         transitive = [
             getattr(t[_KtJvmInfo], "transitive_non_kotlin_classpath_snapshot_jars", depset())
@@ -1252,7 +1301,27 @@ def _export_only_providers(ctx, actions, attr, outputs):
             if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "transitive_non_kotlin_classpath_snapshot_jars", None) != None
         ],
     )
-    return struct(java = java, kt = _KtJvmInfo(module_name = _utils.derive_module_name(ctx), module_jars = [], language_version = toolchains.kt.api_version, exported_compiler_plugins = _collect_plugins_for_export(getattr(attr, "exported_compiler_plugins", []), getattr(attr, "exports", [])), classpath_snapshot = None, transitive_classpath_snapshots = transitive_classpath_snapshots, transitive_non_kotlin_classpath_snapshot_jars = transitive_non_kotlin_classpath_snapshot_jars), instrumented_files = coverage_common.instrumented_files_info(ctx, source_attributes = ["srcs"], dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"], extensions = ["kt", "java"]))
+    return struct(
+        java = java,
+        kt = _KtJvmInfo(
+            module_name = _utils.derive_module_name(ctx),
+            module_jars = [],
+            language_version = toolchains.kt.api_version,
+            exported_compiler_plugins = _collect_plugins_for_export(
+                getattr(attr, "exported_compiler_plugins", []),
+                getattr(attr, "exports", []),
+            ),
+            classpath_snapshot = None,
+            transitive_classpath_snapshots = transitive_classpath_snapshots,
+            transitive_non_kotlin_classpath_snapshot_jars = transitive_non_kotlin_classpath_snapshot_jars,
+        ),
+        instrumented_files = coverage_common.instrumented_files_info(
+            ctx,
+            source_attributes = ["srcs"],
+            dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
+            extensions = ["kt", "java"],
+        ),
+    )
 
 compile = struct(
     compiler_toolchains = _compiler_toolchains,
