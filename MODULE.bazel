@@ -4,13 +4,17 @@ module(
     repo_name = "rules_kotlin",
 )
 
-bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_cc", version = "0.2.18")
+proto_version = "4.33.4"
+
+proto_version_parts = proto_version.split(".")
+
+proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
+
+bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_license", version = "1.0.0")
-bazel_dep(name = "rules_python", version = "2.0.0")
 bazel_dep(name = "rules_android", version = "0.7.3")
 
 remote_android_extensions = use_extension(
@@ -60,7 +64,8 @@ register_toolchains("//kotlin/internal:default_toolchain")
 # we need to sort out a few cases around how these rules are consumed in various ways.
 
 bazel_dep(name = "rules_jvm_external", version = "7.0")
-bazel_dep(name = "bazel_ci_rules", version = "2.0.0")
+
+bazel_dep(name = "bazel_ci_rules", version = "2.0.0", dev_dependency = True)
 
 rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension")
 rbe.config(
@@ -74,7 +79,6 @@ maven.install(
     name = "kotlin_rules_maven",
     artifacts = [
         "com.google.code.findbugs:jsr305:3.0.2",
-        "com.google.code.gson:gson:2.10.1",
         "com.google.errorprone:error_prone_annotations:2.23.0",
         "junit:junit:4.13-beta-3",
         "com.google.guava:guava:33.0.0-jre",
@@ -86,8 +90,6 @@ maven.install(
         "com.google.dagger:dagger:2.57.2",
         "com.google.dagger:dagger-compiler:2.57.2",
         "com.google.dagger:dagger-producers:2.57.2",
-        "org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.0",
-        "javax.annotation:javax.annotation-api:1.3.2",
         "javax.inject:javax.inject:1",
         "org.apache.commons:commons-compress:1.26.2",
         "com.eed3si9n.jarjar:jarjar:1.16.0",
@@ -95,7 +97,6 @@ maven.install(
         "com.squareup.moshi:moshi:1.15.2",
         "com.squareup.moshi:moshi-kotlin:1.15.2",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
-        "org.codehaus.plexus:plexus-utils:3.0.24",
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],
     fail_if_repin_required = True,
