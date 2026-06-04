@@ -1,4 +1,5 @@
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("@rules_license//rules:license.bzl", "license")
 load("@rules_multirun//:defs.bzl", "multirun")
 load("//kotlin:lint.bzl", "ktlint_config")
 
@@ -16,6 +17,16 @@ load("//kotlin:lint.bzl", "ktlint_config")
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
+
+package(default_applicable_licenses = [":license"])
+
+license(
+    name = "license",
+    package_name = "rules_kotlin",
+    license_kinds = ["@rules_license//licenses/spdx:Apache-2.0"],
+    license_text = "LICENSE",
+    visibility = ["//visibility:public"],
+)
 
 filegroup(
     name = "editorconfig",
