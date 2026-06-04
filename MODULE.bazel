@@ -93,7 +93,7 @@ maven.install(
         "com.google.dagger:dagger:2.57.2",
         "com.google.dagger:dagger-compiler:2.57.2",
         "com.google.dagger:dagger-producers:2.57.2",
-        "org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.21",
+        "org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.0",
         "javax.annotation:javax.annotation-api:1.3.2",
         "javax.inject:javax.inject:1",
         "org.apache.commons:commons-compress:1.26.2",

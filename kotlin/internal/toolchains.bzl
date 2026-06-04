@@ -128,6 +128,7 @@ _kt_toolchain = rule(
                 "2.1",
                 "2.2",
                 "2.3",
+                "2.4",
             ],
         ),
         "debug": attr.string_list(
@@ -295,6 +296,7 @@ _kt_toolchain = rule(
                 "2.1",
                 "2.2",
                 "2.3",
+                "2.4",
             ],
         ),
         "supports_path_mapping": attr.bool(
