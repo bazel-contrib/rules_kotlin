@@ -27,6 +27,7 @@ use_repo(
     "kotlinx_serialization_core_jvm",
     "kotlinx_serialization_json",
     "kotlinx_serialization_json_jvm",
+    "kotlin_build_tools_api",
     "kotlin_build_tools_impl",
 )
 

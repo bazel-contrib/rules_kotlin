@@ -96,6 +96,13 @@ def kotlin_repositories(
         version = versions.KOTLIN_BUILD_TOOLS_IMPL,
     )
 
+    versions.use_repository(
+        http_file,
+        name = "kotlin_build_tools_api",
+        version = versions.KOTLIN_BUILD_TOOLS_API,
+        downloaded_file_path = "kotlin-build-tools-api.jar",
+    )
+
     if is_bzlmod:
         return
 

@@ -214,7 +214,7 @@ object WriteKotlincCapabilities {
         yield(
           KotlincCapability(
             flag = argument.value,
-            default = getter.invoke(instance)?.let(Any::toString),
+            default = getter.invoke(instance),
             type = StarlarkType.mapFrom(field.type),
             doc = argument.description,
           ),
@@ -248,7 +248,7 @@ object WriteKotlincCapabilities {
   data class KotlincCapability(
     val flag: String,
     val doc: String,
-    private val default: String?,
+    private val default: Any?,
     private val type: StarlarkType,
   ) : Comparable<KotlincCapability> {
 
@@ -262,19 +262,21 @@ object WriteKotlincCapabilities {
   sealed class StarlarkType(val attr: String) {
 
     class Bool() : StarlarkType("attr.bool") {
-      override fun convert(value: String?): String? = when (value) {
-        "true" -> "True"
+      override fun convert(value: Any?): String? = when (value) {
+        true -> "True"
         else -> "False"
       }
     }
 
     class Str() : StarlarkType("attr.string") {
-      override fun convert(value: String?): String? = value?.bzlQuote() ?: "None"
+      override fun convert(value: Any?): String? = (value as? String)?.bzlQuote() ?: "None"
     }
 
     class StrList() : StarlarkType("attr.string_list") {
-      override fun convert(value: String?): String =
-        value?.let { "default = [${it.bzlQuote()}]" } ?: "[]"
+      override fun convert(value: Any?): String =
+        (value as? Array<*>)
+          ?.joinToString(", ", "[", "]") { it.toString().bzlQuote() }
+          ?: "[]"
     }
 
     companion object {
@@ -289,11 +291,11 @@ object WriteKotlincCapabilities {
       }
     }
 
-    abstract fun convert(value: String?): String?
+    abstract fun convert(value: Any?): String?
   }
 
   private fun Any.bzlQuote(): String {
-    var asString = toString()
+    val asString = toString().replace("\\", "\\\\")
     val quote = "\"".repeat(if ("\n" in asString || "\"" in asString) 3 else 1)
     return quote + asString + quote
   }

@@ -87,6 +87,7 @@ class KotlinBuilderBuildTest {
       KotlinToolchain.createToolchain(
         File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
         File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
+        File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
         File(
           Deps.Dep
             .fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar")

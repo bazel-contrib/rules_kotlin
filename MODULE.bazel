@@ -49,6 +49,7 @@ use_repo(
     "com_github_jetbrains_kotlin",
     "com_github_jetbrains_kotlin_git",
     "com_github_pinterest_ktlint",
+    "kotlin_build_tools_api",
     "kotlin_build_tools_impl",
     "kotlinx_coroutines_core_jvm",
     "kotlinx_serialization_core_jvm",

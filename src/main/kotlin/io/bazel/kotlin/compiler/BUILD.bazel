@@ -20,6 +20,7 @@ kt_bootstrap_library(
     name = "compiler",
     srcs = glob(["*.kt"]),
     neverlink_deps = [
+        "//kotlin/compiler:build-tools-api",
         "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-script-runtime",

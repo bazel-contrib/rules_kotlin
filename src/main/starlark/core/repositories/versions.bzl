@@ -86,6 +86,15 @@ versions = struct(
         ],
         sha256 = "076c0a7f84d303f1e390774410c8678b8b584faa3f642435f93d2e4e81dabe7c",
     ),
+    # Starting with Kotlin 2.4.0 the Build Tools API interfaces are no longer bundled in
+    # kotlin-compiler.jar, so they must be provided as a separate jar.
+    KOTLIN_BUILD_TOOLS_API = version(
+        version = "2.4.0",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/{version}/kotlin-build-tools-api-{version}.jar",
+        ],
+        sha256 = "66917335497f9ab75a36c34b3d90bad2bc8dc256c34b2413ecd0c9467fcf597d",
+    ),
     RULES_ANDROID = version(
         version = "0.7.0",
         url_templates = [

@@ -45,6 +45,7 @@ def kt_rules_test(name, **kwargs):
         "@kotlinx_serialization_core_jvm//file",
         "@kotlinx_serialization_json//file",
         "@kotlinx_serialization_json_jvm//file",
+        "@kotlin_build_tools_api//file",
         "@kotlin_build_tools_impl//file",
     ] + args["data"]:
         if dep not in args["data"]:

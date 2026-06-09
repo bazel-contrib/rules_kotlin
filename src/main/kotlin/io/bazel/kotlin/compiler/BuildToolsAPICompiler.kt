@@ -18,7 +18,8 @@ package io.bazel.kotlin.compiler
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
-import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.getToolchain
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
 import org.jetbrains.kotlin.cli.common.ExitCode
 import java.nio.file.Path
 
@@ -35,20 +36,22 @@ class BuildToolsAPICompiler {
 
     // Create compilation operation with empty sources and dummy destination
     // (the actual sources/destination will be set via applyArgumentStrings)
-    val operation =
-      kotlinToolchains.jvm.createJvmCompilationOperation(
-        emptyList(),
-        Path.of("."),
-      )
+    val operationBuilder =
+      kotlinToolchains
+        .getToolchain<JvmPlatformToolchain>()
+        .jvmCompilationOperationBuilder(
+          emptyList(),
+          Path.of("."),
+        )
 
     // Apply raw CLI arguments - this parses the args and sets all compiler options
     // TODO: we can use actual typed API after we get rid of BazelK2JVMCompiler and use BTAPI exclusively
-    operation.compilerArguments.applyArgumentStrings(args.toList())
+    operationBuilder.compilerArguments.applyArgumentStrings(args.toList())
 
     // Execute the compilation
     val result =
       kotlinToolchains.createBuildSession().use { session ->
-        session.executeOperation(operation)
+        session.executeOperation(operationBuilder.build())
       }
 
     // BTAPI returns a different type than K2JVMCompiler (CompilationResult vs ExitCode).

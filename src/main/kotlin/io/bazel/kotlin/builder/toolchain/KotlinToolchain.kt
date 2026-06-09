@@ -94,10 +94,17 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
-    private val BUILD_TOOLS_API by lazy {
+    private val BUILD_TOOLS_IMPL by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@com_github_jetbrains_kotlin...build-tools-impl",
+        ).toPath()
+    }
+
+    private val BUILD_TOOLS_API by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin...build-tools-api",
         ).toPath()
     }
 
@@ -107,8 +114,9 @@ class KotlinToolchain private constructor(
     fun createToolchain(): KotlinToolchain =
       createToolchain(
         KOTLINC.verified().absoluteFile,
-        COMPILER.verified().absoluteFile,
+        BUILD_TOOLS_IMPL.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
+        COMPILER.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
@@ -122,6 +130,7 @@ class KotlinToolchain private constructor(
     fun createToolchain(
       kotlinc: File,
       buildTools: File,
+      buildToolsApi: File,
       compiler: File,
       jvmAbiGenFile: File,
       skipCodeGenFile: File,
@@ -136,6 +145,7 @@ class KotlinToolchain private constructor(
           kotlinc,
           compiler,
           buildTools,
+          buildToolsApi,
           jvmAbiGenFile,
           skipCodeGenFile,
           jdepsGenFile,
