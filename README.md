@@ -45,7 +45,7 @@ Javascript is reported to work, but is not as well maintained (at present)
 # Documentation
 
 Generated API documentation is available at
-[https://bazelbuild.github.io/rules_kotlin/kotlin](https://bazelbuild.github.io/rules_kotlin/kotlin).
+[https://bazel-contrib.github.io/rules_kotlin/kotlin](https://bazel-contrib.github.io/rules_kotlin/kotlin).
 
 # Quick Guide
 
