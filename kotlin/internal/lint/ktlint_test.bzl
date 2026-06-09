@@ -7,33 +7,36 @@ load(":ktlint_config.bzl", "KtlintConfigInfo")
 def _ktlint_test_impl(ctx):
     editorconfig = get_editorconfig(ctx.attr.config)
 
-    # Build ktlint arguments
-    args = []
+    # Each entry becomes one line in a runtime-generated argsfile. Picocli's
+    # @-file expansion reads one argument per non-empty line, which keeps us
+    # under ARG_MAX on targets with many sources.
+    arg_lines = []
     if editorconfig:
-        args.append("--editorconfig=$(rlocation {})".format(to_rlocation_path(ctx, editorconfig)))
+        arg_lines.append("--editorconfig=$(rlocation {})".format(to_rlocation_path(ctx, editorconfig)))
     if is_android_rules_enabled(ctx.attr.config):
-        args.append("--android")
+        arg_lines.append("--android")
     if is_experimental_rules_enabled(ctx.attr.config):
-        args.append("--experimental")
-    args.append("--relative")
-
-    # Add source files via rlocation
+        arg_lines.append("--experimental")
+    arg_lines.append("--relative")
     for f in ctx.files.srcs:
-        args.append("$(rlocation {})".format(to_rlocation_path(ctx, f)))
+        arg_lines.append("$(rlocation {})".format(to_rlocation_path(ctx, f)))
 
-    # Generate bash script
     bash_launcher = ctx.actions.declare_file(ctx.attr.name + ".sh")
     script_content = """\
 #!/usr/bin/env bash
 set -euo pipefail
 {rlocation_function}
-PATH="{java_home}/bin:$PATH" \
-"$(rlocation {ktlint})" {args}
+ARGSFILE="$(mktemp)"
+trap 'rm -f "$ARGSFILE"' EXIT
+printf '%s\\n' \\
+{quoted_args} \\
+  > "$ARGSFILE"
+PATH="{java_home}/bin:$PATH" "$(rlocation {ktlint})" "@$ARGSFILE"
 """.format(
         rlocation_function = BASH_RLOCATION_FUNCTION,
         java_home = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.java_home_runfiles_path,
         ktlint = to_rlocation_path(ctx, ctx.executable._ktlint_tool),
-        args = " ".join(args),
+        quoted_args = " \\\n  ".join(['"{}"'.format(a) for a in arg_lines]),
     )
 
     ctx.actions.write(
