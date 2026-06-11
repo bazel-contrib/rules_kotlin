@@ -85,7 +85,7 @@ maven.install(
         "com.google.protobuf:protobuf-java:{}".format(proto_version),
         "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
         "com.google.guava:guava:33.0.0-jre",
-        "com.google.truth:truth:0.45",
+        "com.google.truth:truth:1.4.5",
         "com.google.auto.service:auto-service:1.1.1",
         "com.google.auto.service:auto-service-annotations:1.1.1",
         "com.google.auto.value:auto-value:1.11.0",
