@@ -102,7 +102,7 @@ maven.install(
         "com.squareup.moshi:moshi:1.15.2",
         "com.squareup.moshi:moshi-kotlin:1.15.2",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
-        "org.codehaus.plexus:plexus-utils:3.0.24",
+        "org.codehaus.plexus:plexus-utils:4.0.3",
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],
     fail_if_repin_required = True,
