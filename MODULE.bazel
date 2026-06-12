@@ -4,13 +4,7 @@ module(
     repo_name = "rules_kotlin",
 )
 
-proto_version = "4.33.4"
-
-proto_version_parts = proto_version.split(".")
-
-proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
-
-bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_cc", version = "0.2.18")
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
@@ -33,8 +27,8 @@ register_toolchains("@androidsdk//:all")
 bazel_dep(name = "bazel_features", version = "1.39.0")
 bazel_dep(name = "bazel_lib", version = "3.1.0")
 bazel_dep(name = "rules_shell", version = "0.4.1")
-bazel_dep(name = "bazel_worker_api", version = "0.0.10")
-bazel_dep(name = "bazel_worker_java", version = "0.0.10")
+bazel_dep(name = "bazel_worker_api", version = "0.0.11")
+bazel_dep(name = "bazel_worker_java", version = "0.0.11")
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 bazel_dep(name = "rules_multirun", version = "0.13.0", dev_dependency = True)
@@ -83,8 +77,6 @@ maven.install(
         "com.google.code.gson:gson:2.10.1",
         "com.google.errorprone:error_prone_annotations:2.23.0",
         "junit:junit:4.13-beta-3",
-        "com.google.protobuf:protobuf-java:{}".format(proto_version),
-        "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
         "com.google.guava:guava:33.0.0-jre",
         "com.google.truth:truth:0.45",
         "com.google.auto.service:auto-service:1.1.1",
@@ -129,16 +121,6 @@ maven.override(
     name = "override_target_in_deps_kotlin_stdlib_jdk8",
     coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk8",
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
-)
-maven.override(
-    name = "override_target_in_deps_protobuf_java",
-    coordinates = "com.google.protobuf:protobuf-java",
-    target = "@com_google_protobuf//:protobuf_java",
-)
-maven.override(
-    name = "override_target_in_deps_protobuf_java_util",
-    coordinates = "com.google.protobuf:protobuf-java-util",
-    target = "@com_google_protobuf//:protobuf_java_util",
 )
 use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 

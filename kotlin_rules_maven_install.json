@@ -13,8 +13,6 @@
     "com.google.dagger:dagger-producers": -860209456,
     "com.google.errorprone:error_prone_annotations": -571311395,
     "com.google.guava:guava": -704445974,
-    "com.google.protobuf:protobuf-java": 1906581597,
-    "com.google.protobuf:protobuf-java-util": -1626074784,
     "com.google.truth:truth": -157380267,
     "com.squareup.moshi:moshi": 623265116,
     "com.squareup.moshi:moshi-kotlin": -1806344484,
@@ -69,10 +67,6 @@
     "com.google.guava:listenablefuture": 1079558157,
     "com.google.j2objc:j2objc-annotations": -404209759,
     "com.google.j2objc:j2objc-annotations:jar:sources": 1852793670,
-    "com.google.protobuf:protobuf-java": 1957269082,
-    "com.google.protobuf:protobuf-java-util": -2063472123,
-    "com.google.protobuf:protobuf-java-util:jar:sources": 1148567382,
-    "com.google.protobuf:protobuf-java:jar:sources": 1812626912,
     "com.google.truth:truth": -905038776,
     "com.google.truth:truth:jar:sources": 1518815563,
     "com.googlecode.java-diff-utils:diffutils": -799723261,
@@ -289,20 +283,6 @@
         "sources": "bd60019a0423c3a025ef6ab24fe0761f5f45ffb48a8cca74a01b678de1105d38"
       },
       "version": "3.0.0"
-    },
-    "com.google.protobuf:protobuf-java": {
-      "shasums": {
-        "jar": "3ca892fd6ea8b37d01bb6917dbc0bf2637548b756753f65a28d4f1d4d982347f",
-        "sources": "ed30fe6a51c7c15a6f123448304c97185f2039f2aeca9d5e3b4f53de3a4c813c"
-      },
-      "version": "4.33.4"
-    },
-    "com.google.protobuf:protobuf-java-util": {
-      "shasums": {
-        "jar": "6f02f04c5ca088e74b68dbbaf118f1ffa9d587958e637f893e0f8a1899a61342",
-        "sources": "4bf8ae758fdaae56220796e651cf5fbc3f7ce99bdc42b7048c2604f757592f8a"
-      },
-      "version": "4.33.4"
     },
     "com.google.truth:truth": {
       "shasums": {
@@ -623,12 +603,6 @@
       "com.google.j2objc:j2objc-annotations",
       "org.checkerframework:checker-qual"
     ],
-    "com.google.protobuf:protobuf-java-util": [
-      "com.google.code.findbugs:jsr305",
-      "com.google.code.gson:gson",
-      "com.google.errorprone:error_prone_annotations",
-      "com.google.protobuf:protobuf-java"
-    ],
     "com.google.truth:truth": [
       "com.google.auto.value:auto-value-annotations",
       "com.google.errorprone:error_prone_annotations",
@@ -912,13 +886,6 @@
     ],
     "com.google.j2objc:j2objc-annotations": [
       "com.google.j2objc.annotations"
-    ],
-    "com.google.protobuf:protobuf-java": [
-      "com.google.protobuf",
-      "com.google.protobuf.compiler"
-    ],
-    "com.google.protobuf:protobuf-java-util": [
-      "com.google.protobuf.util"
     ],
     "com.google.truth:truth": [
       "com.google.common.truth"
@@ -1366,10 +1333,6 @@
       "com.google.guava:listenablefuture",
       "com.google.j2objc:j2objc-annotations",
       "com.google.j2objc:j2objc-annotations:jar:sources",
-      "com.google.protobuf:protobuf-java",
-      "com.google.protobuf:protobuf-java-util",
-      "com.google.protobuf:protobuf-java-util:jar:sources",
-      "com.google.protobuf:protobuf-java:jar:sources",
       "com.google.truth:truth",
       "com.google.truth:truth:jar:sources",
       "com.googlecode.java-diff-utils:diffutils",
@@ -1483,10 +1446,6 @@
       "com.google.guava:listenablefuture",
       "com.google.j2objc:j2objc-annotations",
       "com.google.j2objc:j2objc-annotations:jar:sources",
-      "com.google.protobuf:protobuf-java",
-      "com.google.protobuf:protobuf-java-util",
-      "com.google.protobuf:protobuf-java-util:jar:sources",
-      "com.google.protobuf:protobuf-java:jar:sources",
       "com.google.truth:truth",
       "com.google.truth:truth:jar:sources",
       "com.googlecode.java-diff-utils:diffutils",
@@ -1600,10 +1559,6 @@
       "com.google.guava:listenablefuture",
       "com.google.j2objc:j2objc-annotations",
       "com.google.j2objc:j2objc-annotations:jar:sources",
-      "com.google.protobuf:protobuf-java",
-      "com.google.protobuf:protobuf-java-util",
-      "com.google.protobuf:protobuf-java-util:jar:sources",
-      "com.google.protobuf:protobuf-java:jar:sources",
       "com.google.truth:truth",
       "com.google.truth:truth:jar:sources",
       "com.googlecode.java-diff-utils:diffutils",

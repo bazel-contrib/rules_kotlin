@@ -15,11 +15,6 @@ java_proto_library(
 )
 
 proto_library(
-    name = "worker_protocol_proto",
-    srcs = [":worker_protocol.proto"],
-)
-
-proto_library(
     name = "kotlin_model_proto",
     srcs = [":kotlin_model.proto"],
     visibility = ["//visibility:public"],
