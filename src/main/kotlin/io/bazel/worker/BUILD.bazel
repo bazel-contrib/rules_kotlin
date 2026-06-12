@@ -7,8 +7,8 @@ kt_bootstrap_library(
         "//:__subpackages__",
     ],
     deps = [
-        "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
         "@bazel_worker_java//:worker_protocol_java_proto",
+        "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
         "@com_google_protobuf//:protobuf_java",
         "@com_google_protobuf//:protobuf_java_util",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value",
