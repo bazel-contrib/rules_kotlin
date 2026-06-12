@@ -152,6 +152,13 @@ _kt_toolchain = rule(
             doc = """Run workers in multiplex mode.""",
             default = True,
         ),
+        "experimental_preserve_declaration_order": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:preserveDeclarationOrder=true
+            Can be disabled for an individual target using the tag.
+            `kt_experimental_preserve_declaration_order_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
         "experimental_reduce_classpath_mode": attr.string(
             doc = "Removes unneeded dependencies from the classpath",
             default = "NONE",
@@ -160,6 +167,13 @@ _kt_toolchain = rule(
                 "KOTLINBUILDER_REDUCED",
             ],
         ),
+        "experimental_remove_data_class_copy_if_constructor_is_private": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:removeDataClassCopyIfConstructorIsPrivate=true
+            Can be disabled for an individual target using the tag.
+            `kt_experimental_remove_data_class_copy_if_constructor_is_private_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
         "experimental_remove_debug_info_in_abi_jars": attr.bool(
             doc = """This applies the following compiler plugin option:
               plugin:org.jetbrains.kotlin.jvm.abi:removeDebugInfo=true
@@ -167,25 +181,11 @@ _kt_toolchain = rule(
             `kt_remove_debug_info_in_abi_plugin_incompatible`""",
             default = False,
         ),
-        "experimental_preserve_declaration_order": attr.bool(
-            doc = """This applies the following compiler plugin option:
-              plugin:org.jetbrains.kotlin.jvm.abi:preserveDeclarationOrder=true
-            Can be disabled for an individual target using the tag.
-            `kt_experimental_preserve_declaration_order_in_abi_plugin_incompatible`""",
-            default = False,
-        ),
         "experimental_remove_private_classes_in_abi_jars": attr.bool(
             doc = """This applies the following compiler plugin option:
               plugin:org.jetbrains.kotlin.jvm.abi:removePrivateClasses=true
             Can be disabled for an individual target using the tag.
             `kt_remove_private_classes_in_abi_plugin_incompatible`""",
-            default = False,
-        ),
-        "experimental_remove_data_class_copy_if_constructor_is_private": attr.bool(
-            doc = """This applies the following compiler plugin option:
-              plugin:org.jetbrains.kotlin.jvm.abi:removeDataClassCopyIfConstructorIsPrivate=true
-            Can be disabled for an individual target using the tag.
-            `kt_experimental_remove_data_class_copy_if_constructor_is_private_in_abi_plugin_incompatible`""",
             default = False,
         ),
         "experimental_report_unused_deps": attr.string(
