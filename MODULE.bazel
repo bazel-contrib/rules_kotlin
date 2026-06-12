@@ -37,7 +37,7 @@ bazel_dep(name = "bazel_worker_api", version = "0.0.10")
 bazel_dep(name = "bazel_worker_java", version = "0.0.10")
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
-bazel_dep(name = "rules_multirun", version = "0.13.0", dev_dependency = True)
+bazel_dep(name = "rules_multirun", version = "0.14.0", dev_dependency = True)
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
