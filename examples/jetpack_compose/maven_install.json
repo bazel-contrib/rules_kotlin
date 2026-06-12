@@ -11,7 +11,7 @@
     "androidx.core:core-ktx": -1348396836,
     "androidx.lifecycle:lifecycle-common": 234331668,
     "androidx.lifecycle:lifecycle-runtime": -526123229,
-    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": -1921010311,
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": -1148288165,
     "repositories": 1670674627
   },
   "__RESOLVED_ARTIFACTS_HASH": {
@@ -183,8 +183,8 @@
     "androidx.viewpager:viewpager:jar:sources": -1999416519,
     "com.google.guava:listenablefuture": -1728764445,
     "com.google.guava:listenablefuture:jar:sources": 428207214,
-    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": 2129736174,
-    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:jar:sources": -1109789218,
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": -121318213,
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:jar:sources": -2049731316,
     "org.jetbrains.kotlin:kotlin-stdlib": 1646588665,
     "org.jetbrains.kotlin:kotlin-stdlib-common": 2031482529,
     "org.jetbrains.kotlin:kotlin-stdlib-common:jar:sources": -50887075,
@@ -1154,10 +1154,10 @@
     },
     "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": {
       "shasums": {
-        "jar": "6658edfd25de3dec89bdedc0308014a2ebd97731c6f749df0827c5be1ef95515",
-        "sources": "d961f32a5ae9740149dca1ef6a99a4c5a923f53dff35bd663c1dc1d3561069a5"
+        "jar": "95ccd5c4008e454a5cb26f89405613f2ae33f46bf950c8be4d01bbdbdcfbcd08",
+        "sources": "837da83c9438fa3d7925eb04463ee4475ece2ae568006549e4145972925a1118"
       },
-      "version": "2.3.21"
+      "version": "2.4.0"
     },
     "org.jetbrains.kotlin:kotlin-stdlib": {
       "shasums": {
