@@ -21,6 +21,7 @@ bzl_library(
     deps = [
         "//src/main/starlark/core/compile",
         "//src/main/starlark/core/options",
+        "//src/main/starlark/core/plugin",
         "//src/main/starlark/core/repositories",
     ],
 )
