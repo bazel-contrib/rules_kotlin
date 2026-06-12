@@ -76,7 +76,9 @@ class KotlinBuilder(
       ABI_JAR_REMOVE_PRIVATE_CLASSES("--remove_private_classes_in_abi_jar"),
       ABI_JAR_REMOVE_DEBUG_INFO("--remove_debug_info_in_abi_jar"),
       ABI_JAR_PRESERVE_DECLARATION_ORDER("--preserve_declaration_order"),
-      ABI_JAR_REMOVE_DATA_CLASS_COPY_IF_CONSTRUCTOR_IS_PRIVATE("--remove_data_class_copy_if_constructor_is_private"),
+      ABI_JAR_REMOVE_DATA_CLASS_COPY_IF_CONSTRUCTOR_IS_PRIVATE(
+        "--remove_data_class_copy_if_constructor_is_private",
+      ),
       GENERATED_JAVA_SRC_JAR("--generated_java_srcjar"),
       GENERATED_JAVA_STUB_JAR("--kapt_generated_stub_jar"),
       GENERATED_CLASS_JAR("--kapt_generated_class_jar"),
@@ -175,9 +177,12 @@ class KotlinBuilder(
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_PRESERVE_DECLARATION_ORDER)?.let {
         preserveDeclarationOrder = it == "true"
       }
-      argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DATA_CLASS_COPY_IF_CONSTRUCTOR_IS_PRIVATE)?.let {
-        removeDataClassCopyIfConstructorIsPrivate = it == "true"
-      }
+      argMap
+        .optionalSingle(
+          KotlinBuilderFlags.ABI_JAR_REMOVE_DATA_CLASS_COPY_IF_CONSTRUCTOR_IS_PRIVATE,
+        )?.let {
+          removeDataClassCopyIfConstructorIsPrivate = it == "true"
+        }
       this
     }
 
