@@ -609,10 +609,18 @@ def _run_kt_builder_action(
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
-    args.add("--treat_internal_as_private_in_abi_jar", experimental_treat_internal_as_private_in_abi_jars)
-    args.add("--remove_private_classes_in_abi_jar", experimental_remove_private_classes_in_abi_jars)
-    args.add("--preserve_declaration_order", experimental_preserve_declaration_order)
-    args.add("--remove_data_class_copy_if_constructor_is_private", experimental_remove_data_class_copy_if_constructor_is_private)
+
+    # These jvm-abi-gen plugin options all default to false, so only pass them when enabled to
+    # avoid emitting args that don't change the underlying behavior.
+    if experimental_treat_internal_as_private_in_abi_jars:
+        args.add("--treat_internal_as_private_in_abi_jar", "true")
+    if experimental_remove_private_classes_in_abi_jars:
+        args.add("--remove_private_classes_in_abi_jar", "true")
+    if experimental_preserve_declaration_order:
+        args.add("--preserve_declaration_order", "true")
+    if experimental_remove_data_class_copy_if_constructor_is_private:
+        args.add("--remove_data_class_copy_if_constructor_is_private", "true")
+
     args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
