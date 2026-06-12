@@ -611,7 +611,8 @@ def _run_kt_builder_action(
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
 
     # These jvm-abi-gen plugin options all default to false, so only pass them when enabled to
-    # avoid emitting args that don't change the underlying behavior.
+    # avoid emitting args that don't change the underlying behavior. See the option defaults in:
+    # https://github.com/JetBrains/kotlin/blob/v2.4.0/plugins/jvm-abi-gen/src/org/jetbrains/kotlin/jvm/abi/JvmAbiCommandLineProcessor.kt
     if experimental_treat_internal_as_private_in_abi_jars:
         args.add("--treat_internal_as_private_in_abi_jar", "true")
     if experimental_remove_private_classes_in_abi_jars:
