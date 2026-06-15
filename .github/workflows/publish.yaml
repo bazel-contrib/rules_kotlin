@@ -1,0 +1,45 @@
+# Publishes a release to the Bazel Central Registry (BCR).
+#
+# This replaces the legacy "Publish to BCR" GitHub App, which is deprecated and
+# is being discontinued after 2026-06-30. It opens a pull request against
+# https://github.com/bazelbuild/bazel-central-registry using the templates in
+# the .bcr/ folder.
+#
+# Trigger: fires when a release is promoted to a full (non-prerelease) release.
+# Our release.yml cuts releases as prereleases first; the `released` activity
+# type fires both when a release is published as a full release and when a
+# prerelease is changed to a release, which matches the behavior the GitHub App
+# previously had. It can also be run manually via workflow_dispatch for a tag.
+#
+# Requirements (must be configured by a repo admin):
+#   - A registry fork the workflow can push to: bazel-contrib/bazel-central-registry.
+#   - A classic Personal Access Token with `repo` scope stored as the
+#     BCR_PUBLISH_TOKEN repository secret. Fine-grained PATs cannot open pull
+#     requests against public repos, so a classic PAT is required.
+name: Publish to BCR
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: The release tag to publish to the BCR, e.g. v2.4.0
+        required: true
+        type: string
+
+jobs:
+  publish:
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.4.1
+    permissions:
+      contents: write # Upload release files / read the release
+      id-token: write # Attest provenance
+      attestations: write # Attest provenance
+    with:
+      tag_name: ${{ github.event.release.tag_name || inputs.tag_name }}
+      registry_fork: bazel-contrib/bazel-central-registry
+      # release.yml does not produce attestations (it uses
+      # softprops/action-gh-release, not the bazel-contrib reusable release
+      # workflow), so skip attestation upload.
+      attest: false
+    secrets:
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
