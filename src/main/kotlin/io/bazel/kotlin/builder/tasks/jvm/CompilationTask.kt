@@ -74,7 +74,10 @@ fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): Co
         }
         inputs.directDependenciesList + transitiveDepsForCompile
       }
-      else -> inputs.classpathList
+
+      else -> {
+        inputs.classpathList
+      }
     } as List<String>
 
   return CompilationArgs()
@@ -169,18 +172,21 @@ internal fun JvmCompilationTask.kaptArgs(
         .toFloat()
 
     when {
-      version < 1.5 ->
+      version < 1.5 -> {
         base64Encode(
           "-P",
           *values + ("processors" to inputs.processorsList).asKeyToCommaList(),
         ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
-      else ->
+      }
+
+      else -> {
         repeatFlag(
           "-P",
           *values + ("processors" to inputs.processorsList),
         ) { option, value ->
           "plugin:${plugins.kapt.id}:$option=$value"
         }
+      }
     }
     // Read kapt options from the plugin options
     val optionPrefix = plugins.kapt.id + ":apoption="

@@ -94,7 +94,7 @@ class JdepsGenExtension(
         }
 
       return when (sourceElement) {
-        is JavaSourceElement ->
+        is JavaSourceElement -> {
           if (sourceElement.javaElement is BinaryJavaClass) {
             (sourceElement.javaElement as BinaryJavaClass).virtualFile.canonicalPath
           } else if (sourceElement.javaElement is BinaryJavaField) {
@@ -108,9 +108,11 @@ class JdepsGenExtension(
             // Ignore Java source local to this module.
             null
           }
+        }
 
-        is KotlinJvmBinarySourceElement ->
+        is KotlinJvmBinarySourceElement -> {
           (sourceElement.binaryClass as VirtualFileKotlinClass).file.canonicalPath
+        }
 
         is JvmPackagePartSource -> { // This case is needed to collect type aliases
           ((sourceElement.knownJvmBinaryClass) as VirtualFileKotlinClass).file.canonicalPath

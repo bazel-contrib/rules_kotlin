@@ -41,13 +41,16 @@ open class JarExtractor protected constructor(
             destDir.resolve(entry.name).also { target ->
               if (preWrite(entry.isDirectory, target)) {
                 when {
-                  entry.isDirectory ->
+                  entry.isDirectory -> {
                     Files.createDirectories(target)
-                  else ->
+                  }
+
+                  else -> {
                     jar.getInputStream(entry).use {
                       Files.createDirectories(target.parent)
                       Files.copy(it, target, StandardCopyOption.REPLACE_EXISTING)
                     }
+                  }
                 }
               }
             }

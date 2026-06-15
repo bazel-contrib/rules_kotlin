@@ -148,7 +148,10 @@ abstract class BaseJdepsGenExtension(
     explicitDeps: Map<String, List<String>>,
   ) {
     when (compilerConfiguration.getNotNull(JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS)) {
-      "warn" -> checkStrictDeps(explicitDeps, directDeps, targetLabel)
+      "warn" -> {
+        checkStrictDeps(explicitDeps, directDeps, targetLabel)
+      }
+
       "error" -> {
         if (checkStrictDeps(explicitDeps, directDeps, targetLabel)) {
           error(

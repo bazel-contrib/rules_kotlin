@@ -54,24 +54,38 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
     configuration: CompilerConfiguration,
   ) {
     when (option) {
-      OUTPUT_JDEPS_FILE_OPTION -> configuration.put(JdepsGenConfigurationKeys.OUTPUT_JDEPS, value)
-      TARGET_LABEL_OPTION -> configuration.put(JdepsGenConfigurationKeys.TARGET_LABEL, value)
-      DIRECT_DEPENDENCIES_OPTION ->
+      OUTPUT_JDEPS_FILE_OPTION -> {
+        configuration.put(JdepsGenConfigurationKeys.OUTPUT_JDEPS, value)
+      }
+
+      TARGET_LABEL_OPTION -> {
+        configuration.put(JdepsGenConfigurationKeys.TARGET_LABEL, value)
+      }
+
+      DIRECT_DEPENDENCIES_OPTION -> {
         configuration.appendList(
           JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
           value,
         )
-      FULL_CLASSPATH_OPTION ->
+      }
+
+      FULL_CLASSPATH_OPTION -> {
         configuration.appendList(
           JdepsGenConfigurationKeys.FULL_CLASSPATH,
           value,
         )
-      STRICT_KOTLIN_DEPS_OPTION ->
+      }
+
+      STRICT_KOTLIN_DEPS_OPTION -> {
         configuration.put(
           JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
           value,
         )
-      else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
+      }
+
+      else -> {
+        throw CliOptionProcessingException("Unknown option: ${option.optionName}")
+      }
     }
   }
 

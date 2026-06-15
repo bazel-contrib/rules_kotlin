@@ -41,8 +41,13 @@ class KotlinJvmTaskExecutor(
         return one
       }
 
-      one != null -> one
-      else -> two
+      one != null -> {
+        one
+      }
+
+      else -> {
+        two
+      }
     }
   }
 
@@ -120,10 +125,13 @@ class KotlinJvmTaskExecutor(
         }.map {
           when (it.second) {
             // TODO(issue/296): remove when the CompilationStatusException is unified.
-            is CompilationStatusException ->
+            is CompilationStatusException -> {
               (it.second as CompilationStatusException).lines + it.first to it.second
+            }
 
-            else -> it
+            else -> {
+              it
+            }
           }
         }.fold(Pair<List<String>, Throwable?>(emptyList(), null)) { acc, result ->
           acc.first + result.first to combine(acc.second, result.second)
