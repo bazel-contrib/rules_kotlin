@@ -23,5 +23,6 @@ jobs:
       # softprops/action-gh-release, not the bazel-contrib reusable release
       # workflow), so skip attestation upload.
       attest: false
+      draft: false
     secrets:
       publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
