@@ -525,6 +525,24 @@ def _run_kapt_builder_actions(
         kapt_generated_class_jar = kapt_generated_class_jar,
     )
 
+def _expand_ksp_ijar(template_ctx, *, input_directories, output_directories, additional_inputs, tools, additional_params):
+    if not input_directories["class_presence"].children:
+        return
+
+    jar = additional_inputs["class_jar"]
+    output = template_ctx.declare_file("classes-ijar.jar", directory = output_directories["abi"])
+    args = template_ctx.args()
+    args.add(jar)
+    args.add(output)
+    args.add("--target_label", additional_params["target_label"])
+    template_ctx.run(
+        inputs = [jar],
+        outputs = [output],
+        executable = tools["ijar"],
+        arguments = [args],
+        progress_message = "Extracting interface from KSP-generated classes for %{label}",
+    )
+
 def _run_ksp_builder_actions(
         ctx,
         toolchains,
@@ -534,16 +552,22 @@ def _run_ksp_builder_actions(
         ksp_options = {}):
     """Runs KSP2 via a dedicated KSP2 worker.
 
-    The worker handles all staging, KSP2 execution, and output packaging internally.
-    This eliminates tree artifacts and reduces the action count to a single action.
+    The worker handles staging, KSP2 execution, and output packaging in one action.
 
     Returns:
-        A struct containing KSP outputs (two JAR files: sources and classes)
+        A struct containing generated source and class JARs and the class ABI output.
     """
 
     # Output JARs - the worker creates these directly
     ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-gensrc.jar")
     ksp_generated_classes_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-genclasses.jar")
+    outputs = [ksp_generated_java_srcjar, ksp_generated_classes_jar]
+
+    # map_directory needs a tree artifact to tell whether the runtime JAR contains classes.
+    class_presence = None
+    if hasattr(ctx.actions, "map_directory"):
+        class_presence = ctx.actions.declare_directory(ctx.label.name + "-ksp-genclasses-presence")
+        outputs.append(class_presence)
 
     # Build arguments for KSP2 worker (flagfile format)
     args = ctx.actions.args()
@@ -564,6 +588,8 @@ def _run_ksp_builder_actions(
     # Output JAR paths
     args.add("--generated_sources_output", ksp_generated_java_srcjar.path)
     args.add("--generated_classes_output", ksp_generated_classes_jar.path)
+    if class_presence:
+        args.add("--generated_classes_presence", class_presence.path)
 
     # Compiler settings
     args.add("--jvm_target", toolchains.kt.jvm_target)
@@ -617,7 +643,7 @@ def _run_ksp_builder_actions(
             toolchains.kt.ksp2.files_to_run,
             toolchains.kt.jvm_stdlibs.compile_jars,
         ],
-        outputs = [ksp_generated_java_srcjar, ksp_generated_classes_jar],
+        outputs = outputs,
         executable = toolchains.kt.ksp2.files_to_run.executable,
         execution_requirements = _utils.add_dicts(
             toolchains.kt.execution_requirements,
@@ -630,9 +656,31 @@ def _run_ksp_builder_actions(
         progress_message = "Running KSP2 for %{label}",
         toolchain = _TOOLCHAIN_TYPE,
     )
+    if class_presence:
+        # The ABI merge expands this tree to zero or one input JARs.
+        class_abi = ctx.actions.declare_directory(ctx.label.name + "-ksp-genclasses-abi")
+        ctx.actions.map_directory(
+            input_directories = {"class_presence": class_presence},
+            additional_inputs = {"class_jar": ksp_generated_classes_jar},
+            output_directories = {"abi": class_abi},
+            tools = {"ijar": toolchains.java.ijar},
+            additional_params = {"target_label": str(ctx.label)},
+            mnemonic = "KotlinKspIjar",
+            toolchain = _JAVA_TOOLCHAIN_TYPE,
+            implementation = _expand_ksp_ijar,
+        )
+    else:
+        # Bazel 7 and 8 use a static ijar action.
+        class_abi = java_common.run_ijar(
+            actions = ctx.actions,
+            jar = ksp_generated_classes_jar,
+            target_label = ctx.label,
+            java_toolchain = toolchains.java,
+        )
 
     return struct(
         ksp_generated_class_jar = ksp_generated_classes_jar,
+        ksp_generated_class_abi = class_abi,
         ksp_generated_src_jar = ksp_generated_java_srcjar,
     )
 
@@ -1073,6 +1121,7 @@ def _run_kt_java_builder_actions(
         )
         ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
         output_jars.append(ksp_generated_class_jar)
+        compile_jars.append(ksp_outputs.ksp_generated_class_abi)
         ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
         generated_ksp_src_jars.append(ksp_generated_src_jar)
 

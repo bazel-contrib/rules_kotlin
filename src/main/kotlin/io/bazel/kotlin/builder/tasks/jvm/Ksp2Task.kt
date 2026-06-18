@@ -75,6 +75,7 @@ class Ksp2Task : Work {
       PROCESSOR_CLASSPATH("--processor_classpath"),
       GENERATED_SOURCES_OUTPUT("--generated_sources_output"),
       GENERATED_CLASSES_OUTPUT("--generated_classes_output"),
+      GENERATED_CLASSES_PRESENCE("--generated_classes_presence"),
       LANGUAGE_VERSION("--language_version"),
       API_VERSION("--api_version"),
       JVM_TARGET("--jvm_target"),
@@ -287,10 +288,20 @@ class Ksp2Task : Work {
 
       // Package generated classes/resources into jar
       val generatedClassesOutput = argMap.mandatorySingle(Ksp2Flags.GENERATED_CLASSES_OUTPUT)
-      packageDirectoriesToJar(
-        outputPath = generatedClassesOutput,
-        directories = listOf(classOutputDir, resourceOutputDir),
-      )
+      val hasClasses =
+        packageDirectoriesToJar(
+          outputPath = generatedClassesOutput,
+          directories = listOf(classOutputDir, resourceOutputDir),
+        )
+      argMap.optionalSingle(Ksp2Flags.GENERATED_CLASSES_PRESENCE)?.let { path ->
+        val directory = Files.createDirectories(File(path).toPath())
+        val marker = directory.resolve("classes")
+        if (hasClasses) {
+          Files.write(marker, ByteArray(0))
+        } else {
+          Files.deleteIfExists(marker)
+        }
+      }
       return 0
     } catch (e: Exception) {
       taskContext.error(e) { "KSP2 execution failed" }
@@ -314,11 +325,14 @@ class Ksp2Task : Work {
    * its contents are identical -- and a jar's bytes are its action's output digest, so every
    * consumer of the generated code is invalidated on the next build even though nothing it depends
    * on changed.
+   *
+   * Returns whether the JAR contains class files.
    */
   fun packageDirectoriesToJar(
     outputPath: String,
     directories: List<Path>,
-  ) {
+  ): Boolean {
+    var hasClasses = false
     val manifest =
       Manifest().apply {
         mainAttributes.putValue("Manifest-Version", "1.0")
@@ -375,6 +389,7 @@ class Ksp2Task : Work {
             // Add file entry
             if (relativePath !in addedEntries) {
               addedEntries.add(relativePath)
+              hasClasses = hasClasses || relativePath.endsWith(".class")
               jar.putNextEntry(jarEntry(relativePath))
               Files.copy(path, jar)
               jar.closeEntry()
@@ -383,5 +398,6 @@ class Ksp2Task : Work {
         }
       }
     }
+    return hasClasses
   }
 }

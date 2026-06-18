@@ -67,6 +67,7 @@ kt_jvm_library(
     name = "ksp_kotlin_resources",
     srcs = ["coffee/CoffeeAppModel.kt"],
     plugins = [":moshi"],
+    visibility = ["//src/test/kotlin/io/bazel/kotlin:__pkg__"],
     deps = [
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
@@ -215,6 +216,7 @@ kt_jvm_library(
     name = "ksp_generate_bytecode",
     srcs = ["BytecodeExample.kt"],
     plugins = [":generate_bytecode_plugin"],
+    visibility = ["//src/test/kotlin/io/bazel/kotlin:__pkg__"],
     deps = [
         "//src/test/data/jvm/ksp/bytecodegenerator/annotation",
     ],

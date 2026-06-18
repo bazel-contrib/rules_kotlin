@@ -69,31 +69,47 @@ def _ksp_action_test_impl(ctx):
         "Should have at least one KotlinKsp2 action",
     )
 
-    # Verify the KSP2 action outputs JAR files (not tree artifacts)
     if ksp2_actions:
-        ksp2_action = ksp2_actions[0]
-        outputs = ksp2_action.outputs.to_list()
-
-        # All outputs should be files (not directories)
-        for output in outputs:
-            asserts.true(
-                env,
-                output.path.endswith(".jar"),
-                "KSP2 output should be a JAR file: %s" % output.path,
-            )
+        outputs = ksp2_actions[0].outputs.to_list()
+        name = analysistest.target_under_test(env).label.name
+        asserts.equals(env, [name + "-ksp-genclasses.jar", name + "-ksp-gensrc.jar"], sorted([
+            output.basename
+            for output in outputs
+            if not output.is_directory
+        ]))
+        expected_directories = [name + "-ksp-genclasses-presence"] if hasattr(ctx.actions, "map_directory") else []
+        asserts.equals(env, expected_directories, [output.basename for output in outputs if output.is_directory])
 
     return analysistest.end(env)
 
 ksp_action_test = analysistest.make(_ksp_action_test_impl)
 
+def _ksp_abi_action_test_impl(ctx):
+    """Verify the generated class ABI is an input to the ABI merge."""
+    env = analysistest.begin(ctx)
+
+    actions = analysistest.target_actions(env)
+    abi_merges = [action for action in actions if action.mnemonic == "KotlinFoldJarsAbi"]
+    asserts.equals(env, 1, len(abi_merges))
+    if abi_merges:
+        name = analysistest.target_under_test(env).label.name
+        abi_suffix = "-ksp-genclasses-abi" if hasattr(ctx.actions, "map_directory") else "-ksp-genclasses-ijar.jar"
+        inputs = [input.basename for input in abi_merges[0].inputs.to_list()]
+        asserts.true(env, name + abi_suffix in inputs)
+        asserts.false(env, name + "-ksp-genclasses.jar" in inputs)
+
+    return analysistest.end(env)
+
+ksp_abi_action_test = analysistest.make(_ksp_abi_action_test_impl)
+
 def _ksp_single_action_test_impl(ctx):
-    """Verify KSP2 uses a single action (no tree artifacts or staging actions)."""
+    """Verify KSP2 uses one worker action without separate staging."""
     env = analysistest.begin(ctx)
 
     actions = analysistest.target_actions(env)
 
     # Count KSP-related actions
-    ksp_actions = [a for a in actions if "Ksp" in a.mnemonic or "ksp" in a.mnemonic.lower()]
+    ksp_actions = [a for a in actions if a.mnemonic == "KotlinKsp2"]
 
     # Should only have one KSP2 action
     asserts.equals(

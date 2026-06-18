@@ -68,6 +68,10 @@ kt_rules_e2e_test(
     name = "KotlinJvmKspAssertionTest",
     srcs = ["KotlinJvmKspAssertionTest.kt"],
     data = ["//src/test/data/jvm/ksp"],
+    deps = [
+        "//src/test/data/jvm/ksp:ksp_generate_bytecode",
+        "//src/test/data/jvm/ksp:ksp_kotlin_resources",
+    ],
 )
 
 kt_rules_e2e_test(
