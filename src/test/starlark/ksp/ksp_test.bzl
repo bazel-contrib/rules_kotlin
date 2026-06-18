@@ -62,6 +62,13 @@ def _ksp_action_test_impl(ctx):
         ksp2_action = ksp2_actions[0]
         outputs = ksp2_action.outputs.to_list()
 
+        asserts.equals(
+            env,
+            2,
+            len(outputs),
+            "KSP2 action should produce generated source and class jars",
+        )
+
         # All outputs should be files (not directories)
         for output in outputs:
             asserts.true(
@@ -73,6 +80,28 @@ def _ksp_action_test_impl(ctx):
     return analysistest.end(env)
 
 ksp_action_test = analysistest.make(_ksp_action_test_impl)
+
+def _ksp_abi_action_test_impl(ctx):
+    """Verify generated KSP classes are converted to an ABI jar."""
+    env = analysistest.begin(ctx)
+
+    actions = analysistest.target_actions(env)
+    ijar_actions = [
+        a
+        for a in actions
+        if "Ijar" in a.mnemonic and "ksp-genclasses.jar" in " ".join([i.path for i in a.inputs.to_list()])
+    ]
+
+    asserts.equals(
+        env,
+        1,
+        len(ijar_actions),
+        "Should have exactly one ijar action for KSP generated classes, got: %s" % [a.mnemonic for a in ijar_actions],
+    )
+
+    return analysistest.end(env)
+
+ksp_abi_action_test = analysistest.make(_ksp_abi_action_test_impl)
 
 def _ksp_single_action_test_impl(ctx):
     """Verify KSP2 uses a single action (no tree artifacts or staging actions)."""
@@ -203,6 +232,7 @@ def ksp_test_suite(name):
         tests = [
             ":ksp_outputs_test",
             ":ksp_action_test",
+            ":ksp_abi_action_test",
             ":ksp_single_action_test",
             ":ksp_plugin_options_provider_test",
             ":ksp_plugin_empty_options_provider_test",
