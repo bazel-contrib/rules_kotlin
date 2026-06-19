@@ -9,7 +9,6 @@ common --incompatible_autoload_externally=
 common --java_runtime_version=remotejdk_17
 common --tool_java_runtime_version=remotejdk_17
 
-build --strategy=KotlinCompile=worker
 build --test_output=all
 build --verbose_failures
 
