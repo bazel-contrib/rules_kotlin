@@ -18,8 +18,11 @@ package io.bazel.kotlin.builder.tasks
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.Ksp2Flags
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.clearKspClassLoaderCacheForTesting
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.getKspClassLoader
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.parseKspOptions
 import io.bazel.kotlin.builder.utils.ArgMap
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -29,6 +32,11 @@ import org.junit.runners.JUnit4
  */
 @RunWith(JUnit4::class)
 class Ksp2TaskTest {
+  @After
+  fun tearDown() {
+    clearKspClassLoaderCacheForTesting()
+  }
+
   @Test
   fun testKsp2ModuleName() {
     val args =
@@ -185,5 +193,31 @@ class Ksp2TaskTest {
   @Test
   fun testParseKspOptionsEmptyList() {
     assertThat(parseKspOptions(emptyList())).isEmpty()
+  }
+
+  @Test
+  fun testKspClassLoaderCacheReusesLoaderForSameProcessorClasspath() {
+    val processorClasspath = listOf("processor.jar", "ksp-api.jar")
+
+    val firstClassLoader = getKspClassLoader(processorClasspath)
+    val secondClassLoader = getKspClassLoader(processorClasspath)
+
+    assertThat(secondClassLoader).isSameInstanceAs(firstClassLoader)
+  }
+
+  @Test
+  fun testKspClassLoaderCacheKeyIsProcessorClasspathOrderInsensitive() {
+    val firstClassLoader = getKspClassLoader(listOf("processor.jar", "ksp-api.jar"))
+    val secondClassLoader = getKspClassLoader(listOf("ksp-api.jar", "processor.jar"))
+
+    assertThat(secondClassLoader).isSameInstanceAs(firstClassLoader)
+  }
+
+  @Test
+  fun testKspClassLoaderCacheSeparatesDifferentProcessorClasspaths() {
+    val firstClassLoader = getKspClassLoader(listOf("processor.jar", "ksp-api.jar"))
+    val secondClassLoader = getKspClassLoader(listOf("other-processor.jar", "ksp-api.jar"))
+
+    assertThat(secondClassLoader).isNotSameInstanceAs(firstClassLoader)
   }
 }

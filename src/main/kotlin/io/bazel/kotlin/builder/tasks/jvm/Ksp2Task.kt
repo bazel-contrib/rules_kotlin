@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
@@ -50,6 +51,11 @@ import java.util.zip.ZipFile
 class Ksp2Task : Work {
   companion object {
     private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
+
+    // Work around https://github.com/google/ksp/issues/2959: KSP2 creates a large
+    // processor classloader, and persistent multiplex workers otherwise retain one
+    // per work request until the worker JVM exits. Cache one loader per processor classpath.
+    private val kspClassLoaderCache = ConcurrentHashMap<String, URLClassLoader>()
 
     enum class Ksp2Flags(
       override val flag: String,
@@ -74,6 +80,20 @@ class Ksp2Task : Work {
         val eqIdx = entry.indexOf('=')
         if (eqIdx >= 0) entry.substring(0, eqIdx) to entry.substring(eqIdx + 1) else entry to ""
       }
+
+    fun getKspClassLoader(processorClasspath: List<String>): URLClassLoader {
+      val cacheKey = processorClasspath.sorted().joinToString(File.pathSeparator)
+      return kspClassLoaderCache.computeIfAbsent(cacheKey) {
+        URLClassLoader(
+          processorClasspath.map { File(it).toURI().toURL() }.toTypedArray(),
+          ClassLoader.getSystemClassLoader(),
+        )
+      }
+    }
+
+    fun clearKspClassLoaderCacheForTesting() {
+      kspClassLoaderCache.clear()
+    }
   }
 
   override fun invoke(
@@ -177,8 +197,7 @@ class Ksp2Task : Work {
 
       // Create classloader with KSP2 jars and processor jars
       val processorClasspath = argMap.optional(Ksp2Flags.PROCESSOR_CLASSPATH) ?: emptyList()
-      val processorUrls = processorClasspath.map { File(it).toURI().toURL() }.toTypedArray()
-      val kspClassLoader = URLClassLoader(processorUrls, ClassLoader.getSystemClassLoader())
+      val kspClassLoader = getKspClassLoader(processorClasspath)
 
       val processorOptions = parseKspOptions(argMap.optional(Ksp2Flags.KSP_OPTIONS) ?: emptyList())
       val experimentalPsiResolution =
