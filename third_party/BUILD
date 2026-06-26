@@ -1,3 +1,4 @@
+load("@bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
@@ -22,15 +23,10 @@ exports_files([
     "java_stub_template.txt",
 ])
 
-genrule(
+copy_file(
     name = "empty",
-    srcs = [
-        "empty-definately-not-binary-jar.txt",
-    ],
-    outs = [
-        "empty.jar",
-    ],
-    cmd = "cp $(location empty-definately-not-binary-jar.txt) $@",
+    src = "empty-definately-not-binary-jar.txt",
+    out = "empty.jar",
 )
 
 java_plugin(
