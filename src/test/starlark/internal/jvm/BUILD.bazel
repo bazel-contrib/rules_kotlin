@@ -1,5 +1,8 @@
+load(":export_only_module_name_test.bzl", "export_only_module_name_test_suite")
 load(":jvm_deps_tests.bzl", "jvm_deps_test_suite")
 load(":kt_jvm_binary_env_test.bzl", "kt_jvm_binary_env_test_suite")
+
+export_only_module_name_test_suite(name = "export_only_module_name_tests")
 
 jvm_deps_test_suite(name = "jvm_tests")
 

@@ -37,6 +37,10 @@ load(
     "kotlinc_options_to_flags",
 )
 load(
+    "//kotlin/internal/jvm:associates.bzl",
+    _associate_utils = "associate_utils",
+)
+load(
     "//kotlin/internal/jvm:jvm_deps.bzl",
     _jvm_deps_utils = "jvm_deps_utils",
 )
@@ -1160,7 +1164,13 @@ def _export_only_providers(ctx, actions, attr, outputs):
     return struct(
         java = java,
         kt = _KtJvmInfo(
-            module_name = _utils.derive_module_name(ctx),
+            # Inherit module_name from associates, so an srcs-less target with `associates` shares their module
+            # instead of label-deriving a different name. Falls back to the label-derived name when there are no associates.
+            module_name = _associate_utils.get_associates(
+                ctx,
+                toolchains = toolchains,
+                associates = getattr(attr, "associates", []),
+            ).module_name,
             module_jars = [],
             language_version = toolchains.kt.api_version,
             exported_compiler_plugins = _collect_plugins_for_export(
