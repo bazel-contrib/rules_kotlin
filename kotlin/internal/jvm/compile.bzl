@@ -1031,6 +1031,13 @@ def _run_kt_java_builder_actions(
         # annotation processors in `deps` also.
         if len(srcs.kt) > 0:
             javac_opts.append("-proc:none")
+
+        # Compile the Java half for the same effective jvm_target, the kotlin part is compiled for.
+        kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
+        jvm_target = kotlinc_options.jvm_target if (kotlinc_options and kotlinc_options.jvm_target) else toolchains.kt.jvm_target
+        if jvm_target:
+            javac_opts.extend(_utils.javac_jvm_target_flags(jvm_target))
+
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,

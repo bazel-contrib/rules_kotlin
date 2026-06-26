@@ -87,6 +87,16 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
     }
   }
 
+  /** Class-file major version (JVMS 4.1) of a `.class` entry. */
+  protected fun JarFile.classFileMajorVersion(entry: String): Int {
+    val classEntry = checkNotNull(getJarEntry(entry)) { "no entry $entry in jar $name" }
+    java.io.DataInputStream(getInputStream(classEntry)).use { input ->
+      input.readInt() // 0xCAFEBABE magic
+      input.readUnsignedShort() // minor version
+      return input.readUnsignedShort() // major version
+    }
+  }
+
   /**
    * Validated the entry is compressed and has the DOS epoch for it's timestamp.
    */

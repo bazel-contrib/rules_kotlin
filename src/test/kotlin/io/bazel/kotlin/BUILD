@@ -72,9 +72,16 @@ kt_rules_e2e_test(
     data = ["//src/test/data/jvm/ksp"],
 )
 
+kt_rules_e2e_test(
+    name = "JavacJvmTargetAssertionTest",
+    srcs = ["JavacJvmTargetAssertionTest.kt"],
+    data = ["//src/test/data/jvm/jvm_target:mixed_jvm8_java11"],
+)
+
 test_suite(
     name = "assertion_tests",
     tests = [
+        "JavacJvmTargetAssertionTest",
         "KotlinJvm13Test",
         "KotlinJvmAssociatesBasicVisibilityTest",
         "KotlinJvmBasicAssertionTest",
