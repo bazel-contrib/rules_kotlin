@@ -147,10 +147,17 @@ internal fun JvmCompilationTask.kaptArgs(
   plugins: InternalCompilerPlugins,
   aptMode: String,
 ): CompilationArgs {
+  // KAPT does not run javac's CLI argument parser and feeds options directly to javac.
+  // Javac reads option values via each option flag's canonical primaryName. That primaryName changed from
+  // "-source"/"-target" (JDK <= 11) to "--source"/"--target" (JDK >= 14).
+  // Pass both spelling variants, so that javac reads whichever is canonical on the running JDK and ignores the other.
+  val jvmTarget = info.toolchainInfo.jvm.jvmTarget
   val javacArgs =
     mapOf<String, String>(
-      "-target" to info.toolchainInfo.jvm.jvmTarget,
-      "-source" to info.toolchainInfo.jvm.jvmTarget,
+      "-target" to jvmTarget,
+      "--target" to jvmTarget,
+      "-source" to jvmTarget,
+      "--source" to jvmTarget,
     )
   return CompilationArgs().apply {
     xFlag("plugin", plugins.kapt.jarPath)
