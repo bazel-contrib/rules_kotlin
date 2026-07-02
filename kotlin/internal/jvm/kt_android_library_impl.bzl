@@ -89,19 +89,27 @@ def kt_android_library_impl(ctx):
     return _processing_pipeline.run(ctx, java_package, _PROCESSING_PIPELINE)
 
 def _get_android_resource_class_jars(targets):
-    android_compile_dependencies = []
+    # Each dep's `.jars` is already a *transitive* R.class jar depset, and these
+    # depsets overlap heavily across deps (shared base/framework R.jars). The old
+    # code flattened every dep's depset separately via list_or_depset_to_list and
+    # wrapped each element in a JavaInfo, re-materializing the shared closure once
+    # per dep -- O(N^2) work that dominated kt_android_library analysis time.
+    #
+    # Merge into a single depset first (cheap, lazy, deduped) and flatten ONCE, so
+    # we create one JavaInfo per *unique* R.jar. The compile classpath is a set
+    # downstream (jvm_deps re-collects into a depset), so dedup is semantics-safe.
+    jar_depsets = [
+        d[_AndroidLibraryResourceClassJarProvider].jars
+        for d in targets
+        if _AndroidLibraryResourceClassJarProvider in d
+    ]
+    if not jar_depsets:
+        return []
 
-    # Collect R.class jar files from direct dependencies
-    for d in targets:
-        if _AndroidLibraryResourceClassJarProvider in d:
-            jars = d[_AndroidLibraryResourceClassJarProvider].jars
-            if jars:
-                android_compile_dependencies.extend([
-                    JavaInfo(output_jar = jar, compile_jar = jar, neverlink = True)
-                    for jar in _utils.list_or_depset_to_list(jars)
-                ])
-
-    return android_compile_dependencies
+    return [
+        JavaInfo(output_jar = jar, compile_jar = jar, neverlink = True)
+        for jar in depset(transitive = jar_depsets).to_list()
+    ]
 
 def _kt_android_produce_jar_actions(
         ctx,
