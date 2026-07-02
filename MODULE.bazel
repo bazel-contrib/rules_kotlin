@@ -37,6 +37,7 @@ bazel_dep(name = "bazel_worker_java", version = "0.0.11")
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 bazel_dep(name = "rules_multirun", version = "0.14.0", dev_dependency = True)
+bazel_dep(name = "rules_cc", version = "0.2.18", dev_dependency = True)
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
@@ -66,14 +67,14 @@ register_toolchains("//kotlin/internal:default_toolchain")
 
 bazel_dep(name = "rules_jvm_external", version = "7.0")
 
-bazel_dep(name = "bazel_ci_rules", version = "2.0.0", dev_dependency = True)
+bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
 
-rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension", dev_dependency = True)
-rbe.config(
+rbe_preconfig = use_repo_rule("@bazel_ci_rules//:rbe_repo.bzl", "rbe_preconfig")
+
+rbe_preconfig(
     name = "buildkite_config",
-    preset = "ubuntu",
+    toolchain = "ubuntu2404",
 )
-use_repo(rbe, "buildkite_config")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
