@@ -1,0 +1,109 @@
+---
+# Common task configurations.
+.unittests: &unittests
+  build_flags: ${{ test_flags }}
+  test_flags: ${{ test_flags }}
+  test_targets:
+    - "//src/..."
+  build_targets:
+    - "//src/..."
+
+.integration_tests: &integration_tests
+  name: "Integration Tests"
+  platform: ${{ platform.name }}
+  environment:
+    ANDROID_NDK_HOME: ${{ platform.android_ndk_home }}
+  test_flags: ${{ integration_shard_flags }}
+  test_targets:
+    - //examples:all
+
+.integration_tests_no_android: &integration_tests_no_android
+  name: "Integration Tests (no android)"
+  platform: ${{ platform.name }}
+  test_flags: ${{ integration_shard_flags }}
+  test_targets:
+    - //examples:all
+    # See https://github.com/bazelbuild/rules_android_ndk/issues/107
+    - "-//examples:android"
+    - "-//examples:jetpack_compose"
+    # Not related to android, but fails on windows with
+    # cl : Command line error D8022 : cannot open 'bazel-out/x64_windows-opt-exec-ST-a828a81199fe/bin/external/
+    # com_google_protobuf/src/google/protobuf/compiler/_objs/code_generator_lite/code_generator_lite.obj.params'
+    - "-//examples:deps"
+
+# Common platform configurations.
+.ubuntu2404: &ubuntu2404
+  platform: ubuntu2404
+  environment:
+    ANDROID_NDK_HOME: /opt/android-ndk-r25b
+
+.ubuntu2204: &ubuntu2204
+  platform: ubuntu2204
+  environment:
+    ANDROID_NDK_HOME: /opt/android-ndk-r25b
+
+.macos: &macos
+  platform: macos_arm64
+  environment:
+    ANDROID_NDK_HOME: /Users/buildkite/android-ndk-r25b
+
+.windows: &windows
+  platform: windows
+  environment:
+    ANDROID_NDK_HOME: C:\android_ndk\r25b
+
+# bazelci pipeline
+matrix:
+  integration_shard_flags:
+    - [ "--test_tag_filters=shard_0", "--local_test_jobs=3" ]
+    - [ "--test_tag_filters=shard_1", "--local_test_jobs=3" ]
+    - [ "--test_tag_filters=shard_2", "--local_test_jobs=3" ]
+  test_flags:
+    - [ "--enable_bzlmod=true" ]
+validate_config: 1
+bazel: 8.4.2
+buildifier:
+  version: 8.2.0
+  # no lint warnings for the moment. They are basically a smoke alarm in hell.
+  # keep this argument in sync with .pre-commit-config.yaml
+  warnings: "+unsorted-dict-items,-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
+tasks:
+  macos_unittests:
+    <<: [ *macos, *unittests ]
+  ubuntu2404_unittests:
+    <<: [ *ubuntu2404, *unittests ]
+  ubuntu2404_integration_tests:
+    <<: [ *ubuntu2404, *integration_tests ]
+  ubuntu2204_unittests:
+    <<: [ *ubuntu2204, *unittests ]
+  ubuntu2204_integration_tests:
+    <<: [ *ubuntu2204, *integration_tests ]
+  windows_integration_tests:
+    <<: [ *windows, *integration_tests_no_android ]
+  windows_unittests:
+    <<: [ *windows, *unittests ]
+  rbe_ubuntu2404:
+    test_targets:
+      - "--"
+      - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
+      # KotlinJvmDaggerExampleTest and KotlinJvmKaptAssertionTest are not remote
+      # execution compatible, do not run them for now.
+      - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmAssociatesBasicVisibilityTest"
+      - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmBasicAssertionTest"
+    test_flags:
+      - "--strategy=KotlinCompile=remote"
+  stardoc:
+    name: Stardoc api documentation
+    platform: rbe_ubuntu2404
+    build_targets:
+      - //docs:stardoc
+    test_targets:
+      - //docs/...
+  ktlint:
+    name: KtLint
+    <<: *ubuntu2404
+    test_targets:
+      - //...
+    test_flags:
+      - "--test_tag_filters=ktlint"
+      - "--test_output=errors"
