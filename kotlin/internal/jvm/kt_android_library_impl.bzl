@@ -27,7 +27,6 @@ load(
 load(
     "@rules_android//rules:utils.bzl",
     _get_android_sdk = "get_android_sdk",
-    _utils = "utils",
 )
 load(
     "@rules_android//rules/android_library:impl.bzl",
