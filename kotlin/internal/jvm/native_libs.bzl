@@ -1,4 +1,4 @@
-# Copyright 2024 The Bazel Authors. All rights reserved.
+# Copyright 2026 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,80 +12,89 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utilities for collecting native library paths for kt_jvm_binary/kt_jvm_test."""
+"""Native library propagation and launcher support for Kotlin JVM rules."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo")
+load("//src/main/starlark/core/compile:common.bzl", "is_windows")
 
-def _get_lib_dir(lib):
-    """Returns the root-relative directory of a LibraryToLink, or None."""
-    f = lib.dynamic_library
-    if f == None:
-        f = lib.resolved_symlink_dynamic_library
-    if f == None:
-        f = lib.static_library
-    if f == None:
-        f = lib.pic_static_library
-    if f == None:
-        return None
-    return f.short_path.rsplit("/", 1)[0] if "/" in f.short_path else ""
+def _dynamic_library(library_to_link):
+    for field in [
+        "resolved_symlink_dynamic_library",
+        "dynamic_library",
+    ]:
+        artifact = getattr(library_to_link, field, None)
+        if artifact:
+            return artifact
+    return None
+
+def _is_shared_library(artifact):
+    basename = artifact.basename.lower()
+    return (
+        basename.endswith(".dll") or
+        basename.endswith(".dylib") or
+        basename.endswith(".so") or
+        ".so." in basename
+    )
+
+def _add_artifact(artifacts, artifact):
+    if artifact and _is_shared_library(artifact):
+        artifacts[artifact.short_path] = artifact
+
+def _add_target_runfiles(artifacts, target):
+    """Adds runtime shared libraries, including DLLs hidden by import libraries.
+
+    On Windows, CcInfo can expose only an import library for a
+    cc_binary(linkshared = True). The runtime DLL is still present in
+    DefaultInfo, so inspect the files that are actually placed in runfiles.
+    """
+    if DefaultInfo not in target:
+        return
+
+    default_info = target[DefaultInfo]
+    for artifact in default_info.files.to_list():
+        _add_artifact(artifacts, artifact)
+
+    if default_info.default_runfiles:
+        for artifact in default_info.default_runfiles.files.to_list():
+            _add_artifact(artifacts, artifact)
 
 def collect_native_lib_jvm_flags(ctx, deps, runtime_deps):
-    """Collects native library paths and returns JVM flags.
+    """Returns java.library.path flags for transitive native dependencies."""
+    artifacts = {}
+    targets = deps + runtime_deps
 
-    Collects transitive native libraries from JavaInfo providers in deps and
-    runtime_deps, plus CcInfo linking_context from runtime_deps (for direct
-    cc_binary(linkshared=1) dependencies). Produces a -Djava.library.path flag
-    using ${JAVA_RUNFILES}/workspace_name/ prefix.
+    # Match rules_java's provider-based collection through the public
+    # JavaInfo API. CcInfo.transitive_native_libraries() is private to
+    # rules_java on older Bazel versions, so direct C++ deps are recovered
+    # from their runfiles below.
+    for target in targets:
+        if JavaInfo in target:
+            for library_to_link in target[JavaInfo].transitive_native_libraries.to_list():
+                _add_artifact(artifacts, _dynamic_library(library_to_link))
 
-    Args:
-        ctx: The rule context.
-        deps: List of compile dependency targets.
-        runtime_deps: List of runtime dependency targets.
+        # This fallback is required for Windows DLLs and also preserves native
+        # libraries propagated through a kt_jvm_library's runfiles.
+        _add_target_runfiles(artifacts, target)
 
-    Returns:
-        A list containing a single -Djava.library.path flag, or an empty list.
-    """
-    dirs = {}
+    native_dirs = {}
+    runfiles_prefix = "${JAVA_RUNFILES}/" + ctx.workspace_name
+    for artifact in artifacts.values():
+        dirname = paths.dirname(artifact.short_path)
+        native_dirs[runfiles_prefix if dirname == "." else runfiles_prefix + "/" + dirname] = None
 
-    # Collect from JavaInfo.transitive_native_libraries (public API) across
-    # both deps and runtime_deps. This picks up native libraries that were
-    # propagated transitively via the native_libraries param on JavaInfo.
-    for dep in deps + runtime_deps:
-        if JavaInfo in dep:
-            for lib in dep[JavaInfo].transitive_native_libraries.to_list():
-                d = _get_lib_dir(lib)
-                if d:
-                    dirs[d] = True
-
-    # Also collect from CcInfo.linking_context on runtime_deps for direct
-    # cc_binary/cc_library dependencies that don't provide JavaInfo.
-    for dep in runtime_deps:
-        if CcInfo in dep and JavaInfo not in dep:
-            for linker_input in dep[CcInfo].linking_context.linker_inputs.to_list():
-                for lib in linker_input.libraries:
-                    d = _get_lib_dir(lib)
-                    if d:
-                        dirs[d] = True
-
-    if not dirs:
+    if not native_dirs:
         return []
 
-    prefix = "${JAVA_RUNFILES}/" + ctx.workspace_name + "/"
-    return ["-Djava.library.path=" + ":".join([prefix + d for d in dirs.keys()])]
+    separator = ";" if is_windows(ctx) else ":"
+    return ["-Djava.library.path=" + separator.join(native_dirs.keys())]
 
 def collect_native_libraries(*attr_lists):
-    """Collects CcInfo providers from dependency attribute lists for JavaInfo's native_libraries param.
-
-    Args:
-        *attr_lists: Variable number of dependency target lists (e.g., deps, runtime_deps, exports).
-
-    Returns:
-        A list of CcInfo providers, or an empty list.
-    """
-    cc_infos = []
-    for attr_list in attr_lists:
-        for dep in attr_list:
-            if CcInfo in dep:
-                cc_infos.append(dep[CcInfo])
-    return cc_infos
+    """Collects CcInfo values for JavaInfo.native_libraries."""
+    return [
+        target[CcInfo]
+        for attr_list in attr_lists
+        for target in attr_list
+        if CcInfo in target
+    ]

@@ -853,14 +853,14 @@ def _kt_jvm_produce_output_jar_actions(
         deps = compile_deps.deps,
         runtime_deps = compile_deps.runtime_deps,
         exports = compile_deps.exports,
-        neverlink = getattr(ctx.attr, "neverlink", False),
-        generated_source_jar = generated_source_jar,
-        generated_class_jar = generated_class_jar,
         native_libraries = _collect_native_libraries(
             getattr(ctx.attr, "deps", []),
             getattr(ctx.attr, "runtime_deps", []),
             getattr(ctx.attr, "exports", []),
         ),
+        neverlink = getattr(ctx.attr, "neverlink", False),
+        generated_source_jar = generated_source_jar,
+        generated_class_jar = generated_class_jar,
     )
 
     instrumented_files = coverage_common.instrumented_files_info(
@@ -1015,12 +1015,12 @@ def _run_kt_java_builder_actions(
             deps = compile_deps.deps,
             runtime_deps = compile_deps.runtime_deps,
             exports = compile_deps.exports,
-            neverlink = getattr(ctx.attr, "neverlink", False),
             native_libraries = _collect_native_libraries(
                 getattr(ctx.attr, "deps", []),
                 getattr(ctx.attr, "runtime_deps", []),
                 getattr(ctx.attr, "exports", []),
             ),
+            neverlink = getattr(ctx.attr, "neverlink", False),
         )
         java_infos.append(kt_java_info)
 
@@ -1168,13 +1168,13 @@ def _export_only_providers(ctx, actions, attr, outputs):
         deps = [_java_info(d) for d in attr.deps],
         runtime_deps = [d[JavaInfo] for d in getattr(attr, "runtime_deps", []) if JavaInfo in d],
         exports = [_java_info(d) for d in getattr(attr, "exports", [])],
-        neverlink = getattr(attr, "neverlink", False),
-        jdeps = output_jdeps,
         native_libraries = _collect_native_libraries(
             attr.deps,
             getattr(attr, "runtime_deps", []),
             getattr(attr, "exports", []),
         ),
+        neverlink = getattr(attr, "neverlink", False),
+        jdeps = output_jdeps,
     )
 
     return struct(
