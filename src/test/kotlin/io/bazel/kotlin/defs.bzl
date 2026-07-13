@@ -37,6 +37,7 @@ def kt_rules_test(name, **kwargs):
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-compiler",
+        "//kotlin/compiler:kotlin-daemon-client",
         "//kotlin/compiler:kotlin-stdlib",
         "//kotlin/compiler:kotlin-stdlib-jdk7",
         "//kotlin/compiler:kotlin-stdlib-jdk8",

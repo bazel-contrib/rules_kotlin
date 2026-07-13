@@ -54,8 +54,7 @@ fun JvmCompilationTask.codeGenArgs(): CompilationArgs =
   CompilationArgs()
     .absolutePaths(info.friendPathsList) {
       "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
-    }.flag("-d", directories.classes)
-    .values(info.passthroughFlagsList)
+    }.values(info.passthroughFlagsList)
 
 fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): CompilationArgs {
   val classpath =
@@ -241,6 +240,7 @@ private fun JvmCompilationTask.runKaptPlugin(
   compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
   return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
+    val sources = (inputs.kotlinSourcesList + inputs.javaSourcesList).toTypedArray()
     baseArgs()
       .plus(
         plugins(
@@ -249,14 +249,12 @@ private fun JvmCompilationTask.runKaptPlugin(
         ),
       ).plus(
         kaptArgs(context, plugins, "stubsAndApt"),
-      ).flag("-d", directories.generatedClasses)
-      .values(inputs.kotlinSourcesList)
-      .values(inputs.javaSourcesList)
-      .list()
+      ).list()
       .let { args ->
         context.executeCompilerTask(
-          args,
-          compiler::compile,
+          { out ->
+            compiler.compile(args.toTypedArray(), sources, directories.generatedClasses, out)
+          },
           printOnSuccess = context.whenTracing { true } == true,
         )
       }.let { outputLines ->
@@ -387,23 +385,25 @@ fun JvmCompilationTask.compileKotlin(
     writeJdeps(outputs.jdeps, emptyJdeps(info.label))
     return emptyList()
   } else {
+    val sources = (inputs.javaSourcesList + inputs.kotlinSourcesList).toTypedArray()
     return (
       args +
         plugins(
           options = inputs.compilerPluginOptionsList,
           classpath = inputs.compilerPluginClasspathList,
         )
-    ).values(inputs.javaSourcesList)
-      .values(inputs.kotlinSourcesList)
-      .flag("-d", directories.classes)
-      .list()
+    ).list()
       .let {
         context.whenTracing {
           context.printLines("compileKotlin arguments:\n", it)
         }
         return@let context
-          .executeCompilerTask(it, compiler::compile, printOnFail = printOnFail)
-          .also {
+          .executeCompilerTask(
+            { out ->
+              compiler.compile(it.toTypedArray(), sources, directories.classes, out)
+            },
+            printOnFail = printOnFail,
+          ).also {
             context.whenTracing {
               printLines(
                 "kotlinc Files Created:",

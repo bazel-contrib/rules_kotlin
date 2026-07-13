@@ -20,7 +20,8 @@ import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.verified
 import java.io.File
 import java.io.PrintStream
-import java.lang.reflect.Method
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
 import java.net.URLClassLoader
 
 class KotlinToolchain private constructor(
@@ -73,6 +74,13 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    private val KOTLIN_DAEMON_CLIENT by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin...kotlin-daemon-client",
+        ).toPath()
+    }
+
     private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
@@ -108,12 +116,11 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
-    internal val NO_ARGS = arrayOf<Any>()
-
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
       createToolchain(
         KOTLINC.verified().absoluteFile,
+        KOTLIN_DAEMON_CLIENT.verified().absoluteFile,
         BUILD_TOOLS_IMPL.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
         COMPILER.verified().absoluteFile,
@@ -129,6 +136,7 @@ class KotlinToolchain private constructor(
     @JvmStatic
     fun createToolchain(
       kotlinc: File,
+      kotlinDaemonClient: File,
       buildTools: File,
       buildToolsApi: File,
       compiler: File,
@@ -143,6 +151,7 @@ class KotlinToolchain private constructor(
       KotlinToolchain(
         listOf(
           kotlinc,
+          kotlinDaemonClient,
           compiler,
           buildTools,
           buildToolsApi,
@@ -193,18 +202,23 @@ class KotlinToolchain private constructor(
     clazz: String,
   ) {
     private val compiler: Any
-    private val execMethod: Method
-    private val getCodeMethod: Method
+    private val execHandle: MethodHandle
+    private val getCodeHandle: MethodHandle
 
     init {
       val compilerClass = toolchain.classLoader.loadClass(clazz)
+      val compilerInterface =
+        toolchain.classLoader.loadClass("io.bazel.kotlin.compiler.KotlinCompiler")
       val exitCodeClass =
         toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
-      compiler = compilerClass.getConstructor().newInstance()
-      execMethod =
-        compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
-      getCodeMethod = exitCodeClass.getMethod("getCode")
+      compiler = compilerInterface.cast(compilerClass.getConstructor().newInstance())
+
+      // The interface is the source of truth for the exec method signature.
+      val execMethod = compilerInterface.declaredMethods.single { it.name == "exec" }
+      val lookup = MethodHandles.lookup()
+      execHandle = lookup.unreflect(execMethod)
+      getCodeHandle = lookup.unreflect(exitCodeClass.getMethod("getCode"))
     }
 
     // Kotlin error codes:
@@ -213,10 +227,12 @@ class KotlinToolchain private constructor(
     // 3 is the script execution error
     fun compile(
       args: Array<String>,
+      sources: Array<String>,
+      destination: String,
       out: PrintStream,
     ): Int {
-      val exitCodeInstance = execMethod.invoke(compiler, out, args)
-      return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
+      val exitCode = execHandle.invoke(compiler, out, args, sources, destination)
+      return getCodeHandle.invoke(exitCode) as Int
     }
   }
 

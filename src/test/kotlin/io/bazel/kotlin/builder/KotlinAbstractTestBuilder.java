@@ -20,6 +20,7 @@ import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
+import io.bazel.kotlin.model.JvmCompilationTaskOrBuilder;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
 import io.bazel.kotlin.model.RuleKind;
@@ -44,7 +45,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
-abstract class KotlinAbstractTestBuilder<T> {
+abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> {
     private static final Path BAZEL_TEST_DIR =
             FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"));
 
@@ -152,15 +153,13 @@ abstract class KotlinAbstractTestBuilder<T> {
     }
 
     final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
-        T task = buildTask();
-        return runCompileTask(infoBuilder.build(), task, (ctx, t) -> operation.apply(ctx, task));
+        return runCompileTask(buildTask(), operation);
     }
 
-    private <R> R runCompileTask(
-            CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
+    private <R> R runCompileTask(T task, BiFunction<CompilationTaskContext, T, R> operation) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (PrintStream outputStream = new PrintStream(out)) {
-            return operation.apply(new CompilationTaskContext(info, outputStream,
+            return operation.apply(new CompilationTaskContext(task.getInfo(), outputStream,
                     instanceRoot().toAbsolutePath() + File.separator), task);
         } finally {
             outLines = unmodifiableList(
@@ -229,6 +228,7 @@ abstract class KotlinAbstractTestBuilder<T> {
     static KotlinToolchain toolchainForTest() {
         return KotlinToolchain.createToolchain(
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-daemon-client").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),

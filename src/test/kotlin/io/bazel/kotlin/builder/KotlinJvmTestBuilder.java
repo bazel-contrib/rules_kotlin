@@ -132,13 +132,13 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     );
 
                     return Dep.builder()
-                            .label(taskBuilder.getInfo().getLabel())
+                            .label(task.getInfo().getLabel())
                             .compileJars(ImmutableList.of(
                                     outputs.getAbijar().isEmpty() ? outputs.getJar() : outputs.getAbijar()
                             ))
                             .jdeps(outputs.getJdeps())
-                            .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
-                            .sourceJar(taskBuilder.getOutputs().getSrcjar())
+                            .runtimeDeps(ImmutableList.copyOf(task.getInputs().getClasspathList()))
+                            .sourceJar(outputs.getSrcjar())
                             .build();
                 });
     }
@@ -266,6 +266,11 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     .getToolchainInfoBuilder()
                     .getCommonBuilder()
                     .setLanguageVersion("2.0");
+            return this;
+        }
+
+        public TaskBuilder useBuildToolsApi() {
+            taskBuilder.getInfoBuilder().setBuildToolsApi(true);
             return this;
         }
     }

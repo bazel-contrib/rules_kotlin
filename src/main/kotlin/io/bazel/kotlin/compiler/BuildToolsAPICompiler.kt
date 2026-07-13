@@ -21,27 +21,28 @@ import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.getToolchain
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
 import org.jetbrains.kotlin.cli.common.ExitCode
-import java.nio.file.Path
+import java.io.PrintStream
+import java.nio.file.Paths
 
 @Suppress("unused")
-class BuildToolsAPICompiler {
+class BuildToolsAPICompiler : KotlinCompiler {
   @OptIn(ExperimentalBuildToolsApi::class)
-  fun exec(
-    errStream: java.io.PrintStream,
-    vararg args: String,
+  override fun exec(
+    errStream: PrintStream,
+    args: Array<String>,
+    sources: Array<String>,
+    destination: String,
   ): ExitCode {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
 
     val kotlinToolchains = KotlinToolchains.loadImplementation(this.javaClass.classLoader!!)
 
-    // Create compilation operation with empty sources and dummy destination
-    // (the actual sources/destination will be set via applyArgumentStrings)
     val operationBuilder =
       kotlinToolchains
         .getToolchain<JvmPlatformToolchain>()
         .jvmCompilationOperationBuilder(
-          emptyList(),
-          Path.of("."),
+          sources.map { Paths.get(it) },
+          Paths.get(destination),
         )
 
     // Apply raw CLI arguments - this parses the args and sets all compiler options

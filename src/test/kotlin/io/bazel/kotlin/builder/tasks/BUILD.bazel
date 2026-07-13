@@ -61,6 +61,11 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "KotlinBuilderJvmBtaTest",
+    srcs = ["jvm/KotlinBuilderJvmBtaTest.java"],
+)
+
+kt_rules_test(
     name = "KotlinBuilderJvmJdepsTest",
     size = "large",
     srcs = ["jvm/KotlinBuilderJvmJdepsTest.kt"],
@@ -139,6 +144,7 @@ test_suite(
         ":KotlinBuilderBuildTest",
         ":KotlinBuilderJvmAbiTest",
         ":KotlinBuilderJvmBasicTest",
+        ":KotlinBuilderJvmBtaTest",
         ":KotlinBuilderJvmCoverageTest",
         ":KotlinBuilderJvmJdepsTest",
         ":KotlinBuilderJvmKaptTest",

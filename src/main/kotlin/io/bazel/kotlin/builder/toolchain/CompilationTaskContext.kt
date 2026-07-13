@@ -112,20 +112,18 @@ class CompilationTaskContext(
    * Execute a compilation task.
    *
    * @throws CompilationStatusException if the compiler returns a status of anything but zero.
-   * @param args the compiler command line switches
    * @param printOnFail if this is true the output will be printed if the task fails else the caller is responsible
    *  for logging it by catching the [CompilationStatusException] exception.
-   * @param compile the compilation method.
+   * @param compile the compilation method reporting its output to the given stream.
    */
   fun executeCompilerTask(
-    args: List<String>,
-    compile: (Array<String>, PrintStream) -> Int,
+    compile: (PrintStream) -> Int,
     printOnFail: Boolean = true,
     printOnSuccess: Boolean = true,
   ): List<String> {
     val outputStream = ByteArrayOutputStream()
     val ps = PrintStream(outputStream)
-    val result = compile(args.toTypedArray(), ps)
+    val result = compile(ps)
     val output =
       ByteArrayInputStream(outputStream.toByteArray())
         .bufferedReader()

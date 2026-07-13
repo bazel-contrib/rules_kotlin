@@ -20,16 +20,21 @@ import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
+import java.io.PrintStream
 
 @Suppress("unused")
-class BazelK2JVMCompiler {
-  fun exec(
-    errStream: java.io.PrintStream,
-    vararg args: String,
+class BazelK2JVMCompiler : KotlinCompiler {
+  override fun exec(
+    errStream: PrintStream,
+    args: Array<String>,
+    sources: Array<String>,
+    destination: String,
   ): ExitCode {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
     val delegate: K2JVMCompiler = K2JVMCompiler()
-    val arguments = delegate.createArguments().also { delegate.parseArguments(args, it) }
+
+    val cliArgs = args + arrayOf("-d", destination) + sources
+    val arguments = delegate.createArguments().also { delegate.parseArguments(cliArgs, it) }
     val collector =
       PrintingMessageCollector(errStream, MessageRenderer.PLAIN_RELATIVE_PATHS, arguments.verbose)
     return delegate.exec(collector, Services.EMPTY, arguments)
