@@ -63,8 +63,10 @@ def _binary_has_direct_native_library_path_test(name):
     )
 
 def _binary_has_direct_native_library_path_test_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable.short_path
+    path_prefix = "" if executable.endswith(".exe") else "*"
     _jvm_flags(env, target).contains_predicate(
-        matching.str_matches("*-Djava.library.path=*{}*".format(target.label.name.rpartition("/")[0])),
+        matching.str_matches("*-Djava.library.path={}{}*".format(path_prefix, target.label.name.rpartition("/")[0])),
     )
 
 def _test_has_direct_native_library_path_test(name):
@@ -84,8 +86,10 @@ def _test_has_direct_native_library_path_test(name):
     )
 
 def _test_has_direct_native_library_path_test_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable.short_path
+    path_prefix = "" if executable.endswith(".exe") else "*"
     _jvm_flags(env, target).contains_predicate(
-        matching.str_matches("*-Djava.library.path=*{}*".format(target.label.name.rpartition("/")[0])),
+        matching.str_matches("*-Djava.library.path={}{}*".format(path_prefix, target.label.name.rpartition("/")[0])),
     )
 
 def _binary_has_transitive_native_library_path_test(name):
@@ -112,8 +116,10 @@ def _binary_has_transitive_native_library_path_test(name):
     )
 
 def _binary_has_transitive_native_library_path_test_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable.short_path
+    path_prefix = "" if executable.endswith(".exe") else "*"
     _jvm_flags(env, target).contains_predicate(
-        matching.str_matches("*-Djava.library.path=*{}*".format(target.label.name.rpartition("/")[0])),
+        matching.str_matches("*-Djava.library.path={}{}*".format(path_prefix, target.label.name.rpartition("/")[0])),
     )
 
 def _native_library_path_uses_platform_separator_test(name):
@@ -135,9 +141,11 @@ def _native_library_path_uses_platform_separator_test(name):
 
 def _native_library_path_uses_platform_separator_test_impl(env, target):
     executable = target[DefaultInfo].files_to_run.executable.short_path
-    separator = ";" if executable.endswith(".exe") else ":"
+    windows = executable.endswith(".exe")
+    separator = ";" if windows else ":"
+    path_prefix = "" if windows else "*"
     _jvm_flags(env, target).contains_predicate(
-        matching.str_matches("*-Djava.library.path=*{0}/a*{1}*{0}/b*".format(target.label.name.rpartition("/")[0], separator)),
+        matching.str_matches("*-Djava.library.path={0}{1}/a*{2}*{1}/b*".format(path_prefix, target.label.name.rpartition("/")[0], separator)),
     )
 
 def native_libs_test_suite(name):

@@ -61,7 +61,12 @@ def _add_target_runfiles(artifacts, target):
             _add_artifact(artifacts, artifact)
 
 def collect_native_lib_jvm_flags(ctx, deps, runtime_deps):
-    """Returns java.library.path flags for transitive native dependencies."""
+    """Returns java.library.path flags for transitive native dependencies.
+
+    Returns:
+        A list containing a java.library.path flag, or an empty list when the
+        target has no native dependencies.
+    """
     artifacts = {}
     targets = deps + runtime_deps
 
@@ -79,19 +84,31 @@ def collect_native_lib_jvm_flags(ctx, deps, runtime_deps):
         _add_target_runfiles(artifacts, target)
 
     native_dirs = {}
+    windows = is_windows(ctx)
     runfiles_prefix = "${JAVA_RUNFILES}/" + ctx.workspace_name
     for artifact in artifacts.values():
         dirname = paths.dirname(artifact.short_path)
-        native_dirs[runfiles_prefix if dirname == "." else runfiles_prefix + "/" + dirname] = None
+        if windows:
+            # Bazel starts tests and `bazel run` binaries in their runfiles
+            # workspace directory. Keep these paths relative because the
+            # Windows native Java launcher does not expand ${JAVA_RUNFILES}
+            # inside JVM flags.
+            native_dirs[dirname] = None
+        else:
+            native_dirs[runfiles_prefix if dirname == "." else runfiles_prefix + "/" + dirname] = None
 
     if not native_dirs:
         return []
 
-    separator = ";" if is_windows(ctx) else ":"
+    separator = ";" if windows else ":"
     return ["-Djava.library.path=" + separator.join(native_dirs.keys())]
 
 def collect_native_libraries(*attr_lists):
-    """Collects CcInfo values for JavaInfo.native_libraries."""
+    """Collects CcInfo values for JavaInfo.native_libraries.
+
+    Returns:
+        The CcInfo providers found in the supplied attribute lists.
+    """
     return [
         target[CcInfo]
         for attr_list in attr_lists
