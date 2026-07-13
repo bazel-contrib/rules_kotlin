@@ -79,6 +79,25 @@ def _binary_has_direct_native_library_path_test(name):
 def _binary_has_direct_native_library_path_test_impl(env, target):
     env.expect.that_str(_native_library_path(env, target)).contains(target.label.name.rpartition("/")[0])
 
+def _binary_accepts_native_library_in_deps_test(name):
+    native = _native_library(name)
+    util.helper_target(
+        kt_jvm_binary,
+        name = name + "/subject",
+        srcs = [util.empty_file(name + "_Main.kt")],
+        deps = [native],
+        main_class = "test.Main",
+        tags = ["manual"],
+    )
+    analysis_test(
+        name = name,
+        impl = _binary_accepts_native_library_in_deps_test_impl,
+        target = name + "/subject",
+    )
+
+def _binary_accepts_native_library_in_deps_test_impl(env, target):
+    env.expect.that_str(_native_library_path(env, target)).contains(target.label.name.rpartition("/")[0])
+
 def _test_has_direct_native_library_path_test(name):
     native = _native_library(name)
     util.helper_target(
@@ -124,6 +143,55 @@ def _binary_has_transitive_native_library_path_test(name):
 def _binary_has_transitive_native_library_path_test_impl(env, target):
     env.expect.that_str(_native_library_path(env, target)).contains(target.label.name.rpartition("/")[0])
 
+def _export_only_library_propagates_native_library_test(name):
+    native = _native_library(name)
+    util.helper_target(
+        kt_jvm_library,
+        name = name + "/library",
+        exports = [native],
+        tags = ["manual"],
+    )
+    util.helper_target(
+        kt_jvm_binary,
+        name = name + "/subject",
+        srcs = [util.empty_file(name + "_Main.kt")],
+        main_class = "test.Main",
+        runtime_deps = [name + "/library"],
+        tags = ["manual"],
+    )
+    analysis_test(
+        name = name,
+        impl = _export_only_library_propagates_native_library_test_impl,
+        target = name + "/subject",
+    )
+
+def _export_only_library_propagates_native_library_test_impl(env, target):
+    env.expect.that_str(_native_library_path(env, target)).contains(target.label.name.rpartition("/")[0])
+
+def _user_jvm_flags_override_native_library_path_test(name):
+    native = _native_library(name)
+    util.helper_target(
+        kt_jvm_binary,
+        name = name + "/subject",
+        srcs = [util.empty_file(name + "_Main.kt")],
+        jvm_flags = ["-Djava.library.path=user_override"],
+        main_class = "test.Main",
+        runtime_deps = [native],
+        tags = ["manual"],
+    )
+    analysis_test(
+        name = name,
+        impl = _user_jvm_flags_override_native_library_path_test_impl,
+        target = name + "/subject",
+    )
+
+def _user_jvm_flags_override_native_library_path_test_impl(env, target):
+    flags = "\n".join(_jvm_flags(env, target).actual)
+    generated_path = target.label.name.rpartition("/")[0]
+    env.expect.that_str(flags).contains(generated_path)
+    env.expect.that_str(flags).contains("user_override")
+    env.expect.that_bool(flags.find(generated_path) < flags.find("user_override")).equals(True)
+
 def _native_library_path_uses_platform_separator_test(name):
     native_a = _native_library(name, "a/native")
     native_b = _native_library(name, "b/native")
@@ -157,8 +225,11 @@ def native_libs_test_suite(name):
         tests = [
             _native_runtime_dep_does_not_crash_test,
             _binary_has_direct_native_library_path_test,
+            _binary_accepts_native_library_in_deps_test,
             _test_has_direct_native_library_path_test,
             _binary_has_transitive_native_library_path_test,
+            _export_only_library_propagates_native_library_test,
+            _user_jvm_flags_override_native_library_path_test,
             _native_library_path_uses_platform_separator_test,
         ],
     )

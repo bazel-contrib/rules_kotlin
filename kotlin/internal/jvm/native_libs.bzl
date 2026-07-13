@@ -21,8 +21,8 @@ load("//src/main/starlark/core/compile:common.bzl", "is_windows")
 
 def _dynamic_library(library_to_link):
     for field in [
-        "resolved_symlink_dynamic_library",
         "dynamic_library",
+        "resolved_symlink_dynamic_library",
     ]:
         artifact = getattr(library_to_link, field, None)
         if artifact:
@@ -38,9 +38,21 @@ def _is_shared_library(artifact):
         ".so." in basename
     )
 
-def _add_artifact(artifacts, artifact):
+def _add_dynamic_library(artifacts, artifact):
+    """Adds an artifact that a provider has identified as a dynamic library."""
+    if artifact:
+        artifacts[artifact.short_path] = artifact
+
+def _add_runfile(artifacts, artifact):
+    """Adds a shared library found while scanning otherwise-untyped runfiles."""
     if artifact and _is_shared_library(artifact):
         artifacts[artifact.short_path] = artifact
+
+def _add_cc_info_libraries(artifacts, cc_info):
+    """Adds dynamic libraries exposed through the public CcInfo API."""
+    for linker_input in cc_info.linking_context.linker_inputs.to_list():
+        for library_to_link in linker_input.libraries:
+            _add_dynamic_library(artifacts, _dynamic_library(library_to_link))
 
 def _add_target_runfiles(artifacts, target):
     """Adds runtime shared libraries, including DLLs hidden by import libraries.
@@ -54,11 +66,11 @@ def _add_target_runfiles(artifacts, target):
 
     default_info = target[DefaultInfo]
     for artifact in default_info.files.to_list():
-        _add_artifact(artifacts, artifact)
+        _add_runfile(artifacts, artifact)
 
     if default_info.default_runfiles:
         for artifact in default_info.default_runfiles.files.to_list():
-            _add_artifact(artifacts, artifact)
+            _add_runfile(artifacts, artifact)
 
 def collect_native_lib_jvm_flags(ctx, deps, runtime_deps):
     """Returns java.library.path flags for transitive native dependencies.
@@ -70,17 +82,20 @@ def collect_native_lib_jvm_flags(ctx, deps, runtime_deps):
     artifacts = {}
     targets = deps + runtime_deps
 
-    # Match rules_java's provider-based collection through the public
-    # JavaInfo API. CcInfo.transitive_native_libraries() is private to
-    # rules_java on older Bazel versions, so direct C++ deps are recovered
-    # from their runfiles below.
+    # Match rules_java's provider-based collection through public JavaInfo and
+    # CcInfo APIs. rules_java's collect_native_deps_dirs helper is private and
+    # Bazel restricts the underlying API to an allowlist.
     for target in targets:
         if JavaInfo in target:
             for library_to_link in target[JavaInfo].transitive_native_libraries.to_list():
-                _add_artifact(artifacts, _dynamic_library(library_to_link))
+                _add_dynamic_library(artifacts, _dynamic_library(library_to_link))
 
-        # This fallback is required for Windows DLLs and also preserves native
-        # libraries propagated through a kt_jvm_library's runfiles.
+        if CcInfo in target:
+            _add_cc_info_libraries(artifacts, target[CcInfo])
+
+        # This fallback is required for Windows DLLs hidden behind import
+        # libraries and also preserves native libraries propagated through a
+        # kt_jvm_library's runfiles.
         _add_target_runfiles(artifacts, target)
 
     native_dirs = {}

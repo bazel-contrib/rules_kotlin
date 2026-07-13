@@ -93,6 +93,7 @@ kt_jvm_binary(
 """
 
 load("@bazel_features//:features.bzl", "bazel_features")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(
@@ -228,6 +229,7 @@ _common_attr = utils.add_dicts(
             doc = """A list of dependencies of this rule.See general comments about `deps` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
             providers = [
+                [CcInfo],
                 [JavaInfo],
                 [_KtJvmInfo],
             ],
@@ -315,7 +317,7 @@ Exported libraries.
 Deps listed here will be made available to other rules, as if the parents explicitly depended on
 these deps. This is not true for regular (non-exported) deps.""",
         default = [],
-        providers = [JavaInfo],
+        providers = [[JavaInfo], [CcInfo]],
     ),
     "neverlink": attr.bool(
         doc = """If true only use this library for compilation and not at runtime.""",

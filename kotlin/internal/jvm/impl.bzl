@@ -355,11 +355,10 @@ def kt_jvm_library_impl(ctx):
 
 def kt_jvm_binary_impl(ctx):
     providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_binary")
-    jvm_flags = []
+    jvm_flags = collect_native_lib_jvm_flags(ctx, ctx.attr.deps, ctx.attr.runtime_deps)
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
-        jvm_flags = ctx.fragments.java.default_jvm_opts
+        jvm_flags.extend(ctx.fragments.java.default_jvm_opts)
     jvm_flags.extend(ctx.attr.jvm_flags)
-    jvm_flags.extend(collect_native_lib_jvm_flags(ctx, ctx.attr.deps, ctx.attr.runtime_deps))
     launcher_result = _write_launcher_action(
         ctx,
         providers.java.transitive_runtime_jars,
@@ -418,12 +417,11 @@ def kt_jvm_junit_test_impl(ctx):
                         test_class = elements[1].split(".")[0].replace("/", ".")
                         break
 
-    jvm_flags = []
+    jvm_flags = collect_native_lib_jvm_flags(ctx, ctx.attr.deps, ctx.attr.runtime_deps)
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
-        jvm_flags = ctx.fragments.java.default_jvm_opts
+        jvm_flags.extend(ctx.fragments.java.default_jvm_opts)
 
     jvm_flags.extend(ctx.attr.jvm_flags)
-    jvm_flags.extend(collect_native_lib_jvm_flags(ctx, ctx.attr.deps, ctx.attr.runtime_deps))
     launcher_result = _write_launcher_action(
         ctx,
         runtime_jars,
