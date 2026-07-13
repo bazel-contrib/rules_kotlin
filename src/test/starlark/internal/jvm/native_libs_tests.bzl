@@ -2,7 +2,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
-load("@rules_testing//lib:truth.bzl", "matching", "subjects")
+load("@rules_testing//lib:truth.bzl", "subjects")
 load("@rules_testing//lib:util.bzl", "util")
 load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test")
 
@@ -27,6 +27,20 @@ def _jvm_flags(env, target):
             factory = lambda value, meta: subjects.collection([value], meta),
         )
     return action.argv()
+
+def _native_library_path(env, target):
+    flags = [
+        value
+        for value in _jvm_flags(env, target).actual
+        if "-Djava.library.path=" in value
+    ]
+    env.expect.that_bool(bool(flags)).equals(True)
+
+    library_path = "\n".join(flags)
+    executable = target[DefaultInfo].files_to_run.executable.short_path
+    if executable.endswith(".exe"):
+        env.expect.that_bool("${JAVA_RUNFILES}" not in library_path).equals(True)
+    return library_path
 
 def _native_runtime_dep_does_not_crash_test(name):
     native = _native_library(name)
@@ -63,11 +77,7 @@ def _binary_has_direct_native_library_path_test(name):
     )
 
 def _binary_has_direct_native_library_path_test_impl(env, target):
-    executable = target[DefaultInfo].files_to_run.executable.short_path
-    path_prefix = "" if executable.endswith(".exe") else "*"
-    _jvm_flags(env, target).contains_predicate(
-        matching.str_matches("*-Djava.library.path={}{}*".format(path_prefix, target.label.name.rpartition("/")[0])),
-    )
+    env.expect.that_str(_native_library_path(env, target)).contains(target.label.name.rpartition("/")[0])
 
 def _test_has_direct_native_library_path_test(name):
     native = _native_library(name)
@@ -86,11 +96,7 @@ def _test_has_direct_native_library_path_test(name):
     )
 
 def _test_has_direct_native_library_path_test_impl(env, target):
-    executable = target[DefaultInfo].files_to_run.executable.short_path
-    path_prefix = "" if executable.endswith(".exe") else "*"
-    _jvm_flags(env, target).contains_predicate(
-        matching.str_matches("*-Djava.library.path={}{}*".format(path_prefix, target.label.name.rpartition("/")[0])),
-    )
+    env.expect.that_str(_native_library_path(env, target)).contains(target.label.name.rpartition("/")[0])
 
 def _binary_has_transitive_native_library_path_test(name):
     native = _native_library(name)
@@ -116,11 +122,7 @@ def _binary_has_transitive_native_library_path_test(name):
     )
 
 def _binary_has_transitive_native_library_path_test_impl(env, target):
-    executable = target[DefaultInfo].files_to_run.executable.short_path
-    path_prefix = "" if executable.endswith(".exe") else "*"
-    _jvm_flags(env, target).contains_predicate(
-        matching.str_matches("*-Djava.library.path={}{}*".format(path_prefix, target.label.name.rpartition("/")[0])),
-    )
+    env.expect.that_str(_native_library_path(env, target)).contains(target.label.name.rpartition("/")[0])
 
 def _native_library_path_uses_platform_separator_test(name):
     native_a = _native_library(name, "a/native")
@@ -143,10 +145,11 @@ def _native_library_path_uses_platform_separator_test_impl(env, target):
     executable = target[DefaultInfo].files_to_run.executable.short_path
     windows = executable.endswith(".exe")
     separator = ";" if windows else ":"
-    path_prefix = "" if windows else "*"
-    _jvm_flags(env, target).contains_predicate(
-        matching.str_matches("*-Djava.library.path={0}{1}/a*{2}*{1}/b*".format(path_prefix, target.label.name.rpartition("/")[0], separator)),
-    )
+    dirname = target.label.name.rpartition("/")[0]
+    library_path = env.expect.that_str(_native_library_path(env, target))
+    library_path.contains(dirname + "/a")
+    library_path.contains(separator)
+    library_path.contains(dirname + "/b")
 
 def native_libs_test_suite(name):
     test_suite(
