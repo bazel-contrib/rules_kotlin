@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_java//java:defs.bzl", "java_binary", "java_plugin")
-load("//kotlin:core.bzl", "kt_ksp_plugin")
+load("//kotlin:core.bzl", "kt_kotlinc_options", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -17,6 +17,11 @@ load("//kotlin:jvm.bzl", "kt_jvm_library")
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:private"])
+
+kt_kotlinc_options(
+    name = "jvm11_opts",
+    jvm_target = "11",
+)
 
 kt_ksp_plugin(
     name = "dagger",
@@ -90,6 +95,7 @@ kt_jvm_library(
         "coffee/PumpModule.kt",
         "coffee/Thermosiphon.kt",
     ],
+    kotlinc_opts = ":jvm11_opts",
     plugins = [
         ":dagger",
         ":moshi",
@@ -142,6 +148,7 @@ kt_jvm_library(
         ":chai_lib_src",
         ":tea_lib_src",
     ],
+    kotlinc_opts = ":jvm11_opts",
     plugins = [
         ":dagger",
         ":moshi",
@@ -163,6 +170,7 @@ kt_jvm_library(
         "coffee/CoffeeAppService.java",
         "coffee/CoffeeAppServiceUsage.kt",
     ],
+    kotlinc_opts = ":jvm11_opts",
     plugins = [":autoservice"],
     deps = ["@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp"],
 )
@@ -184,6 +192,7 @@ kt_jvm_library(
         ":chai_lib_src",
         ":tea_lib_src",
     ],
+    kotlinc_opts = ":jvm11_opts",
     plugins = [
         ":autoservice",
         ":autovalue",
@@ -230,6 +239,7 @@ kt_jvm_library(
         ":chai_lib_src",
         ":tea_lib_src",
     ],
+    kotlinc_opts = ":jvm11_opts",
     plugins = [
         ":generate_bytecode_plugin",
         ":autovalue",
@@ -329,6 +339,7 @@ rm GeneratedModule.kt
 kt_jvm_library(
     name = "generated_lib",
     srcs = [":generated_module_src"],
+    kotlinc_opts = ":jvm11_opts",
     plugins = [":dagger"],
     deps = ["@kotlin_rules_maven//:com_google_dagger_dagger"],
 )
@@ -342,6 +353,7 @@ kt_jvm_library(
         ":chai_lib_src",
         ":tea_lib_src",
     ],
+    kotlinc_opts = ":jvm11_opts",
     plugins = [
         ":dagger",
         ":moshi",

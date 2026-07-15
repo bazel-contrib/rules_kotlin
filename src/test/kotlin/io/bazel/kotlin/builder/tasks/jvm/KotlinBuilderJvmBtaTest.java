@@ -94,4 +94,21 @@ public class KotlinBuilderJvmBtaTest {
                         }),
                 lines -> assertThat(String.join("\n", lines)).contains("DoesNotExist"));
     }
+
+  @Test
+    public void testJdkApiSurfaceLimitedToJvmTarget() {
+        // The BTAPI implementation enforces compile-time JDK API version to correspond to the selected jvm_target via -Xjdk-release.
+        ctx.runFailingCompileTaskAndValidateOutput(
+                () -> ctx.runCompileTask(
+                        c -> {
+                            c.useBuildToolsApi();
+                            c.compileKotlin();
+                            // java.util.HexFormat exists since JDK 17, while the test toolchain targets jvm 11.
+                            c.addSource("HexUser.kt", "package something;", "fun hex(): String = java.util.HexFormat.of().toString()");
+                            c.outputJar();
+                            c.outputJdeps();
+                        }),
+                lines -> assertThat(String.join("\n", lines)).contains("HexFormat"));
+    }
+
 }

@@ -92,7 +92,14 @@ fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): Co
       LANGUAGE_VERSION_ARG,
       overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
     ).flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
-    .flag("-module-name", info.moduleName)
+    .let { args ->
+      if (info.buildToolsApi && info.passthroughFlagsList.none { it.startsWith("-Xjdk-release") }) {
+        // Unless set explicitly, ensure the JDK API version corresponds to selected jvmTarget
+        args.flag("-Xjdk-release=${info.toolchainInfo.jvm.jvmTarget}")
+      } else {
+        args
+      }
+    }.flag("-module-name", info.moduleName)
 }
 
 internal fun JvmCompilationTask.plugins(

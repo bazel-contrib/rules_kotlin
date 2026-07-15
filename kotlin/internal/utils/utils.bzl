@@ -47,14 +47,21 @@ def _init_builder_args(ctx, rule_kind, module_name, kotlinc_options = None):
 
     return args
 
-def _javac_jvm_target_flags(jvm_target):
-    """Derive javac `-source`/`-target` flags from a kotlinc `jvm_target`.
+def _javac_jvm_target_flags(jvm_target, compiler_version = None):
+    """Derive javac platform-target flags from a kotlinc `jvm_target`.
+
+    With `compiler_version` specified the compile-time API version is enforced with `["--release", N]` flag
+    when cross-compiling for older jvm versions.
+    else `-source`/`-target` are used (`--release` is mutually exclusive with them).
     """
     stripped = jvm_target.strip()
     dot = stripped.rfind(".")
     target_version = stripped if dot < 0 else stripped[dot + 1:]
     if not target_version.isdigit():
         fail("kotlinc jvm_target '{}' is not a valid JVM target version (expected a number like '8', '11', '17', or the legacy '1.8' form)".format(jvm_target))
+    if compiler_version != None:
+        if compiler_version >= 9 and compiler_version != int(target_version):
+            return ["--release", target_version]
     return ["-source", target_version, "-target", target_version]
 
 utils = struct(

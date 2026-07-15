@@ -1,10 +1,17 @@
+load("//kotlin:core.bzl", "kt_kotlinc_options")
 load("//kotlin:jvm.bzl", "kt_jvm_test")
+
+kt_kotlinc_options(
+    name = "jvm11_opts",
+    jvm_target = "11",
+)
 
 kt_jvm_test(
     name = "WriteKotlincCapabilitiesTest",
     srcs = [
         "WriteKotlincCapabilitiesTest.kt",
     ],
+    kotlinc_opts = ":jvm11_opts",
     test_class = "io.bazel.generate.WriteKotlincCapabilitiesTest",
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/generate:kotlin_release_options_lib",
