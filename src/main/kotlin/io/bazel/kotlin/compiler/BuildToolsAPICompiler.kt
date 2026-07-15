@@ -17,6 +17,7 @@ package io.bazel.kotlin.compiler
 
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.getToolchain
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
@@ -52,7 +53,10 @@ class BuildToolsAPICompiler : KotlinCompiler {
     // Execute the compilation
     val result =
       kotlinToolchains.createBuildSession().use { session ->
-        session.executeOperation(operationBuilder.build())
+        session.executeOperation(
+          operationBuilder.build(),
+          logger = createLogger(errStream, verbose = "-verbose" in args),
+        )
       }
 
     // BTAPI returns a different type than K2JVMCompiler (CompilationResult vs ExitCode).
@@ -63,4 +67,46 @@ class BuildToolsAPICompiler : KotlinCompiler {
       CompilationResult.COMPILER_INTERNAL_ERROR -> ExitCode.INTERNAL_ERROR
     }
   }
+
+  private fun createLogger(
+    out: PrintStream,
+    verbose: Boolean,
+  ): KotlinLogger =
+    object : KotlinLogger {
+      override val isDebugEnabled: Boolean = verbose
+
+      override fun error(
+        msg: String,
+        throwable: Throwable?,
+      ) {
+        out.println(msg)
+        throwable?.printStackTrace(out)
+      }
+
+      override fun warn(
+        msg: String,
+        throwable: Throwable?,
+      ) {
+        out.println(msg)
+        throwable?.printStackTrace(out)
+      }
+
+      override fun info(msg: String) {
+        if (verbose) {
+          out.println(msg)
+        }
+      }
+
+      override fun debug(msg: String) {
+        if (verbose) {
+          out.println(msg)
+        }
+      }
+
+      override fun lifecycle(msg: String) {
+        if (verbose) {
+          out.println(msg)
+        }
+      }
+    }
 }

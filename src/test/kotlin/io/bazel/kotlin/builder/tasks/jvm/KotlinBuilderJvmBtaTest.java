@@ -21,6 +21,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import static com.google.common.truth.Truth.assertThat;
+
 /** Compiles through the Build Tools API path ({@code --build_tools_api=true}). */
 @RunWith(JUnit4.class)
 public class KotlinBuilderJvmBtaTest {
@@ -58,5 +60,38 @@ public class KotlinBuilderJvmBtaTest {
                     c.outputJdeps();
                 });
         ctx.assertFilesExist(DirectoryType.CLASSES, "something/AClass.class");
+    }
+
+    @Test
+    public void testVerboseOutputIsReported() {
+        // The tracing mode enabled by 'compileKotlin()' is mapped to compiler's -verbose flag, which enables task output to stderr
+        ctx.runCompileTask(
+                c -> {
+                    c.useBuildToolsApi();
+                    c.compileKotlin();
+                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                    c.outputJar();
+                    c.outputJdeps();
+                });
+        assertThat(String.join("\n", ctx.outLines())).contains("Loading modules");
+    }
+
+    @Test
+    public void testCompilerDiagnosticsAreReported() {
+        // Compiler diagnostics must be printed to stderr
+        ctx.runFailingCompileTaskAndValidateOutput(
+                () -> ctx.runCompileTask(
+                        c -> {
+                            c.useBuildToolsApi();
+                            c.compileKotlin();
+                            c.addSource(
+                                    "Broken.kt",
+                                    "package something;",
+                                    "",
+                                    "val broken = DoesNotExist()");
+                            c.outputJar();
+                            c.outputJdeps();
+                        }),
+                lines -> assertThat(String.join("\n", lines)).contains("DoesNotExist"));
     }
 }

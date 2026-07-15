@@ -392,7 +392,15 @@ fun JvmCompilationTask.compileKotlin(
           options = inputs.compilerPluginOptionsList,
           classpath = inputs.compilerPluginClasspathList,
         )
-    ).list()
+    ).let { compilationArgs ->
+      // Request '-verbose' execution for BTAPI compiler if tracing is enabled
+      val tracing = context.whenTracing { true } == true
+      if (info.buildToolsApi && tracing && "-verbose" !in compilationArgs.args) {
+        compilationArgs.flag("-verbose")
+      } else {
+        compilationArgs
+      }
+    }.list()
       .let {
         context.whenTracing {
           context.printLines("compileKotlin arguments:\n", it)
