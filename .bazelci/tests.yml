@@ -1,5 +1,9 @@
 ---
 # Common task configurations.
+.common: &common
+  # Bazel CI prefixes imported tasks with the import name ("tests").
+  working_directory: ..
+
 .unittests: &unittests
   build_flags: ${{ test_flags }}
   test_flags: ${{ test_flags }}
@@ -33,21 +37,25 @@
 
 # Common platform configurations.
 .ubuntu2404: &ubuntu2404
+  <<: *common
   platform: ubuntu2404
   environment:
     ANDROID_NDK_HOME: /opt/android-ndk-r25b
 
 .ubuntu2204: &ubuntu2204
+  <<: *common
   platform: ubuntu2204
   environment:
     ANDROID_NDK_HOME: /opt/android-ndk-r25b
 
 .macos: &macos
+  <<: *common
   platform: macos_arm64
   environment:
     ANDROID_NDK_HOME: /Users/buildkite/android-ndk-r25b
 
 .windows: &windows
+  <<: *common
   platform: windows
   environment:
     ANDROID_NDK_HOME: C:\android_ndk\r25b
@@ -60,13 +68,6 @@ matrix:
     - [ "--test_tag_filters=shard_2", "--local_test_jobs=3" ]
   test_flags:
     - [ "--enable_bzlmod=true" ]
-validate_config: 1
-bazel: 8.4.2
-buildifier:
-  version: 8.2.0
-  # no lint warnings for the moment. They are basically a smoke alarm in hell.
-  # keep this argument in sync with .pre-commit-config.yaml
-  warnings: "+unsorted-dict-items,-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
   macos_unittests:
     <<: [ *macos, *unittests ]
@@ -83,6 +84,7 @@ tasks:
   windows_unittests:
     <<: [ *windows, *unittests ]
   rbe_ubuntu2404:
+    <<: *common
     test_targets:
       - "--"
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
@@ -93,6 +95,7 @@ tasks:
     test_flags:
       - "--strategy=KotlinCompile=remote"
   stardoc:
+    <<: *common
     name: Stardoc api documentation
     platform: rbe_ubuntu2404
     build_targets:
