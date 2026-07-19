@@ -60,6 +60,10 @@ def derive_metadata(directory):
             ["%s/WORKSPACE" % directory, "%s/WORKSPACE.bazel" % directory],
             allow_empty = True,
         )) > 0,
+        skip_rules_kotlin_query = len(native.glob(
+            ["%s/SKIP_RULES_KOTLIN_QUERY" % directory],
+            allow_empty = True,
+        )) > 0,
     )
 
 def example_integration_test_suite(
@@ -78,6 +82,9 @@ def example_integration_test_suite(
                 modes.append(("workspace", {"WORKSPACE_ENABLED": "1"}))
 
             for mode, env in modes:
+                test_env = dict(env)
+                if metadata.skip_rules_kotlin_query:
+                    test_env["SKIP_RULES_KOTLIN_QUERY"] = "1"
                 bazel_integration_test(
                     name = "%s_%s_%s_test" % (name, mode, clean_bazel_version),
                     timeout = "eternal",
@@ -86,7 +93,7 @@ def example_integration_test_suite(
                         "ANDROID_SDK_ROOT",
                         "ANDROID_NDK_HOME",
                     ],
-                    env = env,
+                    env = test_env,
                     bazel_version = version,
                     tags = tags + [clean_bazel_version, name, name + "_" + mode],
                     test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",

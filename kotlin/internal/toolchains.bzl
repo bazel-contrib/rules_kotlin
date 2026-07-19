@@ -356,7 +356,7 @@ _kt_toolchain = rule(
     provides = [platform_common.ToolchainInfo],
 )
 
-_KT_DEFAULT_TOOLCHAIN = Label("//kotlin/internal:default_toolchain")
+_KT_DEFAULT_TOOLCHAIN = Label("//kotlin/internal/default_toolchain:default_toolchain")
 
 def kt_register_toolchains():
     """This macro registers the kotlin toolchain."""
@@ -511,8 +511,9 @@ def kt_configure_toolchains():
         visibility = ["//visibility:public"],
     )
 
-    native.toolchain_type(
+    native.alias(
         name = "kt_toolchain_type",
+        actual = _TOOLCHAIN_TYPE,
         visibility = ["//visibility:public"],
     )
 

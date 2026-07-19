@@ -32,4 +32,4 @@ use_repo(
     "kotlin_build_tools_impl",
 )
 
-register_toolchains("//kotlin/internal:default_toolchain")
+register_toolchains("//kotlin/internal/default_toolchain")
