@@ -1,0 +1,5 @@
+--downloader_config=blockcompiler.cfg
+--force # require downloading used repos
+--repository_cache=/dev/null
+--repository_disable_download
+--toolchain_resolution_debug=.*

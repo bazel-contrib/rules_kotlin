@@ -1,0 +1,9 @@
+module(
+    name = "eagerfetch",
+    version = "0.0.1",
+    repo_name = "eagerfetch",
+)
+
+bazel_dep(name = "rules_kotlin", version = "2.4.0")
+
+register_toolchains("//pkg:all")

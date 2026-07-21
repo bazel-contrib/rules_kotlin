@@ -1,0 +1,23 @@
+load(":toolchain.bzl", "a_toolchain")
+load(":action.bzl", "a_action")
+
+a_action(
+    name = "work",
+)
+
+toolchain_type(
+    name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+a_toolchain(
+    name = "a_toolchain",
+    visibility = ["//visibility:public"],
+)
+
+toolchain(
+    name = "default_toolchain",
+    toolchain = ":a_toolchain",
+    toolchain_type = ":toolchain_type",
+    visibility = ["//visibility:public"],
+)
