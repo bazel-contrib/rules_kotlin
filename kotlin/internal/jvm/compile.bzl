@@ -451,10 +451,10 @@ def _run_ksp_builder_actions(
     """Runs KSP2 via a dedicated KSP2 worker.
 
     The worker handles all staging, KSP2 execution, and output packaging internally.
-    This eliminates tree artifacts and reduces the action count to a single action.
+    This eliminates tree artifacts and keeps staging and KSP2 execution in a single action.
 
     Returns:
-        A struct containing KSP outputs (two JAR files: sources and classes)
+        A struct containing KSP outputs (sources, classes, and class ABI JARs)
     """
 
     # Output JARs - the worker creates these directly
@@ -546,9 +546,16 @@ def _run_ksp_builder_actions(
         progress_message = "Running KSP2 for %{label}",
         toolchain = _TOOLCHAIN_TYPE,
     )
+    ksp_generated_classes_abi_jar = java_common.run_ijar(
+        actions = ctx.actions,
+        jar = ksp_generated_classes_jar,
+        target_label = ctx.label,
+        java_toolchain = toolchains.java,
+    )
 
     return struct(
         ksp_generated_class_jar = ksp_generated_classes_jar,
+        ksp_generated_class_abi_jar = ksp_generated_classes_abi_jar,
         ksp_generated_src_jar = ksp_generated_java_srcjar,
     )
 
@@ -957,6 +964,7 @@ def _run_kt_java_builder_actions(
         )
         ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
         output_jars.append(ksp_generated_class_jar)
+        compile_jars.append(ksp_outputs.ksp_generated_class_abi_jar)
         ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
         generated_ksp_src_jars.append(ksp_generated_src_jar)
 
