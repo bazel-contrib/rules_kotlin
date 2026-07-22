@@ -93,7 +93,7 @@ maven.install(
         "com.google.dagger:dagger-producers:2.57.2",
         "javax.inject:javax.inject:1",
         "org.apache.commons:commons-compress:1.26.2",
-        "com.eed3si9n.jarjar:jarjar:1.16.0",
+        "com.eed3si9n.jarjar:jarjar:1.17.0",
         "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
         "com.squareup.moshi:moshi:1.15.2",
         "com.squareup.moshi:moshi-kotlin:1.15.2",
