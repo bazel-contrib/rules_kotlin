@@ -1,20 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//src/main/starlark/release:packager.bzl", "release_archive")
 
-release_archive(
-    name = "pkg",
-    srcs = glob(
-        ["**/*.bzl"],
-    ),
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
-    deps = [
-        "//src/main/starlark/core/compile:pkg",
-        "//src/main/starlark/core/options:pkg",
-        "//src/main/starlark/core/plugin:pkg",
-        "//src/main/starlark/core/repositories:pkg",
-    ],
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
 )
 
 bzl_library(

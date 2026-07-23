@@ -2,7 +2,7 @@
 
 load("@bazel_skylib//lib:modules.bzl", "modules")
 load(
-    "//src/main/starlark/core/repositories:initialize.release.bzl",
+    "//src/main/starlark/core/repositories:initialize.bzl",
     _kotlin_repositories = "kotlin_repositories",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",

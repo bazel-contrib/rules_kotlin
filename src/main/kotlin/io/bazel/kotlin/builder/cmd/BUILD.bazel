@@ -1,6 +1,12 @@
 load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
+)
+
 kt_bootstrap_library(
     name = "build_lib",
     srcs = ["Build.kt"],

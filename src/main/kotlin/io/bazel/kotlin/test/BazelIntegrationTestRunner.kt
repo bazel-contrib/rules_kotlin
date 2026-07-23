@@ -1,24 +1,18 @@
 package io.bazel.kotlin.test
 
 
-import io.bazel.kotlin.builder.utils.BazelRunFiles
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
-import java.util.zip.GZIPInputStream
-import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
-import kotlin.io.path.inputStream
 
 object BazelIntegrationTestRunner {
   @JvmStatic
@@ -27,30 +21,7 @@ object BazelIntegrationTestRunner {
     val fs = FileSystems.getDefault()
     val bazel = fs.getPath(System.getenv("BIT_BAZEL_BINARY"))
     val workspace = fs.getPath(System.getenv("BIT_WORKSPACE_DIR"))
-    val unpack = fs.getPath(System.getenv("TEST_TMPDIR")).resolve("rules_kotlin")
-    val release = BazelRunFiles.resolveVerifiedFromProperty(
-      fs,
-      "@rules_kotlin...rules_kotlin_release",
-    )
-
-    TarArchiveInputStream(
-      GZIPInputStream(
-        release.inputStream(),
-      ),
-    ).use { stream ->
-      generateSequence(stream::getNextEntry).forEach { entry ->
-        val destination = unpack.resolve(entry.name)
-        when {
-          entry.isDirectory -> destination.createDirectories()
-          entry.isFile -> Files.write(
-            destination.apply { parent.createDirectories() },
-            stream.readBytes(),
-          )
-
-          else -> throw NotImplementedError(entry.toString())
-        }
-      }
-    }
+    val rulesKotlin = workspace.resolve("../..").normalize().toAbsolutePath()
 
     val version = bazel.run(workspace, "--version").parseVersion()
 
@@ -60,14 +31,14 @@ object BazelIntegrationTestRunner {
       listOf(
         if (workspaceEnabled) {
           listOf(
-            Flag("--override_repository=rules_kotlin=$unpack"),
+            Flag("--override_repository=rules_kotlin=$rulesKotlin"),
             Flag("--enable_bzlmod=false"),
             Flag("--enable_workspace=true") { it.isBzlmodEnabledByDefault },
           )
         } else {
           listOf(
             Flag("--enable_bzlmod=true"),
-            Flag("--override_module=rules_kotlin=$unpack"),
+            Flag("--override_module=rules_kotlin=$rulesKotlin"),
             Flag("--enable_workspace=false") { it.isBzlmodEnabledByDefault },
           )
         },
@@ -117,13 +88,18 @@ object BazelIntegrationTestRunner {
           *commandFlags,
           "//...",
         ).onFailThrow()
-        bazel.run(
-          workspace,
-          *systemFlags,
-          "query",
-          *commandFlags,
-          "@rules_kotlin//...",
-        ).onFailThrow()
+        listOf(
+          "@rules_kotlin//kotlin/...",
+          "@rules_kotlin//src/main/...",
+        ).forEach { targetPattern ->
+          bazel.run(
+            workspace,
+            *systemFlags,
+            "query",
+            *commandFlags,
+            targetPattern,
+          ).onFailThrow()
+        }
         bazel.run(
           workspace,
           *systemFlags,

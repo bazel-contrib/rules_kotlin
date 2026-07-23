@@ -1,6 +1,4 @@
-load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@rules_license//rules:license.bzl", "license")
-load("@rules_multirun//:defs.bzl", "multirun")
 load("//kotlin:lint.bzl", "ktlint_config")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -16,9 +14,54 @@ load("//kotlin:lint.bzl", "ktlint_config")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//src/main/starlark/release:packager.bzl", "release_archive")
-
 package(default_applicable_licenses = [":license"])
+
+exports_files(["MODULE.bazel"])
+
+# Integration tests reference this repository with paths relative to their fixture workspace.
+# Keep the repository sources as declared test inputs so those paths resolve within runfiles.
+filegroup(
+    name = "local_repository_files",
+    srcs = [
+        ".bazelignore",
+        ".bazelrc",
+        ".bazelversion",
+        "BUILD",
+        "LICENSE",
+        "MODULE.bazel",
+        "MODULE.bazel.lock",
+        "kotlin_rules_maven_install.json",
+        "//kotlin:all_files",
+        "//kotlin/compiler:all_files",
+        "//kotlin/internal:all_files",
+        "//kotlin/internal/jvm:all_files",
+        "//kotlin/internal/lint:all_files",
+        "//kotlin/internal/utils:all_files",
+        "//kotlin/settings:all_files",
+        "//src/main/kotlin:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/builder/toolchain:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/builder/utils:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/builder/utils/jars:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/compiler:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/ksp2:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/plugin:all_files",
+        "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:all_files",
+        "//src/main/kotlin/io/bazel/worker:all_files",
+        "//src/main/protobuf:all_files",
+        "//src/main/starlark:all_files",
+        "//src/main/starlark/core:all_files",
+        "//src/main/starlark/core/compile:all_files",
+        "//src/main/starlark/core/compile/cli:all_files",
+        "//src/main/starlark/core/options:all_files",
+        "//src/main/starlark/core/plugin:all_files",
+        "//src/main/starlark/core/repositories:all_files",
+        "//src/main/starlark/core/repositories/kotlin:all_files",
+        "//third_party:all_files",
+    ],
+    visibility = ["//:__subpackages__"],
+)
 
 license(
     name = "license",
@@ -39,116 +82,4 @@ ktlint_config(
     editorconfig = "//:editorconfig",
     experimental_rules_enabled = False,
     visibility = ["//visibility:public"],
-)
-
-# The entire test suite excluding local tests.
-test_suite(
-    name = "all_tests",
-    tests = [
-        "//src/test/kotlin/io/bazel/kotlin:assertion_tests",
-        "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
-        "//src/test/kotlin/io/bazel/worker:worker_tests",
-        "//src/test/starlark:convert_tests",
-        "//src/test/starlark:resource_strip_prefix_tests",
-    ],
-)
-
-#  Local tests. Tests that shouldn't be run on the CI server.
-test_suite(
-    name = "all_local_tests",
-    tests = [
-        ":all_tests",
-        "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
-        "//src/test/kotlin/io/bazel/worker:local_worker_tests",
-        "//src/test/starlark:convert_tests",
-        "//src/test/starlark:resource_strip_prefix_tests",
-    ],
-)
-
-# Release target.
-release_archive(
-    name = "rules_kotlin_release",
-    srcs = [
-        "LICENSE",
-    ],
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-        "MODULE.release.bazel": "MODULE.bazel",
-    },
-    deps = [
-        "//kotlin:pkg",
-        "//src/main/kotlin:pkg",
-        "//src/main/starlark:pkg",
-        "//third_party:pkg",
-    ],
-)
-
-# This target collects all of the parent workspace files needed by the child workspaces.
-filegroup(
-    name = "release_repositories",
-    # Include every package that is required by the child workspaces.
-    srcs = [
-        ":rules_kotlin_release",
-    ],
-    visibility = ["//:__subpackages__"],
-)
-
-multirun(
-    name = "ktlint_fix_all",
-    commands = [
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_lib_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_lib_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_lib_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/builder/tasks:tasks_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/builder/toolchain:toolchain_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/builder/utils/jars:jars_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen-lib_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen-lib_ktlint_fix",
-        "//src/main/kotlin/io/bazel/worker:worker_ktlint_fix",
-    ],
-    jobs = 0,
-)
-
-# TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Must be run with `--config=deprecated`
-buildifier(
-    name = "buildifier.check",
-    exclude_patterns = [
-        "./.git/*",
-        "./.ijwb/*",
-    ],
-    lint_mode = "warn",
-    lint_warnings = [
-        "+unsorted-dict-items",
-        "-confusing-name",
-        "-constant-glob",
-        "-duplicated-name",
-        "-function-docstring",
-        "-function-docstring-args",
-        "-function-docstring-header",
-        "-module-docstring",
-        "-name-conventions",
-        "-no-effect",
-        "-constant-glob",
-        "-provider-params",
-        "-print",
-        "-rule-impl-return",
-        "-bzl-visibility",
-        "-unnamed-macro",
-        "-uninitialized",
-        "-unreachable",
-    ],
-)
-
-buildifier(
-    name = "buildifier.fix",
-    exclude_patterns = [
-        "./.git/*",
-    ],
-    lint_mode = "fix",
-    lint_warnings = [
-        "+unsorted-dict-items",
-    ],
 )

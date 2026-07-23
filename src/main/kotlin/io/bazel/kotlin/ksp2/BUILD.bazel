@@ -14,6 +14,12 @@
 
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
+)
+
 # KSP2 invoker library, loaded at runtime in the KSP2 classloader. The dep on the worker's tasks
 # library provides the Ksp2EntryPoint contract the invoker implements; the KSP2 classloader
 # resolves that interface from its parent (the worker), so the dep never rides along at runtime.

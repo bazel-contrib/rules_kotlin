@@ -5,6 +5,12 @@ load("//src/main/starlark/core/compile:common.bzl", "TYPE")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load(":toolchain.bzl", "cli_toolchain")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
+)
+
 java_import(
     name = "kotlinc_jar",
     jars = [

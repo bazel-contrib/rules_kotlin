@@ -1,0 +1,6 @@
+/examples export-ignore
+/examples/** export-ignore
+/src/test export-ignore
+/src/test/** export-ignore
+/src/main/kotlin/io/bazel/kotlin/test export-ignore
+/src/main/kotlin/io/bazel/kotlin/test/** export-ignore

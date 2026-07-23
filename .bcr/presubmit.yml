@@ -10,4 +10,4 @@ tasks:
       - "--enable_bzlmod=true"
     build_targets:
       - "@rules_kotlin//kotlin/..."
-      - "@rules_kotlin//src/..."
+      - "@rules_kotlin//src/main/..."
