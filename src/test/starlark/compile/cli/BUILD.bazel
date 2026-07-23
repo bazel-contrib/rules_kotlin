@@ -1,6 +1,7 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_binary")
+load(":toolchain_test.bzl", "cli_toolchain_test_suite")
 
 want = "Hello From Koltinc"
 
@@ -26,6 +27,8 @@ core_kt_jvm_binary(
     ],
     main_class = "Hello",
 )
+
+cli_toolchain_test_suite(name = "cli_toolchain_tests")
 
 sh_test(
     name = "test_execution",

@@ -29,7 +29,7 @@ def _cli_toolchain(ctx):
     toolchain_info = KotlincJvmCompileInfo(
         jvm_target = ctx.attr.jvm_target,
         api_version = ".".join(ctx.attr.api_version.split(".")[:2]),
-        language_version = ".".join(ctx.attr.api_version.split(".")[:2]),
+        language_version = ".".join(ctx.attr.language_version.split(".")[:2]),
         executable_zip = ctx.attr.zip[DefaultInfo].files_to_run,
         kotlinc = ctx.attr.kotlinc[DefaultInfo].files_to_run,
         compile_mnemonic = COMPILE_MNEMONIC,
