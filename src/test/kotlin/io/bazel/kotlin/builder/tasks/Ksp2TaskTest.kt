@@ -19,11 +19,14 @@ package io.bazel.kotlin.builder.tasks
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.Ksp2Flags
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.clearKspClassLoaderCacheForTesting
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.fingerprintOf
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.getKspClassLoader
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.parseKspOptions
 import io.bazel.kotlin.builder.utils.ArgMap
 import org.junit.After
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
@@ -32,6 +35,9 @@ import org.junit.runners.JUnit4
  */
 @RunWith(JUnit4::class)
 class Ksp2TaskTest {
+  @get:Rule
+  val tmp = TemporaryFolder()
+
   @After
   fun tearDown() {
     clearKspClassLoaderCacheForTesting()
@@ -197,7 +203,9 @@ class Ksp2TaskTest {
 
   @Test
   fun testKspClassLoaderCacheReusesLoaderForSameProcessorClasspath() {
-    val processorClasspath = listOf("processor.jar", "ksp-api.jar")
+    val jar1 = tmp.newFile("processor.jar").apply { writeBytes(byteArrayOf(1)) }
+    val jar2 = tmp.newFile("ksp-api.jar").apply { writeBytes(byteArrayOf(2)) }
+    val processorClasspath = listOf(jar1.absolutePath, jar2.absolutePath)
 
     val firstClassLoader = getKspClassLoader(processorClasspath)
     val secondClassLoader = getKspClassLoader(processorClasspath)
@@ -207,17 +215,71 @@ class Ksp2TaskTest {
 
   @Test
   fun testKspClassLoaderCacheKeyIsProcessorClasspathOrderInsensitive() {
-    val firstClassLoader = getKspClassLoader(listOf("processor.jar", "ksp-api.jar"))
-    val secondClassLoader = getKspClassLoader(listOf("ksp-api.jar", "processor.jar"))
+    val jar1 = tmp.newFile("processor.jar").apply { writeBytes(byteArrayOf(1)) }
+    val jar2 = tmp.newFile("ksp-api.jar").apply { writeBytes(byteArrayOf(2)) }
+
+    val firstClassLoader = getKspClassLoader(listOf(jar1.absolutePath, jar2.absolutePath))
+    val secondClassLoader = getKspClassLoader(listOf(jar2.absolutePath, jar1.absolutePath))
 
     assertThat(secondClassLoader).isSameInstanceAs(firstClassLoader)
   }
 
   @Test
   fun testKspClassLoaderCacheSeparatesDifferentProcessorClasspaths() {
-    val firstClassLoader = getKspClassLoader(listOf("processor.jar", "ksp-api.jar"))
-    val secondClassLoader = getKspClassLoader(listOf("other-processor.jar", "ksp-api.jar"))
+    val jar1 = tmp.newFile("processor.jar").apply { writeBytes(byteArrayOf(1)) }
+    val jar2 = tmp.newFile("ksp-api.jar").apply { writeBytes(byteArrayOf(2)) }
+    val jar3 = tmp.newFile("other-processor.jar").apply { writeBytes(byteArrayOf(3)) }
+
+    val firstClassLoader = getKspClassLoader(listOf(jar1.absolutePath, jar2.absolutePath))
+    val secondClassLoader = getKspClassLoader(listOf(jar3.absolutePath, jar2.absolutePath))
 
     assertThat(secondClassLoader).isNotSameInstanceAs(firstClassLoader)
+  }
+
+  @Test
+  fun testKspClassLoaderCacheInvalidatesOnContentChange() {
+    val jar = tmp.newFile("processor.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+    val classpath = listOf(jar.absolutePath)
+
+    val firstClassLoader = getKspClassLoader(classpath)
+    jar.writeBytes(byteArrayOf(4, 5, 6, 7))
+    val secondClassLoader = getKspClassLoader(classpath)
+
+    assertThat(secondClassLoader).isNotSameInstanceAs(firstClassLoader)
+  }
+
+  @Test
+  fun testFingerprintIsDeterministic() {
+    val jar = tmp.newFile("a.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+    val classpath = listOf(jar.absolutePath)
+    assertThat(fingerprintOf(classpath)).isEqualTo(fingerprintOf(classpath))
+  }
+
+  @Test
+  fun testFingerprintChangesWhenContentChanges() {
+    val jar = tmp.newFile("a.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+    val classpath = listOf(jar.absolutePath)
+    val before = fingerprintOf(classpath)
+
+    jar.writeBytes(byteArrayOf(4, 5, 6, 7))
+    val after = fingerprintOf(classpath)
+
+    assertThat(after).isNotEqualTo(before)
+  }
+
+  @Test
+  fun testFingerprintDiffersForDifferentPaths() {
+    val jar1 = tmp.newFile("a.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+    val jar2 = tmp.newFile("b.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+    assertThat(fingerprintOf(listOf(jar1.absolutePath)))
+      .isNotEqualTo(fingerprintOf(listOf(jar2.absolutePath)))
+  }
+
+  @Test
+  fun testFingerprintIsHexEncoded() {
+    val jar = tmp.newFile("a.jar").apply { writeBytes(byteArrayOf(1)) }
+    val fp = fingerprintOf(listOf(jar.absolutePath))
+    assertThat(fp).hasLength(64)
+    assertThat(fp).matches("[0-9a-f]{64}")
   }
 }

@@ -30,6 +30,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.security.DigestInputStream
+import java.security.MessageDigest
 import java.util.GregorianCalendar
 import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarEntry
@@ -53,10 +55,15 @@ class Ksp2Task : Work {
   companion object {
     private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
 
+    private data class CacheEntry(
+      val classLoader: URLClassLoader,
+      val fingerprint: String,
+    )
+
     // Work around https://github.com/google/ksp/issues/2959: KSP2 creates a large
     // processor classloader, and persistent multiplex workers otherwise retain one
     // per work request until the worker JVM exits. Cache one loader per processor classpath.
-    private val kspClassLoaderCache = ConcurrentHashMap<String, URLClassLoader>()
+    private val classLoaderCache = ConcurrentHashMap<String, CacheEntry>()
 
     enum class Ksp2Flags(
       override val flag: String,
@@ -84,16 +91,41 @@ class Ksp2Task : Work {
 
     fun getKspClassLoader(processorClasspath: List<String>): URLClassLoader {
       val cacheKey = processorClasspath.sorted().joinToString(File.pathSeparator)
-      return kspClassLoaderCache.computeIfAbsent(cacheKey) {
-        URLClassLoader(
-          processorClasspath.map { File(it).toURI().toURL() }.toTypedArray(),
-          ClassLoader.getSystemClassLoader(),
-        )
-      }
+      val fingerprint = fingerprintOf(processorClasspath)
+      return classLoaderCache
+        .compute(cacheKey) { _, existing ->
+          if (existing != null && existing.fingerprint == fingerprint) {
+            return@compute existing
+          }
+          if (existing != null) {
+            runCatching { existing.classLoader.close() }
+          }
+          CacheEntry(
+            URLClassLoader(
+              processorClasspath.map { File(it).toURI().toURL() }.toTypedArray(),
+              ClassLoader.getSystemClassLoader(),
+            ),
+            fingerprint,
+          )
+        }!!
+        .classLoader
     }
 
     fun clearKspClassLoaderCacheForTesting() {
-      kspClassLoaderCache.clear()
+      classLoaderCache.values.forEach { runCatching { it.classLoader.close() } }
+      classLoaderCache.clear()
+    }
+
+    fun fingerprintOf(classpath: List<String>): String {
+      val sortedPaths = classpath.sorted()
+      val digest = MessageDigest.getInstance("SHA-256")
+      for (path in sortedPaths) {
+        val file = File(path)
+        digest.update(path.toByteArray(StandardCharsets.UTF_8))
+        digest.update(file.length().toString().toByteArray(StandardCharsets.UTF_8))
+        DigestInputStream(Files.newInputStream(file.toPath()), digest).use { it.readAllBytes() }
+      }
+      return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     // Fixed epoch (1980-01-01 00:00:00 UTC) for reproducible jar timestamps.
