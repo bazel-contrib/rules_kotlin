@@ -214,6 +214,48 @@ Setup a simple kotlin_test.
 | <a id="kt_jvm_test-test_class"></a>test_class |  The Java class to be loaded by the test runner.   | String | optional |  `""`  |
 
 
+<a id="kt_jvm_test_suite"></a>
+
+## kt_jvm_test_suite
+
+<pre>
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test_suite")
+
+kt_jvm_test_suite(<a href="#kt_jvm_test_suite-name">name</a>, <a href="#kt_jvm_test_suite-srcs">srcs</a>, <a href="#kt_jvm_test_suite-runner">runner</a>, <a href="#kt_jvm_test_suite-test_suffixes">test_suffixes</a>, <a href="#kt_jvm_test_suite-package">package</a>, <a href="#kt_jvm_test_suite-deps">deps</a>, <a href="#kt_jvm_test_suite-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_test_suite-size">size</a>, <a href="#kt_jvm_test_suite-kwargs">**kwargs</a>)
+</pre>
+
+Create a suite of Kotlin tests from `*Test.kt` files.
+
+This rule will create a `kt_jvm_test` for each file which matches
+any of the `test_suffixes` that are passed to this rule as
+`srcs`. If any non-test sources are added these will first be
+compiled into a `kt_jvm_library` which will be added as a
+dependency for each test target, allowing common utility functions
+to be shared between tests.
+
+The generated `kt_jvm_test` targets will be named after the test file:
+`FooTest.kt` will create a `:FooTest` target.
+
+In addition, a `test_suite` will be created, named using the `name`
+attribute to allow all the tests to be run in one go.
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="kt_jvm_test_suite-name"></a>name |  A unique name for this rule. Will be used to generate a `test_suite`.   |  none |
+| <a id="kt_jvm_test_suite-srcs"></a>srcs |  Source files to create test rules for.   |  none |
+| <a id="kt_jvm_test_suite-runner"></a>runner |  The test runner to use. Valid values are `junit4` and `junit5`.   |  `"junit4"` |
+| <a id="kt_jvm_test_suite-test_suffixes"></a>test_suffixes |  The file name suffix used to identify if a file contains a test class.   |  `["Test.kt"]` |
+| <a id="kt_jvm_test_suite-package"></a>package |  The package name used by the tests. If not set, this is inferred from the current bazel package name.   |  `None` |
+| <a id="kt_jvm_test_suite-deps"></a>deps |  A list of dependencies.   |  `None` |
+| <a id="kt_jvm_test_suite-runtime_deps"></a>runtime_deps |  A list of dependencies needed at runtime.   |  `None` |
+| <a id="kt_jvm_test_suite-size"></a>size |  The size of the test, passed to `kt_jvm_test`.   |  `None` |
+| <a id="kt_jvm_test_suite-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+
+
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 

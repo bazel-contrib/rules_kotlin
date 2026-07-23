@@ -1,5 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
-load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
+load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test_suite")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
@@ -109,6 +109,12 @@ kt_jvm_library(
     name = "test_associates_library",
     srcs = ["test_friends/Service.kt"],
     visibility = ["//src/test/kotlin:__subpackages__"],
+)
+
+kt_jvm_test_suite(
+    name = "kt_jvm_test_suite_tests",
+    srcs = glob(["test_suite/*.kt"]),
+    deps = ["@kotlin_rules_maven//:junit_junit"],
 )
 
 filegroup(
