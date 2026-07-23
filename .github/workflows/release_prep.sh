@@ -5,11 +5,8 @@ set -o errexit -o nounset -o pipefail
 # Set by GH actions, see
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
 TAG=${GITHUB_REF_NAME}
-# The prefix is chosen to match what GitHub generates for source archives
-PREFIX="rules_kotlin-${TAG:1}"
 ARCHIVE="rules_kotlin-$TAG.tar.gz"
-bazel --bazelrc=.github/workflows/ci.bazelrc --bazelrc=.bazelrc build //:rules_kotlin_release
-cp bazel-bin/rules_kotlin_release.tgz $ARCHIVE
+git archive --format=tar.gz --output="$ARCHIVE" "$TAG"
 SHA=$(shasum -a 256 $ARCHIVE | awk '{print $1}')
 
 # Write the release notes to release_notes.txt

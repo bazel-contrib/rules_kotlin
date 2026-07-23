@@ -1,7 +1,12 @@
 load("@bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
-load("//src/main/starlark/release:packager.bzl", "release_archive")
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
+)
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
@@ -76,18 +81,4 @@ bzl_library(
         "jarjar.bzl",
         "@bazel_tools//tools:bzl_srcs",
     ],
-)
-
-release_archive(
-    name = "pkg",
-    srcs = [
-        "empty.jar",
-        "empty.jdeps",
-        "jarjar.bzl",
-        "java_stub_template.txt",
-    ],
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-        "jarjar_runner_deploy.jar": "jarjar.jar",
-    },
 )

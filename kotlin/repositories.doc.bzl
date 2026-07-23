@@ -1,5 +1,5 @@
 load(
-    "//src/main/starlark/core/repositories:initialize.release.bzl",
+    "//src/main/starlark/core/repositories:initialize.bzl",
     _kotlin_repositories = "kotlin_repositories",
     _versions = "versions",
 )

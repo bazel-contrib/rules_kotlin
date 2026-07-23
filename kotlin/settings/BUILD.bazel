@@ -1,5 +1,11 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
+)
+
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,15 +19,6 @@ load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//src/main/starlark/release:packager.bzl", "release_archive")
-
-release_archive(
-    name = "pkg",
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
-)
-
 # Flag that controls the emission of jdeps files during kotlin jvm compilation.
 bool_flag(
     name = "jvm_emit_jdeps",
