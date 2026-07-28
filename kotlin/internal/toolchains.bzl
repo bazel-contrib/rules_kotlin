@@ -101,6 +101,7 @@ def _kotlin_toolchain_impl(ctx):
         empty_jdeps = ctx.file._empty_jdeps,
         jacocorunner = ctx.attr.jacocorunner,
         experimental_prune_transitive_deps = ctx.attr._experimental_prune_transitive_deps[BuildSettingInfo].value,
+        experimental_prune_transitive_deps_keep_transitive_repositories = ctx.attr._experimental_prune_transitive_deps_keep_transitive_repositories[BuildSettingInfo].value,
         experimental_strict_associate_dependencies = ctx.attr._experimental_strict_associate_dependencies[BuildSettingInfo].value,
         experimental_ksp2_psi_resolution = ctx.attr._experimental_ksp2_psi_resolution[BuildSettingInfo].value,
     )
@@ -341,6 +342,11 @@ _kt_toolchain = rule(
             Transitive deps required for compilation must be explicitly added. Using
             kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
             default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
+        ),
+        "_experimental_prune_transitive_deps_keep_transitive_repositories": attr.label(
+            doc = """Canonical repository names whose transitive compile jars remain on the classpath when
+            experimental_prune_transitive_deps is enabled.""",
+            default = Label("//kotlin/settings:experimental_prune_transitive_deps_keep_transitive_repositories"),
         ),
         "_experimental_strict_associate_dependencies": attr.label(
             doc = """

@@ -280,6 +280,26 @@ Or add it to your `.bazelrc` file:
 build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false
 ```
 
+# Pruning transitive dependencies
+
+The experimental transitive dependency pruning mode normally removes every transitive dependency from the Kotlin
+compile classpath:
+
+```
+build --@rules_kotlin//kotlin/settings:experimental_prune_transitive_deps=True
+```
+
+Some Maven dependency graphs need to remain transitive. Their canonical repository names can be allow-listed globally
+with a comma-separated build setting:
+
+```
+build --@rules_kotlin//kotlin/settings:experimental_prune_transitive_deps_keep_transitive_repositories=maven,rules_jvm_external++maven+maven
+```
+
+Repository names omit the leading `@`. For Bzlmod extensions, use the canonical name (for example,
+`rules_jvm_external++maven+maven`); for `WORKSPACE` repositories, use the repository name (for example, `maven`).
+The allow-list is empty by default and has no effect unless transitive dependency pruning is enabled.
+
 # Workers
 
 Persistent workers and multiplex workers are enabled by default for Kotlin compilation actions. This significantly improves build performance by reusing compiler processes across builds.

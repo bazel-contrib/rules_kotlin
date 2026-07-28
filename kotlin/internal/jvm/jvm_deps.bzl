@@ -38,11 +38,27 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
     # Reduced classpath, exclude transitive deps from compilation
     if (toolchains.kt.experimental_prune_transitive_deps and
         not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
+        transitive_jars = []
+        repositories_to_keep = toolchains.kt.experimental_prune_transitive_deps_keep_transitive_repositories
+        if repositories_to_keep:
+            repository_set = {repository: None for repository in repositories_to_keep}
+            transitive_compile_time_jars = depset(
+                transitive = [
+                    dep_info.transitive_compile_time_jars
+                    for dep_info in dep_infos
+                ],
+            )
+            transitive_jars = [
+                jar
+                for jar in transitive_compile_time_jars.to_list()
+                if jar.owner != None and jar.owner.repo_name in repository_set
+            ]
         transitive = [
             d.compile_jars
             for d in dep_infos
         ]
     else:
+        transitive_jars = []
         transitive = [
             d.compile_jars
             for d in dep_infos
@@ -51,7 +67,10 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
             for d in dep_infos
         ]
 
-    compile_depset_list = depset(transitive = transitive + [associates.jars]).to_list()
+    compile_depset_list = depset(
+        direct = transitive_jars,
+        transitive = transitive + [associates.jars],
+    ).to_list()
     compile_depset_list_filtered = [jar for jar in compile_depset_list if not _sets.contains(associates.abi_jar_set, jar)]
 
     return struct(

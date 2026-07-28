@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_list_flag")
 
 # Flag that controls the emission of jdeps files during kotlin jvm compilation.
 bool_flag(
@@ -24,6 +24,15 @@ bool_flag(
 bool_flag(
     name = "experimental_prune_transitive_deps",
     build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# Comma-separated canonical repository names whose transitive compile jars should
+# remain on the classpath when experimental_prune_transitive_deps is enabled.
+# --@rules_kotlin//kotlin/settings:experimental_prune_transitive_deps_keep_transitive_repositories=repo_a,repo_b
+string_list_flag(
+    name = "experimental_prune_transitive_deps_keep_transitive_repositories",
+    build_setting_default = [],
     visibility = ["//visibility:public"],
 )
 
