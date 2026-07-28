@@ -1,9 +1,20 @@
 load("//kotlin:jvm.bzl", "kt_jvm_import", "kt_jvm_library")
 
-def arrange(test):
-    dependency_a_trans_dep_jar = test.artifact(
-        name = "dependency_a_trans_dep.abi.jar",
-    )
+def arrange(test, transitive_dep = None):
+    dependency_a_trans_dep_jar = transitive_dep
+    if dependency_a_trans_dep_jar == None:
+        dependency_a_trans_dep_jar = test.artifact(
+            name = "dependency_a_trans_dep.abi.jar",
+        )
+        dependency_a_trans_dep = test.have(
+            kt_jvm_import,
+            name = "dependency_a_dep_jar_import",
+            jars = [
+                dependency_a_trans_dep_jar,
+            ],
+        )
+    else:
+        dependency_a_trans_dep = dependency_a_trans_dep_jar
 
     dependency_a = test.have(
         kt_jvm_library,
@@ -14,13 +25,7 @@ def arrange(test):
             ),
         ],
         deps = [
-            test.have(
-                kt_jvm_import,
-                name = "dependency_a_dep_jar_import",
-                jars = [
-                    dependency_a_trans_dep_jar,
-                ],
-            ),
+            dependency_a_trans_dep,
         ],
     )
 
