@@ -75,6 +75,7 @@ def _strict_abi_test_impl(env, target):
         kt = struct(
             experimental_remove_private_classes_in_abi_jars = True,
             experimental_prune_transitive_deps = True,
+            experimental_prune_transitive_deps_keep_transitive_repositories = [],
             experimental_strict_associate_dependencies = True,
             jvm_stdlibs = JavaInfo(
                 compile_jar = _file(env.ctx.attr.jvm_jar),
@@ -109,6 +110,7 @@ def _fat_abi_test_impl(env, target):
         kt = struct(
             experimental_remove_private_classes_in_abi_jars = False,
             experimental_prune_transitive_deps = False,
+            experimental_prune_transitive_deps_keep_transitive_repositories = [],
             experimental_strict_associate_dependencies = False,
             jvm_stdlibs = JavaInfo(
                 compile_jar = _file(env.ctx.attr.jvm_jar),
@@ -158,6 +160,7 @@ def _transitive_from_exports_test_impl(env, target):
         kt = struct(
             experimental_remove_private_classes_in_abi_jars = True,
             experimental_prune_transitive_deps = True,
+            experimental_prune_transitive_deps_keep_transitive_repositories = [],
             experimental_strict_associate_dependencies = True,
             jvm_stdlibs = JavaInfo(
                 compile_jar = _file(env.ctx.attr.jvm_jar),
@@ -226,6 +229,7 @@ def _transitive_from_associates_test_impl(env, target):
         kt = struct(
             experimental_remove_private_classes_in_abi_jars = False,
             experimental_prune_transitive_deps = False,
+            experimental_prune_transitive_deps_keep_transitive_repositories = [],
             experimental_strict_associate_dependencies = False,
             jvm_stdlibs = JavaInfo(
                 compile_jar = _file(env.ctx.attr.jvm_jar),
@@ -337,6 +341,7 @@ def _dep_infos_ordering_test_impl(env, target):
         kt = struct(
             experimental_remove_private_classes_in_abi_jars = False,
             experimental_prune_transitive_deps = False,
+            experimental_prune_transitive_deps_keep_transitive_repositories = [],
             experimental_strict_associate_dependencies = False,
             jvm_stdlibs = stdlib_java_info,
         ),
@@ -395,6 +400,90 @@ def _dep_infos_ordering_test(name):
         },
     )
 
+def _kept_transitive_repository_deduplication_test_impl(env, target):
+    shared_transitive_jar = _file(env.ctx.attr.shared_transitive_jar)
+    shared_transitive_dep = JavaInfo(
+        compile_jar = shared_transitive_jar,
+        output_jar = shared_transitive_jar,
+    )
+    direct_dep_jar = _file(env.ctx.attr.direct_dep_jar)
+    direct_dep_jar2 = _file(env.ctx.attr.direct_dep_jar2)
+    jvm_jar = _file(env.ctx.attr.jvm_jar)
+    deps_java_infos = [
+        JavaInfo(
+            compile_jar = direct_dep_jar,
+            output_jar = direct_dep_jar,
+            deps = [shared_transitive_dep],
+        ),
+        JavaInfo(
+            compile_jar = direct_dep_jar2,
+            output_jar = direct_dep_jar2,
+            deps = [shared_transitive_dep],
+        ),
+    ]
+    fake_ctx = struct(
+        label = target.label,
+        attr = struct(
+            module_name = "",
+            tags = [],
+        ),
+    )
+    toolchains = struct(
+        kt = struct(
+            experimental_remove_private_classes_in_abi_jars = False,
+            experimental_prune_transitive_deps = True,
+            experimental_prune_transitive_deps_keep_transitive_repositories = [shared_transitive_jar.owner.repo_name],
+            experimental_strict_associate_dependencies = False,
+            jvm_stdlibs = JavaInfo(
+                compile_jar = jvm_jar,
+                output_jar = jvm_jar,
+            ),
+        ),
+    )
+
+    result = _jvm_deps_utils.jvm_deps(
+        ctx = fake_ctx,
+        toolchains = toolchains,
+        associate_deps = [],
+        deps_java_infos = deps_java_infos,
+    )
+
+    classpath = result.compile_jars.to_list()
+    legacy_transitive_jars = []
+    for dep_info in deps_java_infos + [toolchains.kt.jvm_stdlibs]:
+        legacy_transitive_jars.extend(dep_info.transitive_compile_time_jars.to_list())
+    legacy_classpath = depset(
+        direct = legacy_transitive_jars,
+        transitive = [dep_info.compile_jars for dep_info in deps_java_infos + [toolchains.kt.jvm_stdlibs]],
+    ).to_list()
+    shared_transitive_jars = [jar for jar in classpath if jar == shared_transitive_jar]
+    env.expect.that_int(len(shared_transitive_jars)).equals(1)
+    env.expect.that_bool(classpath == legacy_classpath).equals(True)
+
+def _kept_transitive_repository_deduplication_test(name):
+    util.helper_target(
+        native.filegroup,
+        name = name + "_subject",
+        srcs = [],
+    )
+    analysis_test(
+        name = name,
+        impl = _kept_transitive_repository_deduplication_test_impl,
+        target = name + "_subject",
+        attr_values = {
+            "direct_dep_jar": util.empty_file(name + "_direct_dep.jar"),
+            "direct_dep_jar2": util.empty_file(name + "_direct_dep2.jar"),
+            "jvm_jar": util.empty_file(name + "_jvm.jar"),
+            "shared_transitive_jar": util.empty_file(name + "_shared_transitive.jar"),
+        },
+        attrs = {
+            "direct_dep_jar": attr.label(allow_files = True),
+            "direct_dep_jar2": attr.label(allow_files = True),
+            "jvm_jar": attr.label(allow_files = True),
+            "shared_transitive_jar": attr.label(allow_files = True),
+        },
+    )
+
 def _sourceless_dep_propagation_test_impl(env, target):
     """Verify that a sourceless wrapper propagates transitive deps
 
@@ -444,6 +533,7 @@ def jvm_deps_test_suite(name):
             _transitive_from_exports_test,
             _transitive_from_associates_test,
             _dep_infos_ordering_test,
+            _kept_transitive_repository_deduplication_test,
             _sourceless_dep_propagation_test,
         ],
     )
