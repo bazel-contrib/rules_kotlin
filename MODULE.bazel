@@ -21,17 +21,27 @@ bazel_dep(name = "rules_android", version = "0.7.3")
 remote_android_extensions = use_extension(
     "@rules_android//bzlmod_extensions:android_extensions.bzl",
     "remote_android_tools_extensions",
+    dev_dependency = True,
 )
 use_repo(remote_android_extensions, "android_tools")
 
-android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
+android_sdk_repository_extension = use_extension(
+    "@rules_android//rules/android_sdk_repository:rule.bzl",
+    "android_sdk_repository_extension",
+    dev_dependency = True,
+)
 use_repo(android_sdk_repository_extension, "androidsdk")
 
-register_toolchains("@androidsdk//:all")
+register_toolchains(
+    "@androidsdk//:all",
+    dev_dependency = True,
+)
 
 bazel_dep(name = "bazel_features", version = "1.50.0")
 bazel_dep(name = "bazel_lib", version = "3.1.0")
-bazel_dep(name = "rules_shell", version = "0.4.1")
+
+bazel_dep(name = "rules_shell", version = "0.4.1", dev_dependency = True)
+
 bazel_dep(name = "bazel_worker_api", version = "0.0.11")
 bazel_dep(name = "bazel_worker_java", version = "0.0.11")
 
@@ -60,45 +70,23 @@ register_toolchains("//src/main/starlark/core/compile/cli")
 
 register_toolchains("//kotlin/internal:default_toolchain")
 
-# Development dependencies
-# TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
-# we need to sort out a few cases around how these rules are consumed in various ways.
-
+# Consumers compile the bundled workers and tools from source, so their Maven resolver and
+# artifact repositories are production dependencies.
 bazel_dep(name = "rules_jvm_external", version = "7.0")
-
-bazel_dep(name = "bazel_ci_rules", version = "2.0.0", dev_dependency = True)
-
-rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension", dev_dependency = True)
-rbe.config(
-    name = "buildkite_config",
-    preset = "ubuntu",
-)
-use_repo(rbe, "buildkite_config")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "kotlin_rules_maven",
     artifacts = [
-        "com.google.code.findbugs:jsr305:3.0.2",
-        "com.google.errorprone:error_prone_annotations:2.23.0",
-        "junit:junit:4.13-beta-3",
-        "com.google.guava:guava:33.0.0-jre",
-        "com.google.truth:truth:0.45",
-        "com.google.auto.service:auto-service:1.1.1",
-        "com.google.auto.service:auto-service-annotations:1.1.1",
+        "com.eed3si9n.jarjar:jarjar:1.17.0",
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
+        "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.dagger:dagger:2.57.2",
         "com.google.dagger:dagger-compiler:2.57.2",
-        "com.google.dagger:dagger-producers:2.57.2",
+        "com.google.errorprone:error_prone_annotations:2.23.0",
+        "com.google.guava:guava:33.0.0-jre",
         "javax.inject:javax.inject:1",
-        "org.apache.commons:commons-compress:1.26.2",
-        "com.eed3si9n.jarjar:jarjar:1.17.0",
-        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
-        "com.squareup.moshi:moshi:1.15.2",
-        "com.squareup.moshi:moshi-kotlin:1.15.2",
-        "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],
     fail_if_repin_required = True,
     fetch_sources = True,
@@ -109,24 +97,62 @@ maven.install(
         "https://repo1.maven.org/maven2",
     ],
 )
-maven.override(
+use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
+
+dev_maven = use_extension(
+    "@rules_jvm_external//:extensions.bzl",
+    "maven",
+    dev_dependency = True,
+)
+dev_maven.install(
+    name = "kotlin_rules_test_maven",
+    artifacts = [
+        "com.google.auto.service:auto-service:1.1.1",
+        "com.google.auto.service:auto-service-annotations:1.1.1",
+        "com.google.truth:truth:0.45",
+        "com.squareup.moshi:moshi:1.15.2",
+        "com.squareup.moshi:moshi-kotlin:1.15.2",
+        "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
+        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
+        "junit:junit:4.13-beta-3",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
+        "org.ow2.asm:asm:9.10.1",
+    ],
+    fail_if_repin_required = True,
+    fetch_sources = True,
+    lock_file = "//:kotlin_rules_test_maven_install.json",
+    repositories = [
+        "https://maven-central.storage.googleapis.com/repos/central/data/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+dev_maven.override(
     name = "override_target_in_deps_kotlin_stdlib",
     coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib",
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib",
 )
-maven.override(
+dev_maven.override(
     name = "override_target_in_deps_kotlin_stdlib_jdk7",
     coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk7",
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk7",
 )
-maven.override(
+dev_maven.override(
     name = "override_target_in_deps_kotlin_stdlib_jdk8",
     coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk8",
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
 )
-use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
+use_repo(dev_maven, "kotlin_rules_test_maven", "unpinned_kotlin_rules_test_maven")
 
-bazel_dep(name = "rules_pkg", version = "1.0.1")
+# Development-only formatting, CI, documentation, and test dependencies.
+bazel_dep(name = "bazel_ci_rules", version = "2.0.0", dev_dependency = True)
+
+rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension", dev_dependency = True)
+rbe.config(
+    name = "buildkite_config",
+    preset = "ubuntu",
+)
+use_repo(rbe, "buildkite_config")
 
 bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True, repo_name = "io_bazel_stardoc")
 bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)

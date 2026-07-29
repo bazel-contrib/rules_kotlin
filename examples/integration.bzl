@@ -31,7 +31,7 @@ def derive_metadata(directory):
             ["%s/**/**" % directory],
             # exclude any bazel directories if existing
             exclude = ["%s/bazel-*/**" % directory],
-        ),
+        ) + ["//:local_repository_files"],
         exclude = [
             # Cut to the file name, and use it as an excluded bazel version. For exclusion to work
             # the file name in the `exclude` directory must match the bazel version in `bazel_binaries.versions.all`.
