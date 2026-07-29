@@ -44,6 +44,7 @@ load(
     "//kotlin/internal/jvm:jvm_deps.bzl",
     _jvm_deps_utils = "jvm_deps_utils",
 )
+load("//kotlin/internal/jvm:native_libs.bzl", _collect_native_libraries = "collect_native_libraries")
 load(
     "//kotlin/internal/jvm:plugins.bzl",
     "is_ksp_processor_generating_java",
@@ -855,6 +856,7 @@ def _kt_jvm_produce_output_jar_actions(
         deps = compile_deps.deps,
         runtime_deps = compile_deps.runtime_deps,
         exports = compile_deps.exports,
+        native_libraries = compile_deps.native_libraries,
         neverlink = getattr(ctx.attr, "neverlink", False),
         generated_source_jar = generated_source_jar,
         generated_class_jar = generated_class_jar,
@@ -1013,6 +1015,7 @@ def _run_kt_java_builder_actions(
             deps = compile_deps.deps,
             runtime_deps = compile_deps.runtime_deps,
             exports = compile_deps.exports,
+            native_libraries = compile_deps.native_libraries,
             neverlink = getattr(ctx.attr, "neverlink", False),
         )
         java_infos.append(kt_java_info)
@@ -1170,8 +1173,14 @@ def _export_only_providers(ctx, actions, attr, outputs):
     java = JavaInfo(
         output_jar = toolchains.kt.empty_jar,
         compile_jar = toolchains.kt.empty_jar,
-        deps = [_java_info(d) for d in attr.deps],
-        exports = [_java_info(d) for d in getattr(attr, "exports", [])],
+        deps = [_java_info(d) for d in attr.deps if JavaInfo in d],
+        runtime_deps = [d[JavaInfo] for d in getattr(attr, "runtime_deps", []) if JavaInfo in d],
+        exports = [_java_info(d) for d in getattr(attr, "exports", []) if JavaInfo in d],
+        native_libraries = _collect_native_libraries(
+            attr.deps,
+            getattr(attr, "runtime_deps", []),
+            getattr(attr, "exports", []),
+        ),
         neverlink = getattr(attr, "neverlink", False),
         jdeps = output_jdeps,
     )
