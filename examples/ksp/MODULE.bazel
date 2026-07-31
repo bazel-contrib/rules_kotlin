@@ -33,3 +33,6 @@ maven.install(
     ],
 )
 use_repo(maven, "maven_rules_kotlin_example")
+
+# Use the local toolchain (jvm_target 11): KSP-generated code needs JDK 9+ platform APIs.
+register_toolchains("//:kotlin_toolchain")

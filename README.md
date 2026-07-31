@@ -266,19 +266,22 @@ Additionally, you can add options for both tracing and timing of the bazel build
 
 The Build Tools API is a modern compilation interface provided by JetBrains for invoking the Kotlin compiler. It offers better integration and is required for incremental compilation support.
 
-**This feature is enabled by default.**
+**This feature is an explicit opt-in.** By default rules_kotlin compiles through the legacy `K2JVMCompiler`;
 
-To disable the Build Tools API and use the legacy compilation approach, add the following flag to your build:
+To enable the Build Tools API for the whole build, add the following flag:
 
 ```bash
-bazel build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false //your:target
+bazel build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=true //your:target
 ```
 
 Or add it to your `.bazelrc` file:
 
 ```
-build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false
+build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=true
 ```
+
+Alternatively, enable it for a single toolchain via `define_kt_toolchain(experimental_build_tools_api = True)`.
+Either switch is sufficient; both default to `False`.
 
 # Pruning transitive dependencies
 

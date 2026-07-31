@@ -1,6 +1,11 @@
 load("//kotlin:core.bzl", "define_kt_toolchain")
 load(":associates_tests.bzl", "associates_tests")
+load(":build_tools_api_toggle_tests.bzl", "build_tools_api_toggle_tests")
 load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
+
+build_tools_api_toggle_tests(
+    name = "build_tools_api_toggle_tests",
+)
 
 experimental_prune_transitive_deps_tests(
     name = "experimental_prune_transitive_deps_tests",

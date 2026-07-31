@@ -19,7 +19,11 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
-define_kt_toolchain(name = "kotlin_toolchain")
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    # KSP-generated code imports javax.annotation.processing.Generated (JDK 9+)
+    jvm_target = "11",
+)
 
 # Generate a srcjar to validate intellij plugin correctly attaches it.
 genrule(

@@ -94,7 +94,7 @@ def _kotlin_toolchain_impl(ctx):
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
-        experimental_build_tools_api = ctx.attr.experimental_build_tools_api,
+        experimental_build_tools_api = ctx.attr.experimental_build_tools_api or ctx.attr._experimental_build_tools_api_setting[BuildSettingInfo].value,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -331,6 +331,12 @@ _kt_toolchain = rule(
             allow_single_file = True,
             cfg = "target",
             default = Label("//third_party:empty.jdeps"),
+        ),
+        "_experimental_build_tools_api_setting": attr.label(
+            doc = """Build setting enabling compilation with the Build Tools API for every toolchain in
+            the build. The effective toggle is this setting OR-ed with the per-toolchain
+            experimental_build_tools_api attr; both default to False (legacy compilation).""",
+            default = Label("//kotlin/settings:experimental_build_tools_api"),
         ),
         "_experimental_ksp2_psi_resolution": attr.label(
             doc = """If enabled, KSP2 uses its experimental PSI-based symbol resolution strategy
