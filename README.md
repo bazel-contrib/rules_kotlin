@@ -140,6 +140,52 @@ kotlin_repositories(
 )
 ```
 
+## Build Tools API implementation releases
+
+When a toolchain enables the Build Tools API compilation (`experimental_build_tools_api`), it
+compiles with a Build Tools API runtime: `kotlin-build-tools-impl`, the `kotlin-compiler-embeddable`
+it loads, the embeddable compiler plugins `kotlin-annotation-processing-embeddable` and
+`jvm-abi-gen`, and the four libraries of the release the compiler needs. One implementation record
+names all of them with one version and one checksum each, and one repository is built from each
+record. The repository `@btapi_impl` holds the record of the release the rules bundle, and the
+default toolchain uses its runtime, `@rules_kotlin//kotlin/compiler:btapi_runtime`.
+
+To compile with another release, declare a record under a repository name of your choice and give
+its runtime to a toolchain. Several records coexist, one toolchain each:
+
+### `MODULE.bazel`
+```python
+rules_kotlin_extensions.btapi_impl_version(
+    name = "kotlin_2_4_0",
+    version = "2.4.0",
+    build_tools_impl_sha256 = "...",
+    compiler_sha256 = "...",
+    annotation_processing_sha256 = "...",
+    jvm_abi_gen_sha256 = "...",
+    stdlib_sha256 = "...",
+    reflect_sha256 = "...",
+    daemon_client_sha256 = "...",
+    script_runtime_sha256 = "...",
+)
+use_repo(rules_kotlin_extensions, "kotlin_2_4_0")
+```
+
+### `BUILD`
+```python
+define_kt_toolchain(
+    name = "kotlin_2_4_0_toolchain",
+    btapi_runtime = "@kotlin_2_4_0//:runtime",
+)
+```
+
+A `btapi_runtime` enables the Build Tools API compilation for the toolchain; set
+`experimental_build_tools_api = False` to leave that choice to the build setting.
+A record named `btapi_impl` replaces the bundled one. Only the root module may declare records.
+Every checksum is required, so every download stays verified, and a repository is fetched only when
+a toolchain that uses its runtime is analyzed. The Build Tools API jar itself is not configurable:
+the worker is compiled against the API of the rules_kotlin release, and that API supports
+implementations from three version lines back to one line forward.
+
 ## Third party dependencies 
 _(e.g. Maven artifacts)_
 
@@ -280,8 +326,8 @@ Or add it to your `.bazelrc` file:
 build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=true
 ```
 
-Alternatively, enable it for a single toolchain via `define_kt_toolchain(experimental_build_tools_api = True)`.
-Either switch is sufficient; both default to `False`.
+Alternatively, enable it for a single toolchain via `define_kt_toolchain(experimental_build_tools_api = True)`
+or by giving the toolchain a `btapi_runtime`. Any of these switches is sufficient; all default to `False`.
 
 # Pruning transitive dependencies
 

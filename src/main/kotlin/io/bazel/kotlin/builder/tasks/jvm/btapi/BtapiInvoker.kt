@@ -16,7 +16,6 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm.btapi
 
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.compiler.CompilationUnit
 import io.bazel.kotlin.compiler.CompilerConfiguration
 import io.bazel.kotlin.compiler.CompilerPluginSpec
@@ -32,9 +31,9 @@ import kotlin.reflect.jvm.javaMethod
  * classloader.
  */
 class BtapiInvoker(
-  toolchain: KotlinToolchain,
+  private val btapiClassLoader: ClassLoader,
+  btImplClasspath: Array<String>,
 ) : KotlinBtapiCompiler {
-  private val btapiClassLoader: ClassLoader = toolchain.classLoader
   private val compilerImpl: Any
   private val execHandle: MethodHandle
   private val compilationUnitDispatcher = Dispatcher(CompilationUnit::class.java)
@@ -49,7 +48,7 @@ class BtapiInvoker(
       compilerInterface.cast(
         compilerClass
           .getConstructor(Array<String>::class.java)
-          .newInstance(toolchain.btapiRuntimeClasspath.map { it.path }.toTypedArray() as Any),
+          .newInstance(btImplClasspath as Any),
       )
 
     val execMethod = checkNotNull(KotlinBtapiCompiler::exec.javaMethod)

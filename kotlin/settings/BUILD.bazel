@@ -58,6 +58,13 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+# True when the build setting above turns the Build Tools API compilation on.
+config_setting(
+    name = "experimental_build_tools_api_enabled",
+    flag_values = {":experimental_build_tools_api": "True"},
+    visibility = ["//visibility:public"],
+)
+
 # --@rules_kotlin//kotlin/settings:experimental_ksp2_psi_resolution=True
 # Enables KSP2's experimental PSI-based symbol resolution strategy.
 bool_flag(

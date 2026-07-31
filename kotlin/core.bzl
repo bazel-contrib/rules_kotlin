@@ -1,4 +1,9 @@
 load(
+    "//kotlin/internal:btapi_runtime.bzl",
+    _BtapiRuntimeInfo = "BtapiRuntimeInfo",
+    _kt_btapi_runtime = "kt_btapi_runtime",
+)
+load(
     "//kotlin/internal:opts.bzl",
     _kt_javac_options = "kt_javac_options",
     _kt_kotlinc_options = "kt_kotlinc_options",
@@ -17,6 +22,8 @@ load(
 
 define_kt_toolchain = _define_kt_toolchain
 kt_register_toolchains = _kt_register_toolchains
+BtapiRuntimeInfo = _BtapiRuntimeInfo
+kt_btapi_runtime = _kt_btapi_runtime
 kt_javac_options = _kt_javac_options
 kt_kotlinc_options = _kt_kotlinc_options
 kt_compiler_plugin = _kt_compiler_plugin

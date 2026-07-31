@@ -71,3 +71,12 @@ def kt_configure_compiler():
         neverlink = 1,
         visibility = ["//visibility:public"],
     )
+
+    # The Build Tools API compilation runtime of the current Kotlin release: the toolchain uses it
+    # when the Build Tools API compilation is enabled. The repository @btapi_impl is built from the
+    # implementation record BTAPI_IMPL_CURRENT_RELEASE in versions.bzl.
+    native.alias(
+        name = "btapi_runtime",
+        actual = "@btapi_impl//:runtime",
+        visibility = ["//visibility:public"],
+    )

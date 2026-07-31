@@ -31,12 +31,15 @@ class KotlinToolchain private constructor(
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
   /**
-   * The jars from which the Build Tools API compiler assembles its runtime classloader: the
-   * Build Tools implementation, the daemon client, the compiler and the kotlinx-serialization
-   * runtime. The Kotlin standard library resolves through the compiler jar's manifest
-   * Class-Path, like in [classLoader].
+   * The worker-provided jars every Build Tools API compiler runtime shares regardless of the
+   * runtime jar set the toolchain supplies: the rules_kotlin compiler wrapper (the
+   * KotlinBtapiCompiler contract implementations), the Build Tools API interfaces, and the Kotlin
+   * standard library and reflection runtime their bytecode links against. Loaded once into a host
+   * classloader from which every runtime classloader sees only the API classes and the JDK
+   * (SharedApiClassesClassLoader) -- the runtime's own jars, including its standard library, stay
+   * fully isolated per runtime.
    */
-  val btapiRuntimeClasspath: List<File>,
+  private val btapiJars: List<File>,
 ) {
   companion object {
     private val JVM_ABI_PLUGIN by lazy {
@@ -88,6 +91,20 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    private val COMPILER_STDLIB by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin...kotlin-stdlib",
+        ).toPath()
+    }
+
+    private val COMPILER_REFLECT by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@rules_kotlin..kotlin.compiler.kotlin-reflect",
+        ).toPath()
+    }
+
     private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
@@ -127,6 +144,8 @@ class KotlinToolchain private constructor(
     fun createToolchain(): KotlinToolchain =
       createToolchain(
         KOTLINC.verified().absoluteFile,
+        COMPILER_STDLIB.verified().absoluteFile,
+        COMPILER_REFLECT.verified().absoluteFile,
         KOTLIN_DAEMON_CLIENT.verified().absoluteFile,
         BUILD_TOOLS_IMPL.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
@@ -143,6 +162,8 @@ class KotlinToolchain private constructor(
     @JvmStatic
     fun createToolchain(
       kotlinc: File,
+      compilerStdlib: File,
+      compilerReflect: File,
       kotlinDaemonClient: File,
       buildTools: File,
       buildToolsApi: File,
@@ -169,14 +190,12 @@ class KotlinToolchain private constructor(
           kotlinxSerializationJson,
           kotlinxSerializationJsonJvm,
         ),
-        btapiRuntimeClasspath =
+        btapiJars =
           listOf(
-            buildTools,
-            kotlinDaemonClient,
-            kotlinc,
-            kotlinxSerializationCoreJvm,
-            kotlinxSerializationJson,
-            kotlinxSerializationJsonJvm,
+            compiler,
+            compilerStdlib,
+            compilerReflect,
+            buildToolsApi,
           ),
         jvmAbiGen =
           CompilerPlugin(
@@ -204,6 +223,17 @@ class KotlinToolchain private constructor(
   val classLoader by lazy {
     URLClassLoader(
       baseJars.map { it.toURI().toURL() }.toTypedArray(),
+      ClassLoader.getPlatformClassLoader(),
+    )
+  }
+
+  /**
+   * The classloader defining the Build Tools API host world ([btapiJars]); created on
+   * the first Build Tools API task. Runtime classloaders see only its API classes and the JDK.
+   */
+  val btapiClassLoader by lazy {
+    URLClassLoader(
+      btapiJars.map { it.toURI().toURL() }.toTypedArray(),
       ClassLoader.getPlatformClassLoader(),
     )
   }

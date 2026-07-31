@@ -14,7 +14,10 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-exports_files(["kotlin-compiler-reshade.jarjar"])
+exports_files([
+    "kotlin-compiler-embeddable-reshade.jarjar",
+    "kotlin-compiler-reshade.jarjar",
+])
 
 bzl_library(
     name = "jvm",

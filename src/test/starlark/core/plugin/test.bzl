@@ -23,6 +23,12 @@ _RETIRED_PLUGIN_FLAGS = [
     "--stubs_plugin_options",
 ]
 
+# The plugin jars reach the compiler unchanged only on the legacy invocation; the Build Tools
+# API invocation reshades a plugin of the other dialect.
+_LEGACY_INVOCATION = {
+    str(Label("@rules_kotlin//kotlin/settings:experimental_build_tools_api")): False,
+}
+
 def _action_test_impl(env, target):
     action = env.expect.that_target(target).action_named(env.ctx.attr.on_action_mnemonic)
     action.inputs().contains_at_least([f.short_path for f in env.ctx.files.want_inputs])
@@ -266,6 +272,7 @@ def _test_compile_configuration(test):
         name = test.name,
         impl = _action_test_impl,
         target = got,
+        config_settings = _LEGACY_INVOCATION,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
             "want_flag_keys": ["--plugins_payload"],
@@ -419,6 +426,7 @@ def _test_compile_multiple_configurations(test):
         name = test.name,
         impl = _action_test_impl,
         target = got,
+        config_settings = _LEGACY_INVOCATION,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
             "want_flag_keys": ["--plugins_payload"],
@@ -499,6 +507,7 @@ def _test_compile_configuration_single_phase(test):
         name = test.name,
         impl = _action_test_impl,
         target = got,
+        config_settings = _LEGACY_INVOCATION,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
             "want_flag_keys": ["--plugins_payload"],

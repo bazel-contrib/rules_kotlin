@@ -1,5 +1,6 @@
 load(
     "//src/main/starlark/core/repositories:initialize.bzl",
+    _btapi_impl_version = "btapi_impl_version",
     _kotlin_repositories = "kotlin_repositories",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",
@@ -10,3 +11,4 @@ kotlin_repositories = _kotlin_repositories
 versions = _versions
 kotlinc_version = _kotlinc_version
 ksp_version = _ksp_version
+btapi_impl_version = _btapi_impl_version

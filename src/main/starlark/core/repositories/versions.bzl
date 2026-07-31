@@ -1,5 +1,6 @@
 # All versions for development and release
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load(":btapi_impl.bzl", "btapi_impl_version")
 
 version = provider(
     fields = {
@@ -18,6 +19,11 @@ def _use_repository(rule, name, version, **kwargs):
         rule_arguments["strip_prefix"] = version.strip_prefix_template.format(version = version.version)
 
     maybe(rule, name = name, **rule_arguments)
+
+# The Kotlin compiler release train: the CLI distribution, the Build Tools API jar, and the Build
+# Tools API implementation record ship together under this one version. Bump them together; each
+# entry keeps its own per-artifact sha256.
+_KOTLIN_CURRENT_RELEASE = "2.4.10"
 
 versions = struct(
     # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
@@ -66,7 +72,7 @@ versions = struct(
         sha256 = "a3fd620207d5c40da6ca789b95e7f823c54e854b7fade7f613e91096a3706d75",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.4.10",
+        version = _KOTLIN_CURRENT_RELEASE,
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
@@ -79,21 +85,29 @@ versions = struct(
         ],
         sha256 = "b0e7666caf7afb634350ca64af9a88c3bd3e04df393fd33dbf430daaf285c6b3",
     ),
-    KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.4.10",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
-        ],
-        sha256 = "4a32f63522ef4726afbdee1783f05698499abc7a5ecade3a6cafa3e4074562ee",
-    ),
     # Starting with Kotlin 2.4.0 the Build Tools API interfaces are no longer bundled in
     # kotlin-compiler.jar, so they must be provided as a separate jar.
     KOTLIN_BUILD_TOOLS_API = version(
-        version = "2.4.10",
+        version = _KOTLIN_CURRENT_RELEASE,
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/{version}/kotlin-build-tools-api-{version}.jar",
         ],
         sha256 = "3953d283e7710c990672e403a87df393d9726a9bf3e172194ebb5c33e062fcb0",
+    ),
+    # The Build Tools API implementation of the current release and the embeddable compiler family
+    # it loads: the Maven-published kotlinc build whose bundled third-party packages are shaded
+    # (e.g. org.jetbrains.kotlin.com.intellij), the dialect compiler plugins published for
+    # Gradle/Maven consumption are compiled against. The repository @btapi_impl is built from it.
+    BTAPI_IMPL_CURRENT_RELEASE = btapi_impl_version(
+        version = _KOTLIN_CURRENT_RELEASE,
+        build_tools_impl_sha256 = "4a32f63522ef4726afbdee1783f05698499abc7a5ecade3a6cafa3e4074562ee",
+        compiler_sha256 = "9309638a2ee03e6bde9ef4b7444055a94b84ab906563675d71ff9aecb64da913",
+        annotation_processing_sha256 = "9b48f56404afc57c8498c7a9a9e678ea5954693e9550b185573de46fba22052e",
+        jvm_abi_gen_sha256 = "baaa13b3c428b2a1ea81c0e7ff4474779735fe47e7fc3bca8ff79793671f0e60",
+        stdlib_sha256 = "4ec0293bc3751423b203f1d8493251c57c42e73eb6377a6b8560d0974ff0a6df",
+        reflect_sha256 = "25a1aef7454d46548ecaaf51021b0e52e38141a62ed75af124da109b7324c4e5",
+        daemon_client_sha256 = "a3d1a5854fd92766de1ca37ff003a822d3da2039902008384dd1f7375f3d5cf9",
+        script_runtime_sha256 = "f4a5b30c2fdfbe386b097101b7989dbeea3743c06396136664784e08e15c6899",
     ),
     RULES_ANDROID = version(
         version = "0.7.0",

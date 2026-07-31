@@ -540,6 +540,10 @@ _kt_compiler_deps_aspect = aspect(
             cfg = "exec",
             default = Label("//third_party:jarjar_runner"),
         ),
+        "_kotlin_compiler_embeddable_reshade_rules": attr.label(
+            default = Label("//kotlin/internal/jvm:kotlin-compiler-embeddable-reshade.jarjar"),
+            allow_single_file = True,
+        ),
         "_kotlin_compiler_reshade_rules": attr.label(
             default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
             allow_single_file = True,
@@ -618,8 +622,8 @@ Supports the following template values:
             default = True,
         ),
         "target_embedded_compiler": attr.bool(
-            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
-            dependencies, and will fail when running against a non-embeddable compiler.""",
+            doc = """Plugin was compiled against the embeddable kotlin compiler. The plugin classpath is
+            reshaded when this dialect differs from the dialect of the compiler that the toolchain runs.""",
             default = False,
         ),
         "_jarjar": attr.label(
@@ -634,6 +638,9 @@ Supports the following template values:
     },
     implementation = _kt_compiler_plugin_impl,
     provides = [_KtCompilerPluginInfo],
+    # Optional: the toolchain tells which compiler dialect runs the plugin. Without a resolved
+    # toolchain the selection keeps the CLI-distribution dialect.
+    toolchains = [config_common.toolchain_type(_TOOLCHAIN_TYPE, mandatory = False)],
 )
 
 kt_ksp_plugin = rule(
