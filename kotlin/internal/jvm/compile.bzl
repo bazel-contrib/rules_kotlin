@@ -1197,6 +1197,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
         compile_jar = toolchains.kt.empty_jar,
         deps = [_java_info(d) for d in attr.deps],
         exports = [_java_info(d) for d in getattr(attr, "exports", [])],
+        runtime_deps = [_java_info(d) for d in getattr(attr, "runtime_deps", [])],
         neverlink = getattr(attr, "neverlink", False),
         jdeps = output_jdeps,
     )

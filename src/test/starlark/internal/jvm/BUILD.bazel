@@ -2,6 +2,7 @@ load(":export_only_module_name_test.bzl", "export_only_module_name_test_suite")
 load(":javac_jvm_target_test.bzl", "javac_jvm_target_test_suite")
 load(":jvm_deps_tests.bzl", "jvm_deps_test_suite")
 load(":kt_jvm_binary_env_test.bzl", "kt_jvm_binary_env_test_suite")
+load(":sourceless_library_test.bzl", "sourceless_library_test_suite")
 
 export_only_module_name_test_suite(name = "export_only_module_name_tests")
 
@@ -10,3 +11,5 @@ javac_jvm_target_test_suite(name = "javac_jvm_target_tests")
 jvm_deps_test_suite(name = "jvm_tests")
 
 kt_jvm_binary_env_test_suite(name = "kt_jvm_binary_env_tests")
+
+sourceless_library_test_suite(name = "sourceless_library_tests")
