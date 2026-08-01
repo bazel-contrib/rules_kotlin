@@ -76,11 +76,15 @@ def _associate_class_jar_is_direct_dependency_(env, target):
         map_each = basename_of,
     ).contains_none_of(["%s_associate.abi.jar" % env.ctx.attr.namespace])
 
-    # The merger reads the owning label from the manifest of every jar the jdeps mention, so the
-    # class jar of the associate has to be available to the action.
+    # The merger reads the owning label from the manifest of every jar the jdeps mention, whatever
+    # the kind of the entry is. Both flavors of the associate jar have to be available to the
+    # action: the class jar because it is the one on the classpath, and so the one the used entries
+    # point at, and the compile jar because it stays in --direct_dependencies and therefore shows up
+    # as an unused entry.
     jdeps_merge = env.expect.that_target(target).action_named("JdepsMerge")
     jdeps_merge.inputs().contains_at_least_predicates([
         matching.file_basename_equals("%s_associate.jar" % env.ctx.attr.namespace),
+        matching.file_basename_equals("%s_associate.abi.jar" % env.ctx.attr.namespace),
     ])
 
 def _test_associate_class_jar_is_direct_dependency_with_remove_private_classes(test):
