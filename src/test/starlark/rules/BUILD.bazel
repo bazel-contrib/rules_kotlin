@@ -1,5 +1,20 @@
+load("//kotlin:core.bzl", "define_kt_toolchain")
+load(":associates_tests.bzl", "associates_tests")
 load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
 
 experimental_prune_transitive_deps_tests(
     name = "experimental_prune_transitive_deps_tests",
+)
+
+associates_tests(
+    name = "associates_tests",
+)
+
+# Only used by associates_tests, which pulls it in with --extra_toolchains.
+define_kt_toolchain(
+    name = "remove_private_classes_toolchain",
+    experimental_remove_private_classes_in_abi_jars = True,
+    experimental_report_unused_deps = "error",
+    experimental_strict_kotlin_deps = "error",
+    experimental_use_abi_jars = True,
 )

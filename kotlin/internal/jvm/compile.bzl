@@ -357,7 +357,7 @@ def _build_resourcejar_action(ctx, extra_resources = {}):
     )
     return resources_jar_output
 
-def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
+def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, associate_jars = depset()):
     """Creates a Jdeps merger action invocation."""
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
@@ -379,8 +379,14 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
 
     inputs = depset(jdeps)
     if not toolchains.kt.experimental_report_unused_deps == "off":
-        # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs
-        inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_compile_time_jars for dep in deps])])
+        # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs.
+        # The associate jars are included as well because the merger reads the owning label out of the manifest of every
+        # jar mentioned in the jdeps, and the jar the associate contributed to the classpath is not necessarily its
+        # compile jar, see associates.bzl.
+        inputs = depset(
+            jdeps,
+            transitive = [dep.transitive_compile_time_jars for dep in deps] + [associate_jars],
+        )
 
     ctx.actions.run(
         mnemonic = mnemonic,
@@ -609,7 +615,18 @@ def _run_kt_builder_action(
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
     args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kotlinc_options))
     args.add_all("--javacopts", javac_options_to_flags(javac_options))
-    args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
+
+    # Associates contribute their own jars to the classpath, and which flavor (compile jar or class
+    # jar) depends on the toolchain, see associates.bzl. Declare exactly the jars that ended up on
+    # the classpath, otherwise strict deps reports the associate as an undeclared direct dependency
+    # and it cannot be fixed by the user: an associate is not allowed to also be in deps.
+    args.add_all(
+        "--direct_dependencies",
+        depset(transitive = [
+            _java_infos_to_compile_jars(compile_deps.deps),
+            compile_deps.associate_jars,
+        ]),
+    )
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
@@ -1092,6 +1109,7 @@ def _run_kt_java_builder_actions(
                 toolchains = toolchains,
                 jdeps = jdeps,
                 deps = compile_deps.deps,
+                associate_jars = compile_deps.associate_jars,
                 outputs = {"output": output_jdeps},
             )
         else:
