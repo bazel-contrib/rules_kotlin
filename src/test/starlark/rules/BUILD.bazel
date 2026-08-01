@@ -2,6 +2,7 @@ load("//kotlin:core.bzl", "define_kt_toolchain")
 load(":associates_tests.bzl", "associates_tests")
 load(":build_tools_api_toggle_tests.bzl", "build_tools_api_toggle_tests")
 load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
+load(":jdeps_merge_inputs_tests.bzl", "jdeps_merge_inputs_tests")
 
 build_tools_api_toggle_tests(
     name = "build_tools_api_toggle_tests",
@@ -32,4 +33,14 @@ define_kt_toolchain(
     experimental_strict_kotlin_deps = "error",
     experimental_treat_internal_as_private_in_abi_jars = True,
     experimental_use_abi_jars = True,
+)
+
+jdeps_merge_inputs_tests(
+    name = "jdeps_merge_inputs_tests",
+)
+
+# Only registered through --extra_toolchains by the tests that need unused dep reporting on.
+define_kt_toolchain(
+    name = "report_unused_deps_toolchain",
+    experimental_report_unused_deps = "warn",
 )
