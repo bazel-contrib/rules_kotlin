@@ -300,16 +300,23 @@ def _resourcejar_args_action(ctx, extra_resources = {}):
             # Strip prefix root mismatch
             file_path = file_path[len(file.root.path):]
 
-        # if dirname starts with ctx.label.package, we need to remove ctx.label.package, because it means that
-        # we've hit the edge case when there is a target with the same name as the package
-        if file.dirname.startswith(ctx.label.package + "/"):
-            strip_prefix = file_path[len(ctx.label.package) + 1:]
-        else:
-            strip_prefix = file_path
+        # The attribute can be specified either as a workspace-root-relative path (the
+        # rules_java convention) or as a label to a directory inside the package. Both parse as a
+        # package-relative label, so the first candidate will be either in "pkg/pkg/path" form,
+        # or in "pkg/path" form.
+        candidates = [file_path]
+        if file_path.startswith(ctx.label.package + "/"):
+            candidates.append(file_path[len(ctx.label.package) + 1:])
 
         if ctx.files.resources and file.root.path != ctx.files.resources[0].root.path:
-            # Add back the root path to align with resources paths
-            strip_prefix = ctx.files.resources[0].root.path + "/" + strip_prefix
+            # Align the candidates with the resources' root.
+            candidates = [ctx.files.resources[0].root.path + "/" + c for c in candidates]
+
+        strip_prefix = candidates[0]
+        for candidate in candidates:
+            if ctx.files.resources and ctx.files.resources[0].path.startswith(candidate):
+                strip_prefix = candidate
+                break
 
     for f in ctx.files.resources:
         resource_path = f.path if strip_prefix else _resource_path_relative_to_root(f)

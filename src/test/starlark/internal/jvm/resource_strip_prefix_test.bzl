@@ -87,10 +87,73 @@ def _strip_resource_prefix_contents():
     )
 
     kt_jvm_library(
+        name = "workspace_relative_dynamically_created_file",
+        srcs = ["source"],
+        resource_strip_prefix = pkg + "/resourcez",
+        resources = ["file"],
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
         name = "static_file",
         srcs = ["source"],
         resource_strip_prefix = "test_resources",
         resources = ["test_resources/resource.txt"],  # static file in the package
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
+        name = "workspace_relative_static_file",
+        srcs = ["source"],
+        resource_strip_prefix = pkg + "/test_resources",
+        resources = ["test_resources/resource.txt"],
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
+        name = "nested_static_dir",
+        srcs = ["source"],
+        resource_strip_prefix = "test_resources/nested",
+        resources = ["test_resources/nested/nested_resource.txt"],
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
+        name = "workspace_relative_nested_dir",
+        srcs = ["source"],
+        # The rules_java-style spelling: the full workspace-root-relative path, which parses as a
+        # package-relative label and resolves to a doubled <pkg>/<pkg>/... path.
+        resource_strip_prefix = pkg + "/test_resources/nested",
+        resources = ["test_resources/nested/nested_resource.txt"],
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
+        name = "package_root_dir",
+        srcs = ["source"],
+        # The workspace-root-relative spelling of the package itself: strips the entire package,
+        # leaving the in-package path as the jar entry. This scenario has no package-relative
+        # sibling: a package-relative label cannot name the package directory itself.
+        resource_strip_prefix = pkg,
+        resources = ["test_resources/resource.txt"],
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
+        name = "package_name_collision_dir",
+        srcs = ["source"],
+        # An ordinary package-relative path to an in-package directory that only coincidentally
+        # spells like the package itself (the same resolved value as package_root_dir's attribute)
+        resource_strip_prefix = "src/test/starlark",
+        resources = ["src/test/starlark/collision_resource.txt"],
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
+        name = "workspace_relative_collision_dir",
+        srcs = ["source"],
+        resource_strip_prefix = pkg + "/src/test/starlark",
+        resources = ["src/test/starlark/collision_resource.txt"],
         tags = ["manual"],
     )
 
@@ -129,9 +192,25 @@ def _strip_resource_prefix_contents():
         tags = ["manual"],
     )
 
+    kt_jvm_library(
+        name = "workspace_relative_same_as_package_name",
+        srcs = ["source"],
+        resources = [package_name],  # filegroup defined above
+        resource_strip_prefix = pkg + "/test_resources",
+        tags = ["manual"],
+    )
+
     resource_path_test(
         name = "dynamically_created_file_test",
         target_under_test = ":dynamically_created_file",
+        tags = ["manual"],
+        expected_destination_path = "resource.txt",
+        expected_source_suffix = pkg + "/resourcez/resource.txt",
+    )
+
+    resource_path_test(
+        name = "workspace_relative_dynamically_created_file_test",
+        target_under_test = ":workspace_relative_dynamically_created_file",
         tags = ["manual"],
         expected_destination_path = "resource.txt",
         expected_source_suffix = pkg + "/resourcez/resource.txt",
@@ -143,6 +222,54 @@ def _strip_resource_prefix_contents():
         tags = ["manual"],
         expected_destination_path = "resource.txt",
         expected_source_suffix = pkg + "/test_resources/resource.txt",
+    )
+
+    resource_path_test(
+        name = "workspace_relative_static_file_test",
+        target_under_test = ":workspace_relative_static_file",
+        tags = ["manual"],
+        expected_destination_path = "resource.txt",
+        expected_source_suffix = pkg + "/test_resources/resource.txt",
+    )
+
+    resource_path_test(
+        name = "nested_static_dir_test",
+        target_under_test = ":nested_static_dir",
+        tags = ["manual"],
+        expected_destination_path = "nested_resource.txt",
+        expected_source_suffix = pkg + "/test_resources/nested/nested_resource.txt",
+    )
+
+    resource_path_test(
+        name = "workspace_relative_nested_dir_test",
+        target_under_test = ":workspace_relative_nested_dir",
+        tags = ["manual"],
+        expected_destination_path = "nested_resource.txt",
+        expected_source_suffix = pkg + "/test_resources/nested/nested_resource.txt",
+    )
+
+    resource_path_test(
+        name = "package_root_dir_test",
+        target_under_test = ":package_root_dir",
+        tags = ["manual"],
+        expected_destination_path = "test_resources/resource.txt",
+        expected_source_suffix = pkg + "/test_resources/resource.txt",
+    )
+
+    resource_path_test(
+        name = "package_name_collision_dir_test",
+        target_under_test = ":package_name_collision_dir",
+        tags = ["manual"],
+        expected_destination_path = "collision_resource.txt",
+        expected_source_suffix = pkg + "/src/test/starlark/collision_resource.txt",
+    )
+
+    resource_path_test(
+        name = "workspace_relative_collision_dir_test",
+        target_under_test = ":workspace_relative_collision_dir",
+        tags = ["manual"],
+        expected_destination_path = "collision_resource.txt",
+        expected_source_suffix = pkg + "/src/test/starlark/collision_resource.txt",
     )
 
     resource_path_test(
@@ -177,6 +304,14 @@ def _strip_resource_prefix_contents():
         expected_source_suffix = pkg + "/test_resources/actual_file.txt",
     )
 
+    resource_path_test(
+        name = "workspace_relative_same_as_package_name_test",
+        target_under_test = ":workspace_relative_same_as_package_name",
+        tags = ["manual"],
+        expected_destination_path = "actual_file.txt",
+        expected_source_suffix = pkg + "/test_resources/actual_file.txt",
+    )
+
 # Entry point from the BUILD file; macro for running each test case's macro and
 # declaring a test suite that wraps them together.
 def strip_resource_prefix_test_suite(name):
@@ -187,6 +322,14 @@ def strip_resource_prefix_test_suite(name):
         name = name,
         tests = [
             ":dynamically_created_file_test",
+            ":nested_static_dir_test",
+            ":package_name_collision_dir_test",
+            ":package_root_dir_test",
+            ":workspace_relative_collision_dir_test",
+            ":workspace_relative_dynamically_created_file_test",
+            ":workspace_relative_nested_dir_test",
+            ":workspace_relative_same_as_package_name_test",
+            ":workspace_relative_static_file_test",
             ":generated_default_package_test",
             ":generated_standard_package_test",
             ":static_file_test",
