@@ -16,10 +16,7 @@ filegroup(
     name = "kotlin",
     srcs = glob(
         ["*.bzl"],
-        exclude = [
-            "android.bzl",
-            "kotlin.bzl",
-        ],
+        exclude = ["android.bzl"],
     ),
     visibility = ["//visibility:public"],
 )
