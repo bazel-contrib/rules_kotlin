@@ -22,9 +22,9 @@ kt_ksp_plugin(
     name = "moshi_plugin",
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -37,9 +37,9 @@ kt_ksp_plugin(
     },
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -49,8 +49,8 @@ kt_jvm_library(
     srcs = ["TestModel.kt"],
     plugins = [":moshi_plugin"],
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 
@@ -60,9 +60,9 @@ kt_ksp_plugin(
     options = {"shared_key": "value_from_a"},
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -71,9 +71,9 @@ kt_ksp_plugin(
     options = {"shared_key": "value_from_b"},
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -83,8 +83,8 @@ kt_jvm_library(
     srcs = ["TestModel.kt"],
     plugins = [":moshi_plugin_with_options"],
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 
@@ -100,8 +100,8 @@ kt_jvm_library(
     ],
     tags = ["manual"],
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 
@@ -153,9 +153,9 @@ kt_ksp_plugin(
     generates_java = True,
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -176,8 +176,8 @@ kt_jvm_library(
     ],
     plugins = [":moshi_plugin"],
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 
@@ -190,8 +190,8 @@ kt_jvm_library(
     ],
     plugins = [":moshi_plugin_generates_java"],
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 
@@ -206,8 +206,8 @@ kt_jvm_library(
     ],
     deps = [
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 

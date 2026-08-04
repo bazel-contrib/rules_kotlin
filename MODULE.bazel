@@ -75,39 +75,28 @@ rbe.config(
 )
 use_repo(rbe, "buildkite_config")
 
+MAVEN_REPOSITORIES = [
+    "https://maven-central.storage.googleapis.com/repos/central/data/",
+    "https://maven.google.com",
+    "https://repo1.maven.org/maven2",
+]
+
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "kotlin_rules_maven",
     artifacts = [
         "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.errorprone:error_prone_annotations:2.23.0",
-        "junit:junit:4.13-beta-3",
         "com.google.guava:guava:33.0.0-jre",
-        "com.google.truth:truth:0.45",
-        "com.google.auto.service:auto-service:1.1.1",
-        "com.google.auto.service:auto-service-annotations:1.1.1",
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
-        "com.google.dagger:dagger:2.57.2",
-        "com.google.dagger:dagger-compiler:2.57.2",
-        "com.google.dagger:dagger-producers:2.57.2",
-        "javax.inject:javax.inject:1",
         "org.apache.commons:commons-compress:1.26.2",
         "com.eed3si9n.jarjar:jarjar:1.17.0",
-        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
-        "com.squareup.moshi:moshi:1.15.2",
-        "com.squareup.moshi:moshi-kotlin:1.15.2",
-        "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],
     fail_if_repin_required = True,
     fetch_sources = True,
     lock_file = "//:kotlin_rules_maven_install.json",
-    repositories = [
-        "https://maven-central.storage.googleapis.com/repos/central/data/",
-        "https://maven.google.com",
-        "https://repo1.maven.org/maven2",
-    ],
+    repositories = MAVEN_REPOSITORIES,
 )
 maven.override(
     name = "override_target_in_deps_kotlin_stdlib",
@@ -125,6 +114,31 @@ maven.override(
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
 )
 use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
+
+# Artifacts used only by rules_kotlin's own tests, never by the builder or the released rules.
+maven_test = use_extension("@rules_jvm_external//:extensions.bzl", "maven", dev_dependency = True)
+maven_test.install(
+    name = "kotlin_rules_maven_test",
+    artifacts = [
+        "junit:junit:4.13-beta-3",
+        "com.google.truth:truth:0.45",
+        "com.google.auto.service:auto-service:1.1.1",
+        "com.google.auto.service:auto-service-annotations:1.1.1",
+        "com.google.dagger:dagger:2.57.2",
+        "com.google.dagger:dagger-compiler:2.57.2",
+        "javax.inject:javax.inject:1",
+        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
+        "com.squareup.moshi:moshi:1.15.2",
+        "com.squareup.moshi:moshi-kotlin:1.15.2",
+        "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
+    ],
+    fail_if_repin_required = True,
+    fetch_sources = True,
+    lock_file = "//:kotlin_rules_maven_test_install.json",
+    repositories = MAVEN_REPOSITORIES,
+)
+use_repo(maven_test, "kotlin_rules_maven_test", "unpinned_kotlin_rules_maven_test")
 
 bazel_dep(name = "rules_pkg", version = "1.0.1")
 

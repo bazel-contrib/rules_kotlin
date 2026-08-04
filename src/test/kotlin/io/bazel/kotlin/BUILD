@@ -24,8 +24,8 @@ kt_jvm_library(
     exports = [
         "//kotlin/compiler:kotlin-test",
         "@kotlin_rules_maven//:com_google_guava_guava",
-        "@kotlin_rules_maven//:com_google_truth_truth",
-        "@kotlin_rules_maven//:junit_junit",
+        "@kotlin_rules_maven_test//:com_google_truth_truth",
+        "@kotlin_rules_maven_test//:junit_junit",
     ],
     deps = [
         "//kotlin/compiler:kotlin-test",
@@ -51,7 +51,7 @@ kt_rules_e2e_test(
     data = ["//src/test/data/jvm/kapt"],
     deps = [
         "//src/test/data/jvm/kapt:ap_kotlin_mixed_no_identifier",
-        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven_test//:com_google_truth_truth",
     ],
 )
 

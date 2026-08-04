@@ -75,7 +75,7 @@ def kt_bootstrap_binary(
     )
 
     # Shaded to ensure that libraries it uses are not leaked to
-    # the code it's running against (e.g. dagger)
+    # the code it's running against (e.g. guava)
     jar_jar(
         name = jar_jared,
         input_jar = ":" + raw + "_deploy.jar",

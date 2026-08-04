@@ -28,7 +28,7 @@ kt_ksp_plugin(
     generates_java = True,
     processor_class = "dagger.internal.codegen.KspComponentProcessor",
     target_embedded_compiler = True,
-    deps = ["@kotlin_rules_maven//:com_google_dagger_dagger_compiler"],
+    deps = ["@kotlin_rules_maven_test//:com_google_dagger_dagger_compiler"],
 )
 
 kt_ksp_plugin(
@@ -36,22 +36,22 @@ kt_ksp_plugin(
     generates_java = False,
     processor_class = "dagger.internal.codegen.KspComponentProcessor",
     target_embedded_compiler = True,
-    deps = ["@kotlin_rules_maven//:com_google_dagger_dagger_compiler"],
+    deps = ["@kotlin_rules_maven_test//:com_google_dagger_dagger_compiler"],
 )
 
 kt_ksp_plugin(
     name = "autoservice",
     processor_class = "dev.zacsweers.autoservice.ksp.AutoServiceSymbolProcessor$Provider",
-    deps = ["@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp"],
+    deps = ["@kotlin_rules_maven_test//:dev_zacsweers_autoservice_auto_service_ksp"],
 )
 
 kt_ksp_plugin(
     name = "moshi",
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -68,9 +68,9 @@ kt_jvm_library(
     srcs = ["coffee/CoffeeAppModel.kt"],
     plugins = [":moshi"],
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -78,9 +78,9 @@ kt_jvm_library(
     name = "ksp_kotlin_resources_missing_plugin",
     srcs = ["coffee/CoffeeAppModel.kt"],
     deps = [
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -101,10 +101,10 @@ kt_jvm_library(
         ":moshi",
     ],
     deps = [
-        "@kotlin_rules_maven//:com_google_dagger_dagger",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -124,10 +124,10 @@ kt_jvm_library(
         ":moshi",
     ],
     deps = [
-        "@kotlin_rules_maven//:com_google_dagger_dagger",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -157,10 +157,10 @@ kt_jvm_library(
     deps = [
         ":generated_lib",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
-        "@kotlin_rules_maven//:com_google_dagger_dagger",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
@@ -172,7 +172,7 @@ kt_jvm_library(
     ],
     kotlinc_opts = ":jvm11_opts",
     plugins = [":autoservice"],
-    deps = ["@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp"],
+    deps = ["@kotlin_rules_maven_test//:dev_zacsweers_autoservice_auto_service_ksp"],
 )
 
 kt_jvm_library(
@@ -202,12 +202,12 @@ kt_jvm_library(
     deps = [
         ":generated_lib",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
-        "@kotlin_rules_maven//:com_google_dagger_dagger",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
-        "@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@kotlin_rules_maven_test//:dev_zacsweers_autoservice_auto_service_ksp",
+        "@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
@@ -249,11 +249,11 @@ kt_jvm_library(
     deps = [
         ":generated_lib",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
-        "@kotlin_rules_maven//:com_google_dagger_dagger",
-        "@kotlin_rules_maven//:com_google_dagger_dagger_compiler",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger_compiler",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
@@ -341,7 +341,7 @@ kt_jvm_library(
     srcs = [":generated_module_src"],
     kotlinc_opts = ":jvm11_opts",
     plugins = [":dagger"],
-    deps = ["@kotlin_rules_maven//:com_google_dagger_dagger"],
+    deps = ["@kotlin_rules_maven_test//:com_google_dagger_dagger"],
 )
 
 kt_jvm_library(
@@ -362,12 +362,12 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
-        "@kotlin_rules_maven//:com_google_dagger_dagger",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
@@ -391,10 +391,10 @@ kt_jvm_library(
     srcs = ["coffee/CoffeeAppModel.kt"],
     plugins = [":moshi"],
     deps = [
-        "@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 

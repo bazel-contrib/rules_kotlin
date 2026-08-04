@@ -44,8 +44,8 @@ kt_rules_test(
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//src/main/kotlin/io/bazel/worker",
-        "@kotlin_rules_maven//:com_google_truth_truth",
-        "@kotlin_rules_maven//:junit_junit",
+        "@kotlin_rules_maven_test//:com_google_truth_truth",
+        "@kotlin_rules_maven_test//:junit_junit",
     ],
 )
 
@@ -121,7 +121,7 @@ kt_rules_test(
     deps = [
         "//kotlin/compiler:kotlin-test",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
-        "@kotlin_rules_maven//:junit_junit",
+        "@kotlin_rules_maven_test//:junit_junit",
     ],
 )
 
@@ -131,8 +131,8 @@ kt_rules_test(
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//src/main/kotlin/io/bazel/kotlin/builder/utils",
-        "@kotlin_rules_maven//:com_google_truth_truth",
-        "@kotlin_rules_maven//:junit_junit",
+        "@kotlin_rules_maven_test//:com_google_truth_truth",
+        "@kotlin_rules_maven_test//:junit_junit",
     ],
 )
 

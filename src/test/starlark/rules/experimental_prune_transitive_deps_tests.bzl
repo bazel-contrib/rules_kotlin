@@ -5,8 +5,8 @@ load(":arrangement.bzl", "arrange")
 load(":util.bzl", "abi_jar_of", "basename_of", "values_for_flag_of")
 
 _MAVEN_COMPILE_JAR_BASENAME = "header_javax.inject-1.jar"
-_MAVEN_REPOSITORY_NAME = "rules_jvm_external++maven+kotlin_rules_maven"
-_MAVEN_TRANSITIVE_DEP = Label("@kotlin_rules_maven//:javax_inject_javax_inject")
+_MAVEN_REPOSITORY_NAME = "rules_jvm_external++maven+kotlin_rules_maven_test"
+_MAVEN_TRANSITIVE_DEP = Label("@kotlin_rules_maven_test//:javax_inject_javax_inject")
 
 def _classpath_assertions_(env, target):
     action = env.expect.that_target(target).action_named(env.ctx.attr.on_action_mnemonic)

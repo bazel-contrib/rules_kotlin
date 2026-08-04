@@ -50,7 +50,7 @@ java_plugin(
     processor_class = "dagger.internal.codegen.ComponentProcessor",
     visibility = ["//visibility:private"],
     deps = [
-        "@kotlin_rules_maven//:com_google_dagger_dagger_compiler",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger_compiler",
     ],
 )
 
@@ -58,8 +58,8 @@ java_library(
     name = "dagger",
     exported_plugins = [":dagger_component_plugin"],
     exports = [
-        "@kotlin_rules_maven//:com_google_dagger_dagger",
-        "@kotlin_rules_maven//:javax_inject_javax_inject",
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger",
+        "@kotlin_rules_maven_test//:javax_inject_javax_inject",
     ],
 )
 

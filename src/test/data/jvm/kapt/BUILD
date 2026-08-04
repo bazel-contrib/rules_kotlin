@@ -28,7 +28,7 @@ java_plugin(
     name = "autoservice",
     generates_api = 0,
     processor_class = "com.google.auto.service.processor.AutoServiceProcessor",
-    deps = ["@kotlin_rules_maven//:com_google_auto_service_auto_service"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_service_auto_service"],
 )
 
 java_plugin(
@@ -96,7 +96,7 @@ kt_jvm_library(
     name = "ap_kotlin_resources",
     srcs = ["kotlin/TestKtService.kt"],
     plugins = [":autoservice"],
-    deps = ["@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations"],
 )
 
 kt_jvm_library(
@@ -106,7 +106,7 @@ kt_jvm_library(
         "kotlin/TestKtService.kt",
     ],
     plugins = [":autoservice"],
-    deps = ["@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations"],
 )
 
 kt_jvm_library(
@@ -122,8 +122,8 @@ kt_jvm_library(
         ":autovalue",
     ],
     deps = [
-        "@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
     ],
 )
 
@@ -140,8 +140,8 @@ kt_jvm_library(
         ":autovalue_no_processor_class",
     ],
     deps = [
-        "@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
     ],
 )
 
@@ -164,8 +164,8 @@ kt_jvm_library(
     plugins = [":autovalue"],
     deps = [
         "library_exporting_autovalue_and_junit",
-        "@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
     ],
 )
 
