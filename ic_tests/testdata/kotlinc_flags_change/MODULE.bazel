@@ -1,0 +1,3 @@
+module(name = "ic-test-kotlinc-flags-change")
+
+bazel_dep(name = "rules_kotlin", version = "2.2.0")

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 
 # Flag that controls the emission of jdeps files during kotlin jvm compilation.
 bool_flag(
@@ -37,6 +37,31 @@ bool_flag(
 # --@rules_kotlin//kotlin/settings:experimental_build_tools_api=True
 bool_flag(
     name = "experimental_build_tools_api",
-    build_setting_default = True,
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# --@rules_kotlin//kotlin/settings:experimental_incremental_compilation=False
+bool_flag(
+    name = "experimental_incremental_compilation",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# --@rules_kotlin//kotlin/settings:experimental_ic_enable_logging=True
+bool_flag(
+    name = "experimental_ic_enable_logging",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# --@rules_kotlin//kotlin/settings:experimental_ic_non_kotlin_snapshot_granularity=CLASS_LEVEL
+string_flag(
+    name = "experimental_ic_non_kotlin_snapshot_granularity",
+    build_setting_default = "CLASS_MEMBER_LEVEL",
+    values = [
+        "CLASS_LEVEL",
+        "CLASS_MEMBER_LEVEL",
+    ],
     visibility = ["//visibility:public"],
 )

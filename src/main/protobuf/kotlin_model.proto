@@ -90,6 +90,10 @@ message CompilationTaskInfo {
     bool build_tools_api = 14;
     // Debug info is stripped in abi.jar generation
     bool remove_debug_info = 15;
+    // Enable incremental compilation.
+    bool incremental_compilation = 16;
+    // Enable verbose IC logging (for debugging/testing).
+    bool ic_enable_logging = 17;
 }
 
 // Nested messages not marked with stable could be refactored.
@@ -112,6 +116,8 @@ message JvmCompilationTask {
     string java_classes = 8;
     // The destination directory for code coverage metadata.
     string coverage_metadata_classes = 9;
+    // Base directory for incremental compilation caches (inside Bazel's output tree).
+    string incremental_base_dir = 10;
   }
 
   // Outputs produced by the builder.
@@ -168,6 +174,10 @@ message JvmCompilationTask {
       repeated string javac_flags = 15;
       // JDeps dependency artifacts
       repeated string deps_artifacts = 16;
+      // Classpath snapshot files from dependencies (for incremental compilation).
+      repeated string classpath_snapshots = 17;
+      // Classpath snapshot files for non-Kotlin dependencies that require a conservative fallback.
+      repeated string non_kotlin_classpath_snapshots = 18;
   }
 
   CompilationTaskInfo info = 1;

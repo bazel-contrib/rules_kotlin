@@ -30,6 +30,7 @@ _COMPILER_TARGETS = [
     ("parcelize-compiler-plugin", "org_jetbrains_kotlin_kotlin_parcelize_compiler"),
     ("parcelize-runtime", "org_jetbrains_kotlin_kotlin_parcelize_runtime"),
     ("kotlin-daemon-client", "org_jetbrains_kotlin_kotlin_daemon_client"),
+    ("kotlin-build-tools-api", "org_jetbrains_kotlin_kotlin_build_tools_api"),
     ("kotlin-build-tools-impl", "org_jetbrains_kotlin_kotlin_build_tools_impl"),
     ("kotlin-compiler", "org_jetbrains_kotlin_kotlin_compiler"),
     ("kotlin-compiler-embeddable", "org_jetbrains_kotlin_kotlin_compiler_embeddable"),

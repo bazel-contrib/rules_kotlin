@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
@@ -302,6 +303,10 @@ def kt_jvm_import_impl(ctx):
         module_name = _utils.derive_module_name(ctx),
         module_jars = [],
         exported_compiler_plugins = depset(getattr(ctx.attr, "exported_compiler_plugins", [])),
+        classpath_snapshot = None,
+        transitive_classpath_snapshots = depset(),
+        transitive_classpath_snapshot_pairs = depset(),
+        transitive_non_kotlin_classpath_snapshot_jars = depset(),
         outputs = struct(
             jars = [artifact],
         ),
@@ -531,7 +536,7 @@ def kt_compiler_plugin_impl(ctx):
 
     deps = ctx.attr.deps
     info = None
-    if ctx.attr.target_embedded_compiler:
+    if ctx.attr.target_embedded_compiler and not ctx.attr._experimental_build_tools_api[BuildSettingInfo].value:
         info = java_common.merge([
             i
             for d in deps

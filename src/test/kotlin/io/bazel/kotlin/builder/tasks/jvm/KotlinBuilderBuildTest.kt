@@ -37,9 +37,10 @@ class KotlinBuilderBuildTest {
     // Use an existing directory as the declared output jar path so jar creation throws a generic
     // I/O exception after task setup succeeds, matching the issue's uncaught-exception path.
     val outputJarDirectory = Files.createDirectory(root.resolve("jar_output.jar"))
-    var exitCode = Status.SUCCESS.exit
+    var exitCode: Int? = null
 
-    WorkerContext.run(named = "test") {
+    val result =
+      WorkerContext.run(named = "test") {
       doTask("build", sandboxDir = root) { taskContext ->
         exitCode =
           KotlinBuilder(jvmTaskExecutor(), KotlinBtapiJvmTaskExecutor()).build(
@@ -76,11 +77,14 @@ class KotlinBuilderBuildTest {
                 "false",
               ),
           )
-        Status.SUCCESS
+        if (exitCode == Status.SUCCESS.exit) Status.SUCCESS else Status.ERROR
       }
     }
 
-    assertThat(exitCode).isNotEqualTo(Status.SUCCESS.exit)
+    assertThat(result.status).isEqualTo(Status.ERROR)
+    exitCode?.let {
+      assertThat(it).isNotEqualTo(Status.SUCCESS.exit)
+    }
   }
 
   private fun jvmTaskExecutor(): KotlinJvmTaskExecutor {

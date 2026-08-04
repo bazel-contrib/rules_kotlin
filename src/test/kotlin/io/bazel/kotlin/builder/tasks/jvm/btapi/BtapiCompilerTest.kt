@@ -15,6 +15,26 @@ import java.nio.file.Path
 @RunWith(JUnit4::class)
 class BtapiCompilerTest {
   @Test
+  fun `friend paths use JVM separator`() {
+    val method =
+      BtapiCompiler.Companion::class.java.declaredMethods.single {
+        it.name.startsWith("formatFriendPathsArg") &&
+          it.parameterTypes.contentEquals(arrayOf(List::class.java))
+      }
+    method.isAccessible = true
+
+    @Suppress("UNCHECKED_CAST")
+    val formatted =
+      method.invoke(
+        BtapiCompiler.Companion,
+        listOf("/tmp/friend-one.jar", "/tmp/friend-two.jar"),
+      ) as String
+
+    assertThat(formatted)
+      .isEqualTo("-Xfriend-paths=/tmp/friend-one.jar,/tmp/friend-two.jar")
+  }
+
+  @Test
   fun `kapt and legacy stubs expansion use temp stubs directory`() {
     val root = Files.createTempDirectory("btapi-stubs-test")
     val cache = BtapiCompilerCache()
