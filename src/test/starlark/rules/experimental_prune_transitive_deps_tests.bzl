@@ -1,3 +1,5 @@
+"""Tests for the experimental transitive-dep pruning."""
+
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("//src/test/starlark:case.bzl", "suite")

@@ -1,7 +1,10 @@
 # All versions for development and release
+"""Pinned dependency versions for the Kotlin rules."""
+
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 version = provider(
+    doc = "A pinned downloadable dependency version with its checksum and URL templates.",
     fields = {
         "sha256": "sha256 checksum for the version being downloaded.",
         "strip_prefix_template": "string template with the placeholder {version}.",

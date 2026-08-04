@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Utilities for collecting associates dependencies."""
+
 load(
     "@bazel_skylib//lib:sets.bzl",
     _sets = "sets",
@@ -26,8 +28,7 @@ load(
 )
 
 def _collect_associates(ctx, toolchains, associate):
-    """Collects the associate jars from the provided dependency and returns
-    them as a depset.
+    """Collects the associate jars from a dependency and returns them as a depset.
 
     There are three outcomes for this marco:
     1. When `experimental_remove_private_classes_in_abi_jars` is enabled and the tag override has not been provided, only the
@@ -37,6 +38,14 @@ def _collect_associates(ctx, toolchains, associate):
         direct java_output COMPILE jars will be collected for each associate target.
     3. When `experimental_strict_associate_dependencies` is disabled, the complete transitive set of compile jars will
         be collected for each assoicate target.
+
+    Args:
+        ctx: the rule context used to read tags and toolchain configuration.
+        toolchains: the resolved toolchains providing the Kotlin experimental flags.
+        associate: the associate target whose JavaInfo jars are collected.
+
+    Returns:
+        A struct with `jars` (a depset of compile/class jars) and `abi_jars_set` (a set of ABI jars).
     """
     jars_depset = None
     abi_jars_set = _sets.make()

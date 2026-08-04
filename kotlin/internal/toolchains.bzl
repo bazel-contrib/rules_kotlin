@@ -11,21 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
-load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
-load(
-    "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
-)
-load(
-    "//kotlin/internal:opts.bzl",
-    "JavacOptions",
-    "KotlincOptions",
-    "kt_javac_options",
-    "kt_kotlinc_options",
-)
-
 """Kotlin Toolchains
 
 This file contains macros for defining and registering specific toolchains.
@@ -48,6 +33,21 @@ and then register it in the `WORKSPACE`:
 register_toolchains("//:custom_toolchain")
 ```
 """
+
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
+load(
+    "//kotlin/internal:opts.bzl",
+    "JavacOptions",
+    "KotlincOptions",
+    "kt_javac_options",
+    "kt_kotlinc_options",
+)
 
 def _kotlin_toolchain_impl(ctx):
     compile_time_providers = [
@@ -370,8 +370,12 @@ _kt_toolchain = rule(
 
 _KT_DEFAULT_TOOLCHAIN = Label("//kotlin/internal:default_toolchain")
 
-def kt_register_toolchains():
-    """This macro registers the kotlin toolchain."""
+def kt_register_toolchains(name = "kt_register_toolchains"):
+    """This macro registers the kotlin toolchain.
+
+    Args:
+      name: unused; present for lint and buildozer.
+    """
     native.register_toolchains(str(_KT_DEFAULT_TOOLCHAIN))
 
 # Evaluating the select in the context of bzl file to get its repository
@@ -475,11 +479,14 @@ _kt_toolchain_alias = rule(
     toolchains = [_TOOLCHAIN_TYPE],
 )
 
-def kt_configure_toolchains():
+def kt_configure_toolchains(name = "kt_configure_toolchains"):
     """
     Defines the toolchain_type and default toolchain for kotlin compilation.
 
     Must be called in kotlin/internal/BUILD.bazel
+
+    Args:
+      name: unused; present for lint and buildozer.
     """
     if native.package_name() != "kotlin/internal":
         fail("kt_configure_toolchains must be called in kotlin/internal not %s" % native.package_name())

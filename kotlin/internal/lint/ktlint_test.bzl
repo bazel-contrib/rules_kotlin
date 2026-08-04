@@ -1,3 +1,5 @@
+"""Defines ktlint_test rule that lints sources."""
+
 load("@bazel_lib//lib:paths.bzl", "BASH_RLOCATION_FUNCTION", "to_rlocation_path")
 load("@bazel_lib//lib:windows_utils.bzl", "create_windows_native_launcher_script")
 load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE")

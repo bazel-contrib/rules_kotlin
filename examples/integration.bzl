@@ -66,6 +66,13 @@ def example_integration_test_suite(
         name,
         metadata,
         tags):
+    """Declares bazel_integration_test targets for a repo across all bazel versions.
+
+    Args:
+        name: the base name used to derive integration test target.
+        metadata: struct describing directory, modes, and version filters.
+        tags: tags for integration test targets.
+    """
     for version in bazel_binaries.versions.all:
         if version in metadata.only or (not metadata.only and version not in metadata.exclude):
             clean_bazel_version = Label(version).name

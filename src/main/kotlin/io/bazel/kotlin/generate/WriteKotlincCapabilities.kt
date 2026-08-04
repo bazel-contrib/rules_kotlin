@@ -59,7 +59,7 @@ object WriteKotlincCapabilities {
     )
 
     capabilitiesDirectory.resolve("templates.bzl").writeText(
-      BzlDoc {
+      BzlDoc("Generated list of Kotlin compiler capability definition files.") {
         assignment(
           "TEMPLATES",
           list(
@@ -132,8 +132,9 @@ object WriteKotlincCapabilities {
 
     val contents: MutableList<Block> = mutableListOf()
 
-    constructor(statements: BzlDoc.() -> Unit) {
+    constructor(doc: String, statements: BzlDoc.() -> Unit) {
       statement(HEADER)
+      statement(DocString(doc))
       apply(statements)
     }
 
@@ -160,6 +161,10 @@ object WriteKotlincCapabilities {
 
     class Comment(val contents: String) : Block {
       override fun asString(indent: Indent): String? = indent + contents
+    }
+
+    class DocString(val contents: String) : Block {
+      override fun asString(indent: Indent): String = "$indent\"\"\"$contents\"\"\"\n"
     }
 
     override fun toString() = contents.mapNotNull { it.asString() }.joinToString("\n")
@@ -229,7 +234,7 @@ object WriteKotlincCapabilities {
       fun Sequence<KotlincCapability>.asCapabilities() = KotlincCapabilities(sorted().toList())
     }
 
-    fun asCapabilitiesBzl() = BzlDoc {
+    fun asCapabilitiesBzl() = BzlDoc("Generated Kotlin compiler capabilities: flag, doc, and default for each kotlinc option.") {
       assignment(
         "KOTLIN_OPTS",
         dict(

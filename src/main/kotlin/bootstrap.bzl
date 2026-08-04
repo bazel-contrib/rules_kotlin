@@ -11,17 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Bootstraps for building the rules_kotlin builder."""
+
 load("@rules_java//java:defs.bzl", "java_binary")
 load("//kotlin:lint.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_library")
 load("//third_party:jarjar.bzl", "jar_jar")
 
 def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibility = [], kotlinc_opts = [], **kwargs):
-    """
-    Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
+    """Simple compilation of a kotlin library using a non-persistent worker.
 
-    deps: the dependenices, the are setup as runtime_deps of the library.
-    neverlink_deps: deps that won't be linked.
+    The target is a JavaInfo provider.
+
+    Args:
+        name:  for the library target.
+        deps: dependencies, set as runtime of the library.
+        neverlink_deps: compile only dependencies.
+        srcs: Kotlin sources compiled into the library.
+        visibility: the visibility of the library target.
+        kotlinc_opts: the kotlinc options applied to the compilation.
+        **kwargs: additional arguments forwarded to the underlying rules.
     """
     core_kt_jvm_library(
         name = "%s_neverlink" % name,
@@ -65,6 +74,18 @@ def kt_bootstrap_binary(
         data = [],
         final_runtime_deps = [],
         visibility = ["//visibility:public"]):
+    """Builds a shaded, runnable java_binary for a bootstrap tool.
+
+    Args:
+        name: name of the binary target.
+        main_class: fully qualified main class to launch.
+        runtime_deps: runtime dependencies.
+        shade_rules: jarjar shade rules applied bootstrap jar.
+        jvm_flags: JVM flags passed to the launched binary.
+        data: files bundled in the jar.
+        final_runtime_deps: additional runtime deps.
+        visibility: the visibility of the binary target.
+    """
     raw = name + "_raw"
     jar_jared = name + "_jarjar"
 

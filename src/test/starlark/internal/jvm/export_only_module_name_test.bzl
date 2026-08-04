@@ -4,6 +4,8 @@ load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
 load("@rules_testing//lib:util.bzl", "util")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
+
+# buildifier: disable=bzl-visibility
 load("//kotlin/internal:defs.bzl", "KtJvmInfo")
 
 _ASSOCIATE_MODULE = "test.export_only.associated_module"

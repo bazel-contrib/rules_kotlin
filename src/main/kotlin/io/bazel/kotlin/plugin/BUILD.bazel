@@ -13,6 +13,8 @@
 # limitations under the License.
 
 load("@rules_java//java:defs.bzl", "java_binary")
+
+# buildifier: disable=bzl-visibility
 load("//kotlin/internal/utils:generate_jvm_service.bzl", "generate_jvm_service")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 

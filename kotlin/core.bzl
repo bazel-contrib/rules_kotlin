@@ -1,3 +1,5 @@
+"""Core Kotlin rule and providers."""
+
 load(
     "//kotlin/internal:opts.bzl",
     _kt_javac_options = "kt_javac_options",

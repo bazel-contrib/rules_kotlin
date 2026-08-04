@@ -1,3 +1,5 @@
+"""Converts option structs into compiler flag lists."""
+
 load("//src/main/starlark/core/options:derive.bzl", "derive")
 
 def _to_flags(opts, attr_provider):

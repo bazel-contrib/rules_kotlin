@@ -1,3 +1,5 @@
+"""CLI-toolchain Kotlin/JVM compilation utilities."""
+
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//src/main/starlark/core/compile:common.bzl",
@@ -19,6 +21,19 @@ def compile_kotlin_for_jvm(
         toolchain_info,
         kotlinc_opts,
         output_srcjar = None):
+    """Compiles Kotlin sources for the JVM into a class jar and optional source jar.
+
+    Args:
+        actions: the rule actions object used to declare and run compile actions.
+        srcs: the Kotlin sources to compile.
+        dep_jars: a depset of dependency jars on the compile classpath.
+        class_jar: the declared output class jar.
+        module_name: the Kotlin module name for the compilation.
+        path_separator: the platform classpath separator.
+        toolchain_info: the resolved Kotlin toolchain info.
+        kotlinc_opts: the kotlinc options applied to the compilation.
+        output_srcjar: the optional declared output source jar.
+    """
     if not srcs:
         # still gotta create the jars for keep bazel haps.
         actions.symlink(
@@ -70,6 +85,21 @@ def compile_kotlin_for_jvm(
         )
 
 def write_jvm_launcher(toolchain_info, actions, path_separator, workspace_prefix, jvm_flags, runtime_jars, main_class, executable_output):
+    """Writes a JVM launcher shell script for a core_kt_jvm_binary.
+
+    Args:
+        toolchain_info: the resolved Kotlin toolchain info.
+        actions: the rule actions object used to expand the launcher template.
+        path_separator: the platform classpath separator.
+        workspace_prefix: the runfiles workspace prefix used in the classpath.
+        jvm_flags: the JVM flags passed to the launched binary.
+        runtime_jars: the runtime jars placed on the launcher classpath.
+        main_class: the fully qualified main class to launch.
+        executable_output: the declared launcher script output file.
+
+    Returns:
+        A depset of files needed for runfiles (runtime jars, java runtime, kotlin stdlib).
+    """
     template = toolchain_info.java_stub_template
     java_runtime = toolchain_info.java_runtime
     java_bin_path = java_runtime.java_executable_runfiles_path
@@ -122,6 +152,14 @@ def write_windows_jvm_launcher(
         jvm_flags,
         executable):
     """Create a Windows exe launcher for core_kt_jvm_binary.
+
+    Args:
+        ctx: rule context used to declare the launcher and read the workspace name.
+        toolchain_info: resolved Kotlin toolchain info.
+        runtime_jars: runtime jars placed on the launcher classpath.
+        main_class: fully qualified main class to launch.
+        jvm_flags: JVM flags passed to the launched binary.
+        executable: declared launcher executable output file.
 
     Returns:
         A depset of files needed for runfiles (runtime jars, java runtime, kotlin stdlib).
@@ -179,6 +217,14 @@ def write_windows_jvm_launcher(
     )
 
 def build_deploy_jar(toolchain_info, actions, jars, output_jar):
+    """Builds a normalized deploy jar by merging all jars using SingleJar.
+
+    Args:
+        toolchain_info: resolved Kotlin toolchain info providing single_jar.
+        actions: rule actions object used to run the SingleJar action.
+        jars: input jars merged into the deploy jar.
+        output_jar: declared deploy jar output file.
+    """
     args = actions.args()
     args.add("--exclude_build_data")
     args.add("--dont_change_compression")

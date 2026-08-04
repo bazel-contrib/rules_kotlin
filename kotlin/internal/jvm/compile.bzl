@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Core Kotlin/JVM compilation helpers."""
+
 load(
     "@bazel_skylib//lib:sets.bzl",
     _sets = "sets",
@@ -346,6 +348,12 @@ def _resourcejar_resource_specs(ctx, extra_resources = {}):
 
 def _build_resourcejar_action(ctx, toolchains, extra_resources = {}):
     """Sets up an action to build a resource jar for the target being compiled.
+
+    Args:
+        ctx: rule context providing resources, label, and zipper executable.
+        toolchains: the toolchains providing the single_jar executable.
+        extra_resources: a dict of additional resources to include.
+
     Returns:
         The file resource jar file.
     """
@@ -435,7 +443,19 @@ def _run_kapt_builder_actions(
         annotation_processors,
         transitive_runtime_jars,
         plugins):
-    """Runs KAPT using the KotlinBuilder tool
+    """Runs KAPT using the KotlinBuilder tool.
+
+    Args:
+        ctx: rule context to declare outputs and run actiona.
+        rule_kind: kind of rule invoking KAPT.
+        toolchains: resolved toolchains providing KotlinBuilder configuration.
+        srcs: Kotlin and Java sources fed to the annotation processors.
+        compile_deps: compile-time dependencies passed to the builder.
+        deps_artifacts: jdeps passed to the builder.
+        annotation_processors: annotation processors to run.
+        transitive_runtime_jars: transitive runtime jars available to processors.
+        plugins: compiler plugins to enable.
+
     Returns:
         A struct containing KAPT outputs
     """
@@ -762,8 +782,12 @@ def _run_kt_builder_action(
 # MAIN ACTIONS #########################################################################################################
 
 def _kt_jvm_produce_jar_actions(ctx, rule_kind, extra_resources = {}):
-    """Setup The actions to compile a jar and if any resources or resource_jars were provided to merge these in with the
-    compilation output.
+    """Sets actions to compile a jar and merge in resources or resource jars.
+
+    Args:
+        ctx: rule context providing attrs, outputs, and toolchains.
+        rule_kind: rule kind creating jars
+        extra_resources: a dict of additional resource files to merge into the output jar.
 
     Returns:
         see `kt_jvm_compile_action`.
@@ -806,6 +830,8 @@ def _kt_jvm_produce_output_jar_actions(
         ctx: Invoking rule ctx, used for attr, actions, and label.
         rule_kind: The rule kind --e.g., `kt_jvm_library`.
         compile_deps: The rule kind --e.g., `kt_jvm_library`.
+        outputs: A struct of declared output files (e.g. `jar`, `srcjar`) to produce.
+        extra_resources: A dict of additional resource files to merge into the output jar.
     Returns:
         A struct containing the providers JavaInfo (`java`) and `kt` (KtJvmInfo). This struct is not intended to be
         used as a legacy provider -- rather the caller should transform the result.
@@ -1003,6 +1029,7 @@ def _run_kt_java_builder_actions(
         generated_ksp_src_jars.append(ksp_generated_src_jar)
 
     java_infos = []
+    ap_generated_src_jar = None
 
     # Build Kotlin
     if has_kt_sources:

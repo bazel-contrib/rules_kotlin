@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Utilities for wiring Kotlin and Java annotation-processor plugins."""
+
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo")
 load(
     "//kotlin/internal:defs.bzl",
@@ -18,6 +20,14 @@ load(
 )
 
 def is_ksp_processor_generating_java(targets):
+    """Reports if any KSP processor target generates Java sources.
+
+    Args:
+        targets: the plugin targets to inspect for KspPluginInfo.
+
+    Returns:
+        True if any target is a KSP processor that generates Java.
+    """
     for t in targets:
         if _KspPluginInfo in t:
             if t[_KspPluginInfo].generates_java:

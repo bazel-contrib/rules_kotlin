@@ -1,3 +1,5 @@
+"""Truth subject factories for plugin-provider assertions."""
+
 load("@rules_testing//lib:truth.bzl", "subjects")
 
 def plugin_option_subject_factory(value, meta):

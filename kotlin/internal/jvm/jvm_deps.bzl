@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Utilities for assembling JVM compile and runtime dependency sets."""
+
 load("@bazel_skylib//lib:sets.bzl", _sets = "sets")
 load(
     "@rules_java//java:defs.bzl",

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Rule implementations for Kotlin/JVM rules."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
@@ -122,8 +123,10 @@ def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, ma
     )
 
 def _write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
-    """Macro that writes out a launcher script shell script.
+    """Writes out a launcher shell script for a java target.
+
       Args:
+        ctx: the rule context used to declare the launcher file and read toolchains.
         rjars: All of the runtime jars required to launch this java target.
         main_class: the main class to launch.
         jvm_flags: The flags that should be passed to the jvm.
@@ -304,6 +307,14 @@ def _unify_jars(ctx):
         return struct(class_jar = jars[0], source_jar = source_jars[0] if len(source_jars) == 1 else None, ijar = None)
 
 def kt_jvm_import_impl(ctx):
+    """Implements the kt_jvm_import rule.
+
+    Args:
+        ctx: the rule context providing the imported jar attributes.
+
+    Returns:
+        The list of providers exposing the imported jars.
+    """
     if bool(ctx.attr.jars) and bool(ctx.attr.jar):
         fail("Cannot use both jars= and jar= attribute.  Prefer jar=")
 
@@ -338,6 +349,14 @@ def kt_jvm_import_impl(ctx):
     ]
 
 def kt_jvm_library_impl(ctx):
+    """Implements the kt_jvm_library rule.
+
+    Args:
+        ctx: the rule context providing the library sources and dependencies.
+
+    Returns:
+        The list of providers produced by compiling the library.
+    """
     if ctx.attr.neverlink and ctx.attr.runtime_deps:
         fail("runtime_deps and neverlink is nonsensical.", attr = "runtime_deps")
 
@@ -360,6 +379,14 @@ def kt_jvm_library_impl(ctx):
     )
 
 def kt_jvm_binary_impl(ctx):
+    """Implements the kt_jvm_binary rule.
+
+    Args:
+        ctx: the rule context providing the binary sources, deps, and main class.
+
+    Returns:
+        The list of providers producing the runnable binary.
+    """
     providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_binary")
     jvm_flags = []
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
@@ -402,6 +429,14 @@ _SPLIT_STRINGS = [
 ]
 
 def kt_jvm_junit_test_impl(ctx):
+    """Implements the kt_jvm_test rule for JUnit tests.
+
+    Args:
+        ctx: the rule context providing the test sources, deps, and test runner.
+
+    Returns:
+        The list of providers producing the runnable JUnit test.
+    """
     providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_test")
     runtime_jars = depset(ctx.files._bazel_test_runner, transitive = [providers.java.transitive_runtime_jars])
 
@@ -456,6 +491,7 @@ def kt_jvm_junit_test_impl(ctx):
     )
 
 _KtCompilerPluginClasspathInfo = provider(
+    doc = "JavaInfos of a Kotlin compiler plugin library and its reshaded variants.",
     fields = {
         "infos": "list JavaInfos of a compiler library",
         "reshaded_infos": "list reshaded JavaInfos of a compiler library",
@@ -537,6 +573,14 @@ def _expand_location_with_data_deps(ctx):
     return lambda targets: ctx.expand_location(targets, ctx.attr.data)
 
 def kt_compiler_plugin_impl(ctx):
+    """Implements the kt_compiler_plugin rule.
+
+    Args:
+        ctx: the rule context providing the plugin id, options, and deps.
+
+    Returns:
+        The list of providers exposing the compiler plugin configuration.
+    """
     plugin_id = ctx.attr.id
 
     deps = ctx.attr.deps
@@ -579,6 +623,14 @@ def kt_plugin_cfg_impl(ctx):
     ] + plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, _expand_location_with_data_deps(ctx))
 
 def kt_ksp_plugin_impl(ctx):
+    """Implements the kt_ksp_plugin rule.
+
+    Args:
+        ctx: the rule context providing the KSP processor deps and options.
+
+    Returns:
+        The list of providers exposing the KSP plugin configuration.
+    """
     deps = ctx.attr.deps
     if ctx.attr.target_embedded_compiler:
         info = java_common.merge([

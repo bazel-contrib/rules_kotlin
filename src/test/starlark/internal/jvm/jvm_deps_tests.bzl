@@ -1,3 +1,5 @@
+"""Tests for the JVM dependency-assembly utilities."""
+
 load("@bazel_skylib//lib:structs.bzl", _structs = "structs")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -6,7 +8,11 @@ load("@rules_testing//lib:test_suite.bzl", "test_suite")
 load("@rules_testing//lib:util.bzl", "util")
 load("//kotlin:core.bzl", "kt_compiler_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
+
+# buildifier: disable=bzl-visibility
 load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo")
+
+# buildifier: disable=bzl-visibility
 load("//kotlin/internal/jvm:jvm_deps.bzl", _jvm_deps_utils = "jvm_deps_utils")
 
 def _file(target):

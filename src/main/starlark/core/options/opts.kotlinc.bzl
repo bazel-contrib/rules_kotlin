@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Defines kotlinc options and flag mappings."""
 
 load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 load("//src/main/starlark/core/options:convert.bzl", "convert")
@@ -689,7 +690,9 @@ _KOPTS = {
     if not hasattr(defn, "flag") or defn.flag in _KOTLIN_OPTS
 }
 
+# buildifier: disable=name-conventions
 KotlincOptions = provider(
+    doc = "Kotlin compiler options for kt_* rules.",
     fields = {
         name: o.args["doc"]
         for name, o in _KOPTS.items()
