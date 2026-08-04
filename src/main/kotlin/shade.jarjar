@@ -1,3 +1,2 @@
-rule dagger.** io.bazel.kotlin.builder.dagger.@1
 rule com.google.common.** io.bazel.kotlin.builder.guava.@1
 zap kotlin.**
