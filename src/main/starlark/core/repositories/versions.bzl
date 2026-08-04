@@ -73,11 +73,11 @@ versions = struct(
         sha256 = "473dd66c7a3ef4b182065b3da670466c1bf2773a9dbb0ed8b33a39fe9d4f876d",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "2.3.10",
+        version = "2.3.11",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "9e84c6353b45dda17c87cfd14175a4c6f0808af6295bf62fa9608a41d7352a47",
+        sha256 = "b0e7666caf7afb634350ca64af9a88c3bd3e04df393fd33dbf430daaf285c6b3",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
         version = "2.4.10",
