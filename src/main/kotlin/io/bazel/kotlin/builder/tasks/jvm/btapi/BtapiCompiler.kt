@@ -216,7 +216,7 @@ class BtapiCompiler(
         fieldName = "kotlin_language_version",
       )
 
-    val pathArgumentStrings = mutableListOf<String>()
+    val pathArgumentStrings = mutableListOf("-module-name", task.info.moduleName)
     BtapiClasspathResolver
       .computeClasspath(task)
       .map { Path.of(it).toAbsolutePath().toString() }
@@ -295,11 +295,17 @@ class BtapiCompiler(
 
     Files.createDirectories(icBaseDir)
 
+    val snapshotLinkDir = icBaseDir.resolve("snapshot-links")
+    val stabilizedSnapshots = stabilizeSnapshotPaths(
+      task.inputs.classpathSnapshotsList.map(Path::of),
+      snapshotLinkDir,
+    )
+
     val icConfiguration =
       operationBuilder.snapshotBasedIcConfigurationBuilder(
         icWorkingDir,
         SourcesChanges.ToBeCalculated,
-        task.inputs.classpathSnapshotsList.map(Path::of),
+        stabilizedSnapshots,
       )
 
     icConfiguration[BaseIncrementalCompilationConfiguration.ROOT_PROJECT_DIR] =
@@ -380,30 +386,35 @@ class BtapiCompiler(
     addList("javaSources", task.inputs.javaSourcesList)
     addList("classpathSnapshots", task.inputs.classpathSnapshotsList)
     addList("nonKotlinClasspathSnapshots", task.inputs.nonKotlinClasspathSnapshotsList)
-    task.inputs.nonKotlinClasspathSnapshotsList.forEachIndexed { index, snapshotPath ->
-      addLine("nonKotlinClasspathSnapshotDigest.$index", fileDigest(snapshotPath))
-    }
 
     return digest.digest().joinToString("") { "%02x".format(it) }
   }
 
-  private fun fileDigest(pathString: String): String {
-    val path = Path.of(pathString)
-    if (!Files.exists(path)) {
-      return "missing"
-    }
-    val digest = MessageDigest.getInstance("SHA-256")
-    Files.newInputStream(path).use { input ->
-      val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-      while (true) {
-        val read = input.read(buffer)
-        if (read < 0) {
-          break
+  private fun stabilizeSnapshotPaths(
+    snapshots: List<Path>,
+    linkDir: Path,
+  ): List<Path> {
+    Files.createDirectories(linkDir)
+    val currentLinks = mutableSetOf<Path>()
+    val result = snapshots.map { snapshot ->
+      if (!Files.exists(snapshot)) return@map snapshot
+      val attrs = Files.readAttributes(snapshot, java.nio.file.attribute.BasicFileAttributes::class.java)
+      val versionedName = "${snapshot.fileName}.${attrs.size()}-${attrs.lastModifiedTime().toMillis()}"
+      val link = linkDir.resolve(versionedName)
+      currentLinks.add(link)
+      if (!Files.exists(link)) {
+        try {
+          Files.createLink(link, snapshot)
+        } catch (_: UnsupportedOperationException) {
+          Files.copy(snapshot, link)
         }
-        digest.update(buffer, 0, read)
       }
+      link
     }
-    return digest.digest().joinToString("") { "%02x".format(it) }
+    Files.list(linkDir).use { stream ->
+      stream.filter { it !in currentLinks }.forEach { Files.deleteIfExists(it) }
+    }
+    return result
   }
 
   private fun storeArgsHash(
