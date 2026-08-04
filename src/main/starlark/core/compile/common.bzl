@@ -52,6 +52,7 @@ KtJvmInfo = provider(
         "module_name": "the module name",
         "outputs": "output jars produced by this rule. [intelij-aspect]",
         "srcs": "the source files. [intelij-aspect]",
+        "transitive_classpath_snapshot_pairs": "Depset of structs(jar=File, snapshot=File) for propagating producer snapshots to consumers.",
         "transitive_classpath_snapshots": "Transitive classpath snapshots for IC invalidation.",
         "transitive_compile_time_jars": "Returns the transitive set of Jars required to build the target. [intellij-aspect]",
         "transitive_non_kotlin_classpath_snapshot_jars": "Transitive non-Kotlin compile jars that still need local snapshot generation.",

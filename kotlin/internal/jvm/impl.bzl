@@ -305,6 +305,7 @@ def kt_jvm_import_impl(ctx):
         exported_compiler_plugins = depset(getattr(ctx.attr, "exported_compiler_plugins", [])),
         classpath_snapshot = None,
         transitive_classpath_snapshots = depset(),
+        transitive_classpath_snapshot_pairs = depset(),
         transitive_non_kotlin_classpath_snapshot_jars = depset(),
         outputs = struct(
             jars = [artifact],

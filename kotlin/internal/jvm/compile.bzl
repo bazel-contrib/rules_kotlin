@@ -613,18 +613,20 @@ def _compile_jar_path_set(jars):
 def _stdlib_compile_jar_path_set(toolchains):
     return _compile_jar_path_set(toolchains.kt.jvm_stdlibs.compile_jars.to_list())
 
-def _run_compile_classpath_snapshot_actions(ctx, toolchains, compile_jars, non_kotlin_classpath_snapshot_jars):
+def _run_compile_classpath_snapshot_actions(ctx, toolchains, compile_jars, non_kotlin_classpath_snapshot_jars, classpath_snapshot_pairs = []):
     if not toolchains.kt.experimental_incremental_compilation:
         return struct(
             classpath_snapshots = [],
             non_kotlin_classpath_snapshots = [],
+            locally_generated_pairs = [],
         )
 
+    propagated = {pair.jar.path: pair.snapshot for pair in classpath_snapshot_pairs}
     stdlib_jar_paths = _stdlib_compile_jar_path_set(toolchains)
     non_kotlin_jar_paths = _compile_jar_path_set(non_kotlin_classpath_snapshot_jars)
     classpath_snapshots = []
     non_kotlin_classpath_snapshots = []
-    snapshot_index = 0
+    locally_generated_pairs = []
     seen_jar_paths = {}
     for input_jar in compile_jars:
         if input_jar.path in seen_jar_paths:
@@ -633,8 +635,13 @@ def _run_compile_classpath_snapshot_actions(ctx, toolchains, compile_jars, non_k
         if input_jar.path in stdlib_jar_paths:
             continue
 
-        output_snapshot = ctx.actions.declare_file("%s.classpath-%d.classpath-snapshot" % (ctx.label.name, snapshot_index))
-        snapshot_index += 1
+        if input_jar.path in propagated:
+            classpath_snapshots.append(propagated[input_jar.path])
+            if input_jar.path in non_kotlin_jar_paths:
+                non_kotlin_classpath_snapshots.append(propagated[input_jar.path])
+            continue
+
+        output_snapshot = ctx.actions.declare_file("%s.snapshots/%s.%s.snapshot" % (ctx.label.name, hash(input_jar.path), input_jar.basename))
         jar_granularity = toolchains.kt.experimental_ic_non_kotlin_snapshot_granularity if input_jar.path in non_kotlin_jar_paths else "CLASS_MEMBER_LEVEL"
         _run_snapshot_action(
             ctx = ctx,
@@ -644,12 +651,14 @@ def _run_compile_classpath_snapshot_actions(ctx, toolchains, compile_jars, non_k
             granularity = jar_granularity,
         )
         classpath_snapshots.append(output_snapshot)
+        locally_generated_pairs.append(struct(jar = input_jar, snapshot = output_snapshot))
         if input_jar.path in non_kotlin_jar_paths:
             non_kotlin_classpath_snapshots.append(output_snapshot)
 
     return struct(
         classpath_snapshots = classpath_snapshots,
         non_kotlin_classpath_snapshots = non_kotlin_classpath_snapshots,
+        locally_generated_pairs = locally_generated_pairs,
     )
 
 def _run_kt_builder_action(
@@ -991,6 +1000,16 @@ def _kt_jvm_produce_output_jar_actions(
             if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "transitive_non_kotlin_classpath_snapshot_jars", None) != None
         ],
     )
+    _all_targets = getattr(ctx.attr, "deps", []) + getattr(ctx.attr, "associates", []) + getattr(ctx.attr, "exports", [])
+    _producer_pairs = [struct(jar = compile_jar, snapshot = classpath_snapshot)] if classpath_snapshot != None else []
+    transitive_classpath_snapshot_pairs = depset(
+        direct = _producer_pairs + outputs_struct.locally_generated_pairs,
+        transitive = [
+            getattr(t[_KtJvmInfo], "transitive_classpath_snapshot_pairs", depset())
+            for t in _all_targets
+            if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "transitive_classpath_snapshot_pairs", None) != None
+        ],
+    )
 
     return struct(
         java = java_info,
@@ -1009,6 +1028,7 @@ def _kt_jvm_produce_output_jar_actions(
                 direct = [classpath_snapshot] if classpath_snapshot != None else [],
                 transitive = [transitive_classpath_snapshots],
             ),
+            transitive_classpath_snapshot_pairs = transitive_classpath_snapshot_pairs,
             transitive_non_kotlin_classpath_snapshot_jars = transitive_non_kotlin_classpath_snapshot_jars,
             # intellij aspect needs this.
             outputs = struct(
@@ -1060,6 +1080,7 @@ def _run_kt_java_builder_actions(
         toolchains = toolchains,
         compile_jars = compile_deps.compile_jars.to_list(),
         non_kotlin_classpath_snapshot_jars = compile_deps.non_kotlin_classpath_snapshot_jars,
+        classpath_snapshot_pairs = compile_deps.classpath_snapshot_pairs,
     )
 
     # Run KAPT
@@ -1235,6 +1256,7 @@ def _run_kt_java_builder_actions(
         output_jars = output_jars,
         generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
         annotation_processing = annotation_processing,
+        locally_generated_pairs = classpath_snapshot_inputs.locally_generated_pairs,
     )
 
 def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source_jar):
@@ -1297,11 +1319,19 @@ def _export_only_providers(ctx, actions, attr, outputs):
     transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(
         attr.deps + getattr(attr, "associates", []) + getattr(attr, "exports", []),
     )
+    _export_targets = attr.deps + getattr(attr, "associates", []) + getattr(attr, "exports", [])
     transitive_non_kotlin_classpath_snapshot_jars = depset(
         transitive = [
             getattr(t[_KtJvmInfo], "transitive_non_kotlin_classpath_snapshot_jars", depset())
-            for t in attr.deps + getattr(attr, "associates", []) + getattr(attr, "exports", [])
+            for t in _export_targets
             if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "transitive_non_kotlin_classpath_snapshot_jars", None) != None
+        ],
+    )
+    transitive_classpath_snapshot_pairs_export = depset(
+        transitive = [
+            getattr(t[_KtJvmInfo], "transitive_classpath_snapshot_pairs", depset())
+            for t in _export_targets
+            if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "transitive_classpath_snapshot_pairs", None) != None
         ],
     )
     return struct(
@@ -1316,6 +1346,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
             ),
             classpath_snapshot = None,
             transitive_classpath_snapshots = transitive_classpath_snapshots,
+            transitive_classpath_snapshot_pairs = transitive_classpath_snapshot_pairs_export,
             transitive_non_kotlin_classpath_snapshot_jars = transitive_non_kotlin_classpath_snapshot_jars,
         ),
         instrumented_files = coverage_common.instrumented_files_info(

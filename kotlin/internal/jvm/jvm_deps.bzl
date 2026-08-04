@@ -75,22 +75,13 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
     # This differs from rules_jvm which uses jvm-inc-builder for Java compilation.
     pruned_deps_for_java = None
 
-    # Collect classpath snapshots from the dependency graph that contributes snapshots.
-    # This includes deps, associates, and exports because exported jars participate in downstream
-    # compile classpaths and must invalidate incremental compilation when their ABI changes.
     snapshot_sources = deps + associate_deps + exports
-    classpath_snapshots = depset(
-        direct = [
-            getattr(d[KtJvmInfo], "classpath_snapshot", None)
-            for d in snapshot_sources
-            if KtJvmInfo in d and getattr(d[KtJvmInfo], "classpath_snapshot", None) != None
-        ],
-        transitive = [
-            getattr(d[KtJvmInfo], "transitive_classpath_snapshots", None)
-            for d in snapshot_sources
-            if KtJvmInfo in d and getattr(d[KtJvmInfo], "transitive_classpath_snapshots", None) != None
-        ],
-    ).to_list()
+    classpath_snapshot_pairs = []
+    for d in snapshot_sources:
+        if KtJvmInfo in d:
+            pairs = getattr(d[KtJvmInfo], "transitive_classpath_snapshot_pairs", None)
+            if pairs != None:
+                classpath_snapshot_pairs.extend(pairs.to_list())
 
     # Non-Kotlin Java dependencies don't publish classpath snapshots via KtJvmInfo.
     # Return their compile jars so snapshot actions can be generated locally by compile.bzl.
@@ -114,7 +105,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),
         runtime_deps = [_java_info(d) for d in runtime_deps],
-        classpath_snapshots = classpath_snapshots,
+        classpath_snapshot_pairs = classpath_snapshot_pairs,
         non_kotlin_classpath_snapshot_jars = non_kotlin_classpath_snapshot_jars,
     )
 
