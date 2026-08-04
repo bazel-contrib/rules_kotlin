@@ -567,7 +567,7 @@ def _run_ksp_builder_actions(
         ksp_generated_src_jar = ksp_generated_java_srcjar,
     )
 
-def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
+def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot, granularity = "CLASS_MEMBER_LEVEL"):
     """Generates a classpath snapshot for the given JAR using a dedicated worker."""
     runtime_inputs = [toolchains.kt.btapi_runtime_classpath]
 
@@ -577,6 +577,7 @@ def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
 
     args.add("--input_jar", input_jar)
     args.add("--output_snapshot", output_snapshot)
+    args.add("--granularity", granularity)
     args.add_all("--btapi_runtime_classpath", toolchains.kt.btapi_runtime_classpath)
     args.add("--jdeps_jar", toolchains.kt.jdeps_gen)
     args.add("--abi_gen_jar", toolchains.kt.jvm_abi_gen)
@@ -634,11 +635,13 @@ def _run_compile_classpath_snapshot_actions(ctx, toolchains, compile_jars, non_k
 
         output_snapshot = ctx.actions.declare_file("%s.classpath-%d.classpath-snapshot" % (ctx.label.name, snapshot_index))
         snapshot_index += 1
+        jar_granularity = toolchains.kt.experimental_ic_non_kotlin_snapshot_granularity if input_jar.path in non_kotlin_jar_paths else "CLASS_MEMBER_LEVEL"
         _run_snapshot_action(
             ctx = ctx,
             toolchains = toolchains,
             input_jar = input_jar,
             output_snapshot = output_snapshot,
+            granularity = jar_granularity,
         )
         classpath_snapshots.append(output_snapshot)
         if input_jar.path in non_kotlin_jar_paths:

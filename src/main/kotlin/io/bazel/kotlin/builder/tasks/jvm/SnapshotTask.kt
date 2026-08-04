@@ -61,6 +61,7 @@ class SnapshotTask : Work {
       ABI_GEN_JAR("--abi_gen_jar"),
       SKIP_CODE_GEN_JAR("--skip_code_gen_jar"),
       KAPT_JAR("--kapt_jar"),
+      GRANULARITY("--granularity"),
     }
   }
 
@@ -85,8 +86,9 @@ class SnapshotTask : Work {
       val inputJar = Path.of(argMap.mandatorySingle(SnapshotFlags.INPUT_JAR))
       val outputSnapshot = Path.of(argMap.mandatorySingle(SnapshotFlags.OUTPUT_SNAPSHOT))
       val toolchainSpec = buildToolchainSpec(argMap)
+      val granularity = argMap.optionalSingle(SnapshotFlags.GRANULARITY) ?: "CLASS_MEMBER_LEVEL"
 
-      generateSnapshot(inputJar, outputSnapshot, toolchainSpec)
+      generateSnapshot(inputJar, outputSnapshot, toolchainSpec, granularity)
       Status.SUCCESS
     } catch (e: Exception) {
       ctx.error(e) { "Classpath snapshot generation failed" }
@@ -98,6 +100,7 @@ class SnapshotTask : Work {
     inputJar: Path,
     outputSnapshot: Path,
     toolchainSpec: ToolchainSpec,
+    granularityStr: String = "CLASS_MEMBER_LEVEL",
   ) {
     val toolchains = compilerCache[toolchainSpec].toolchains
     val buildSession =
@@ -105,12 +108,16 @@ class SnapshotTask : Work {
         toolchains.createBuildSession()
       }
 
+    val granularity = when (granularityStr) {
+      "CLASS_LEVEL" -> ClassSnapshotGranularity.CLASS_LEVEL
+      else -> ClassSnapshotGranularity.CLASS_MEMBER_LEVEL
+    }
     val operationBuilder = toolchains.jvm.classpathSnapshottingOperationBuilder(inputJar)
     operationBuilder.set(
       JvmClasspathSnapshottingOperation.GRANULARITY,
-      ClassSnapshotGranularity.CLASS_MEMBER_LEVEL,
+      granularity,
     )
-    operationBuilder.set(PARSE_INLINED_LOCAL_CLASSES, true)
+    operationBuilder.set(PARSE_INLINED_LOCAL_CLASSES, granularity == ClassSnapshotGranularity.CLASS_MEMBER_LEVEL)
 
     val snapshot = buildSession.executeOperation(operationBuilder.build())
 

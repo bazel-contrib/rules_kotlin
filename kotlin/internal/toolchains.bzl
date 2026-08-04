@@ -113,6 +113,7 @@ def _kotlin_toolchain_impl(ctx):
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
         experimental_incremental_compilation = ctx.attr.experimental_incremental_compilation[BuildSettingInfo].value,
         experimental_ic_enable_logging = ctx.attr.experimental_ic_enable_logging[BuildSettingInfo].value,
+        experimental_ic_non_kotlin_snapshot_granularity = ctx.attr.experimental_ic_non_kotlin_snapshot_granularity[BuildSettingInfo].value,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -169,6 +170,10 @@ _kt_toolchain = rule(
         "experimental_ic_enable_logging": attr.label(
             doc = "Enables incremental-compilation logging output.",
             default = Label("//kotlin/settings:experimental_ic_enable_logging"),
+        ),
+        "experimental_ic_non_kotlin_snapshot_granularity": attr.label(
+            doc = "Snapshot granularity for non-Kotlin classpath jars. CLASS_LEVEL is cheaper; CLASS_MEMBER_LEVEL is more precise.",
+            default = Label("//kotlin/settings:experimental_ic_non_kotlin_snapshot_granularity"),
         ),
         "experimental_incremental_compilation": attr.label(
             doc = "Enables incremental compilation. Requires experimental_build_tools_api.",
