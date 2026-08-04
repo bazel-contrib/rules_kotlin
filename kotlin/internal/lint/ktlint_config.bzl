@@ -1,4 +1,7 @@
+"""Defines ktlint_config rule and its provider."""
+
 KtlintConfigInfo = provider(
+    doc = "Configuration for running ktlint, including editorconfig and rule toggles.",
     fields = {
         "android_rules_enabled": "Turn on Android Kotlin Style Guide compatibility",
         "editorconfig": "Editor config file to use",

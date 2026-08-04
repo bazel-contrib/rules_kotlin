@@ -1,3 +1,5 @@
+"""Defines ktlint_fix rule that reformats sources in place."""
+
 load("@bazel_lib//lib:paths.bzl", "BASH_RLOCATION_FUNCTION", "to_rlocation_path")
 load("@bazel_lib//lib:windows_utils.bzl", "create_windows_native_launcher_script")
 load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")

@@ -20,9 +20,7 @@ bzl_library(
 
 release_archive(
     name = "pkg",
-    srcs = glob(
-        ["common.bzl"],
-    ),
+    srcs = ["common.bzl"],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },

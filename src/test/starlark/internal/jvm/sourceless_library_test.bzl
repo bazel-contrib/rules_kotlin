@@ -1,3 +1,5 @@
+"""Tests that a sourceless kt_jvm_library forwards its runtime_deps."""
+
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_java//java:defs.bzl", "JavaInfo")

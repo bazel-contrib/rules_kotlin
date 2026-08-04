@@ -1,3 +1,5 @@
+"""Core Kotlin rule and providers."""
+
 load(
     "//kotlin/internal:btapi_runtime.bzl",
     _BtapiRuntimeInfo = "BtapiRuntimeInfo",

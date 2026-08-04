@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Rules for assembling rules_kotlin release archive."""
 
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
 def release_archive(name, srcs = None, src_map = {}, package_dir = None, extension = "tgz", deps = None):
-    """
-    Creates an tar of the srcs, and renamed label artifacts.
+    """Creates a tar of the srcs and renamed label artifacts.
 
     Usage:
 
@@ -45,11 +45,10 @@ def release_archive(name, srcs = None, src_map = {}, package_dir = None, extensi
 
     Args:
         name: target identifier, points to a pkg_tar target.
-        package_dir: directory to place the srcs, src_map, and dist_files under. Defaults to the current directory.
-        dist_files: dict of <filename string>:<contents string> for files to be generated in the distribution artifact.
-        src_map: dict of <label>:<name string> for labels to be renamed and included in the distribution.
         srcs: files to include in the distribution.
-        ext: Extension of the archive. Controls the type of tar file generated.
+        src_map: dict of <label>:<name string> for labels to be renamed and included in the distribution.
+        package_dir: directory to place the srcs and src_map under. Defaults to the current directory.
+        extension: Extension of the archive. Controls the type of tar file generated.
         deps: release_archives to be included.
     """
 

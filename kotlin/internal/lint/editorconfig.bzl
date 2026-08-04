@@ -1,3 +1,5 @@
+"""Utilities for resolving the ktlint editorconfig settings."""
+
 load(":ktlint_config.bzl", "KtlintConfigInfo")
 
 def is_experimental_rules_enabled(config):

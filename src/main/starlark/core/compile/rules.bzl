@@ -1,3 +1,5 @@
+"""Core Kotlin/JVM rule definitions."""
+
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load("//src/main/starlark/core/compile/cli:compile.bzl", "write_windows_jvm_launcher")

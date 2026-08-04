@@ -1,3 +1,5 @@
+"""Tests for the kapt compiler-plugin configuration."""
+
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//kotlin:core.bzl", "kt_plugin_cfg")
 load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import", "kt_jvm_library")

@@ -1,3 +1,5 @@
+"""Tests for resource strip-prefix handling."""
+
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//kotlin:jvm.bzl", "kt_jvm_library")

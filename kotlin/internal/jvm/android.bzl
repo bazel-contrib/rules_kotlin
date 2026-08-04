@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Internal wrappers adapting JVM rules for Android."""
+
 load(":kt_android_library.bzl", _kt_android_library = "kt_android_library")
 load(":kt_android_local_test_impl.bzl", _kt_android_local_test = "kt_android_local_test")
 

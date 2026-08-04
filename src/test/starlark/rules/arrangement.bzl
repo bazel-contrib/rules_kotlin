@@ -1,6 +1,18 @@
+"""Fixtures for rule tests."""
+
 load("//kotlin:jvm.bzl", "kt_jvm_import", "kt_jvm_library")
 
 def arrange(test, transitive_dep = None, with_java_main = False):
+    """Arranges jar fixtures for a rule test and returns the assembled dependency layout.
+
+    Args:
+        test: the rule-test context used to declare fixture targets and artifacts.
+        transitive_dep: optional transitive dependency jar; a fresh import is created when omitted.
+        with_java_main: whether to include a Java main target in the assembled layout.
+
+    Returns:
+        A tuple of (transitive dependency jar, dependency_a library, main target library).
+    """
     dependency_a_trans_dep_jar = transitive_dep
     if dependency_a_trans_dep_jar == None:
         dependency_a_trans_dep_jar = test.artifact(

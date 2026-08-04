@@ -122,23 +122,6 @@ buildifier(
     lint_mode = "warn",
     lint_warnings = [
         "+unsorted-dict-items",
-        "-confusing-name",
-        "-constant-glob",
-        "-duplicated-name",
-        "-function-docstring",
-        "-function-docstring-args",
-        "-function-docstring-header",
-        "-module-docstring",
-        "-name-conventions",
-        "-no-effect",
-        "-constant-glob",
-        "-provider-params",
-        "-print",
-        "-rule-impl-return",
-        "-bzl-visibility",
-        "-unnamed-macro",
-        "-uninitialized",
-        "-unreachable",
     ],
 )
 

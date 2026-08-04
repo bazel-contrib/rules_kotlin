@@ -1,3 +1,5 @@
+"""Analysis tests for the core Kotlin compile rules."""
+
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
 load("//src/main/starlark/core/compile:common.bzl", "KtJvmInfo")

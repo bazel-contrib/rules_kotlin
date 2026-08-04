@@ -18,7 +18,7 @@ package(default_visibility = ["//visibility:private"])
 
 kt_jvm_binary(
     name = "test_module_name_bin",
-    srcs = glob(["helloworld/Main.kt"]),
+    srcs = ["helloworld/Main.kt"],
     main_class = "helloworld.Main",
 )
 
@@ -29,7 +29,7 @@ kt_jvm_library(
 
 kt_jvm_library(
     name = "test_module_name_attr_lib",
-    srcs = glob(["helloworld/Main.kt"]),
+    srcs = ["helloworld/Main.kt"],
     module_name = "hello-module",
 )
 

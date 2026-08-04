@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Test macros for the Kotlin builder test suite."""
+
 load("@rules_java//java:defs.bzl", "java_test")
 load("//kotlin:jvm.bzl", "kt_jvm_test")
 
@@ -24,6 +26,12 @@ def _get_class_name(kwargs):
         return kwargs["test_classes"]
 
 def kt_rules_test(name, **kwargs):
+    """Declares a kt_jvm_test target wired up with the standard rules_kotlin test deps.
+
+    Args:
+        name: the name of the generated test target.
+        **kwargs: additional test attributes forwarded to the underlying kt_jvm_test.
+    """
     args = dict(kwargs.items())
     args.setdefault("size", "small")
     args.setdefault("data", [])

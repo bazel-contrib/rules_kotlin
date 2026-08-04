@@ -1,3 +1,5 @@
+"""Test-case framework for the Starlark analysis tests."""
+
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:util.bzl", "util")
 
@@ -9,7 +11,9 @@ def _prepend(rule, name, **kwargs):
     )
     return ":" + name
 
+# buildifier: disable=name-conventions
 Want = provider(
+    doc = "Expected attr type and value for a Starlark analysis-test assertion.",
     fields = {
         "attr": "attr type of the value.",
         "value": "attr value",

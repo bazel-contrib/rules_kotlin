@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.#
+"""Internal constants and provider definitions."""
+
 load(
     "//src/main/starlark/core/compile:common.bzl",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
@@ -44,6 +46,8 @@ KtCompilerPluginInfo = _KtCompilerPluginInfo
 
 KspPluginInfo = _KspPluginInfo
 
+# buildifier: disable=name-conventions
 KtCompilerPluginOption = _KtCompilerPluginOption
 
+# buildifier: disable=name-conventions
 KtPluginConfiguration = _KtPluginConfiguration

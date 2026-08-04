@@ -1,6 +1,8 @@
 """Unit tests for `utils.javac_jvm_target_flags` (kotlinc jvm_target -> javac platform flags)."""
 
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
+
+# buildifier: disable=bzl-visibility
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 def _normalization_test_impl(ctx):

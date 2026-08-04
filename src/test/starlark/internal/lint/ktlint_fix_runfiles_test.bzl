@@ -1,3 +1,5 @@
+"""Tests that ktlint_fix exports Java runfiles."""
+
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//kotlin:lint.bzl", "ktlint_fix")
