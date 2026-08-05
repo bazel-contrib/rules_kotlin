@@ -929,6 +929,59 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
+  fun `type argument of a called function's return type`() {
+    val returnedTypeArgumentTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "ReturnedClass.kt",
+        """
+            package something
+
+            class ReturnedClass
+            """,
+      )
+    }
+
+    val serviceTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Service.kt",
+        """
+            package something
+
+            class Service {
+              fun returnsList(): List<ReturnedClass> = listOf()
+            }
+            """,
+      )
+      c.addDirectDependencies(returnedTypeArgumentTarget)
+    }
+
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.setLabel("//:dependingTarget")
+      c.addSource(
+        "CallsService.kt",
+        """
+            package something
+
+            fun callsService(service: Service) {
+              service.returnsList()
+            }
+          """,
+      )
+      c.addDirectDependencies(serviceTarget)
+      c.addTransitiveDependencies(returnedTypeArgumentTarget)
+    }
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel("//:dependingTarget")
+      .setSuccess(true)
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addExplicitDep(serviceTarget.singleCompileJar())
+      .addImplicitDep(returnedTypeArgumentTarget.singleCompileJar())
+      .buildSorted()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
   fun `inline reified test`() {
     val objectMapperTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
@@ -1797,7 +1850,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
-  fun `function call return type type parameter should not be a dependency`() {
+  fun `function call return type type parameter should be an implicit dependency`() {
     val depWithTypeParameter = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
         "SomeType.kt",
@@ -1845,6 +1898,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(depWithFunction.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addImplicitDep(depWithTypeParameter.singleCompileJar())
       .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }

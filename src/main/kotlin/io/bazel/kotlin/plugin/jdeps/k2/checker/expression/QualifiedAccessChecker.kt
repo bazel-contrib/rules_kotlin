@@ -32,7 +32,7 @@ internal class QualifiedAccessChecker(
         it,
         context,
         isExplicit = false,
-        collectTypeArguments = false,
+        collectTypeArguments = true,
       )
     }
 
