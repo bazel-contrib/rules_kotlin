@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.getToolchain
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
 import org.jetbrains.kotlin.cli.common.ExitCode
@@ -49,6 +50,13 @@ class BuildToolsAPICompiler : KotlinCompiler {
     // Apply raw CLI arguments - this parses the args and sets all compiler options
     // TODO: we can use actual typed API after we get rid of BazelK2JVMCompiler and use BTAPI exclusively
     operationBuilder.compilerArguments.applyArgumentStrings(args.toList())
+
+    // The rules assemble the complete compile classpath themselves, including the Kotlin
+    // stdlib/reflect, so the compiler must not auto-append them from its own
+    // install location: that extra classpath root shadows explicitly declared dependencies.
+    // Applied after the user arguments so they cannot re-enable the Kotlin home discovery.
+    operationBuilder.compilerArguments[JvmCompilerArguments.NO_STDLIB] = true
+    operationBuilder.compilerArguments[JvmCompilerArguments.NO_REFLECT] = true
 
     // Execute the compilation
     val result =
