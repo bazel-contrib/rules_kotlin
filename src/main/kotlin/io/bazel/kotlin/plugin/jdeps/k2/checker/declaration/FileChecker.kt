@@ -27,8 +27,12 @@ internal class FileChecker(
     declaration.imports.filterIsInstance<FirResolvedImport>().forEach { import ->
       // check for classlike import (class, interface, object, enum, annotation, etc)
       if (import.resolvesToClass(context)) {
-        import.classId()?.resolveToClass(context)?.let {
-          classUsageRecorder.recordClass(it, context)
+        import.classId()?.let { classId ->
+          // A type alias is erased from the bytecode, so only the expanded class shows up in
+          // the compilation output. Record the alias declaration too, otherwise the target
+          // owning it is reported unused even though the import cannot resolve without it.
+          classId.resolveToTypeAlias(context)?.let { classUsageRecorder.recordClass(it, context) }
+          classId.resolveToClass(context)?.let { classUsageRecorder.recordClass(it, context) }
         }
       } else {
         // check for function import
@@ -107,3 +111,6 @@ private fun ClassId.resolveToClass(context: CheckerContext): FirRegularClassSymb
     is FirAnonymousObjectSymbol -> null
   }
 }
+
+private fun ClassId.resolveToTypeAlias(context: CheckerContext): FirTypeAliasSymbol? =
+  context.session.symbolProvider.getClassLikeSymbolByClassId(this) as? FirTypeAliasSymbol

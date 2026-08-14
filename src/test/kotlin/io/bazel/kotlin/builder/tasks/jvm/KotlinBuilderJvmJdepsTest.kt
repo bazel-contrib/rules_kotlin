@@ -1219,6 +1219,62 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
+  fun `type alias in dependency should be an explicit dependency`() {
+    val aliasedClassTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.setLabel("//:aliasedClass")
+      c.addSource(
+        "AliasedClass.kt",
+        """
+          package dependency.aliased
+
+          class AliasedClass
+        """,
+      )
+      c.compileKotlin()
+    }
+
+    val typeAliasTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.setLabel("//:typeAlias")
+      c.addSource(
+        "ClassAlias.kt",
+        """
+          package dependency.alias
+
+          import dependency.aliased.AliasedClass
+
+          typealias ClassAlias = AliasedClass
+        """,
+      )
+      c.addDirectDependencies(aliasedClassTarget)
+      c.compileKotlin()
+    }
+
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.setLabel("//:dependingTarget")
+      c.addSource(
+        "HasTypeAliasDependency.kt",
+        """
+          package something
+
+          import dependency.alias.ClassAlias
+
+          val property = ClassAlias()
+        """,
+      )
+      c.addDirectDependencies(typeAliasTarget, aliasedClassTarget)
+    }
+
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel("//:dependingTarget")
+      .setSuccess(true)
+      .addExplicitDep(typeAliasTarget.singleCompileJar())
+      .addExplicitDep(aliasedClassTarget.singleCompileJar())
+      .buildSorted()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
   fun `implement interface reference should be an explicit dependency`() {
     val indirectInterfaceDef = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
