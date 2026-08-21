@@ -21,8 +21,8 @@ kt_compiler_plugin(
     data = [":stability_config"],
     id = "androidx.compose.compiler.plugins.kotlin",
     options = {
-        "sourceInformation": "true",  # Required for AS Layout Inspector, disable for release builds
-        "stabilityConfigurationPath": "$(locations :stability_config)",
+        "sourceInformation": ["true"],  # Required for AS Layout Inspector, disable for release builds
+        "stabilityConfigurationPath": ["$(locations :stability_config)"],
     },
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],

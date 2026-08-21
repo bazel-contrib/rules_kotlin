@@ -6,7 +6,7 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "plugin.allopennoarg.OpenForTesting",
+        "annotation": ["plugin.allopennoarg.OpenForTesting"],
     },
     stubs_phase = True,
     deps = [
@@ -19,7 +19,7 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "org.jetbrains.kotlin.noarg",
     options = {
-        "annotation": "plugin.allopennoarg.NoArgConstructor",
+        "annotation": ["plugin.allopennoarg.NoArgConstructor"],
     },
     stubs_phase = True,
     deps = [

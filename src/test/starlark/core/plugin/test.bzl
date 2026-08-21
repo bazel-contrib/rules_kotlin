@@ -14,7 +14,10 @@ def _provider_test_impl(env, target):
     got_target = env.expect.that_target(target)
     got_target.has_provider(KtPluginConfiguration)
     got_provider = got_target.provider(KtPluginConfiguration, plugin_configuration_subject_factory)
-    got_provider.options().transform(desc = "option.value", map_each = lambda o: o.value).contains_at_least(want_options)
+    got_provider.options().transform(
+        desc = "option key/value",
+        map_each = lambda o: "%s=%s" % (o.key, o.value) if o.value else o.key,
+    ).contains_at_least(want_options)
     got_provider.id().equals(env.ctx.attr.want_plugin[KtCompilerPluginInfo].id)
 
 # The per-phase plugin flags the plugins payload replaced; no action may carry them.
@@ -107,7 +110,7 @@ def _test_kt_plugin_cfg(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -221,7 +224,7 @@ def _test_compile_configuration(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -305,7 +308,7 @@ def _test_compile_configuration_inline_payload_json(test):
         name = "plugin",
         id = "test.inline.payload",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -353,7 +356,7 @@ def _test_compile_multiple_configurations(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -550,7 +553,7 @@ def _test_library_multiple_plugins_with_same_id(test):
                 name = "one",
                 id = "test.stub",
                 options = {
-                    "annotation": "plugin.StubForTesting",
+                    "annotation": ["plugin.StubForTesting"],
                 },
                 deps = [
                     test.have(
@@ -569,7 +572,7 @@ def _test_library_multiple_plugins_with_same_id(test):
                 name = "two",
                 id = "test.stub",
                 options = {
-                    "annotation": "plugin.StubForTesting",
+                    "annotation": ["plugin.StubForTesting"],
                 },
                 deps = [
                     test.have(

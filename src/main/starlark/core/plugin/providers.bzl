@@ -4,8 +4,8 @@
 KtCompilerPluginOption = provider(
     doc = "A single id/value option passed to a Kotlin compiler plugin.",
     fields = {
-        "id": "The id of the option.",
-        "value": "The value of the option.",
+        "key": "The option key.",
+        "value": "The option value.",
     },
 )
 

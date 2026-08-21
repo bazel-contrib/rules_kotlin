@@ -7,7 +7,7 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "org.jetbrains.kotlin.samWithReceiver",
     options = {
-        "annotation": "plugin.sam_with_receiver.SamWithReceiver",
+        "annotation": ["plugin.sam_with_receiver.SamWithReceiver"],
     },
     stubs_phase = True,
     deps = [

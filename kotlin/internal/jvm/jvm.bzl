@@ -563,7 +563,7 @@ kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "plugin.OpenForTesting",
+        "annotation": ["plugin.OpenForTesting"],
     },
     deps = [
         "//kotlin/compiler:allopen-compiler-plugin",
@@ -605,9 +605,10 @@ kt_jvm_library(
             doc = "The ID of the plugin",
             mandatory = True,
         ),
-        "options": attr.string_dict(
+        "options": attr.string_list_dict(
             doc = """\
 Dictionary of options to be passed to the plugin.
+Each option key can have multiple values.
 Supports the following template values:
 
 - `{generatedClasses}`: directory for generated class output

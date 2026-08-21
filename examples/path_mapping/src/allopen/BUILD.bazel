@@ -23,7 +23,7 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "pathmapping.allopen.OpenForTesting",
+        "annotation": ["pathmapping.allopen.OpenForTesting"],
     },
     stubs_phase = True,
     deps = [":allopen_derived"],

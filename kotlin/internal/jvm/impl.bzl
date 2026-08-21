@@ -629,8 +629,7 @@ def kt_compiler_plugin_impl(ctx):
 
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
-    # TODO(1035): Migrate kt_compiler_plugin.options to string_list_dict
-    options = plugin_common.resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, _expand_location_with_data_deps(ctx))
+    options = plugin_common.resolve_plugin_options(ctx.attr.options, _expand_location_with_data_deps(ctx))
 
     return [
         DefaultInfo(files = classpath),

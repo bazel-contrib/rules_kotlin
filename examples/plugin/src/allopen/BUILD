@@ -6,7 +6,7 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "plugin.allopen.OpenForTesting",
+        "annotation": ["plugin.allopen.OpenForTesting"],
     },
     stubs_phase = True,
     deps = [

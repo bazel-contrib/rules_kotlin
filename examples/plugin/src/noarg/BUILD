@@ -6,7 +6,7 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "org.jetbrains.kotlin.noarg",
     options = {
-        "annotation": "plugin.noarg.NoArgConstructor",
+        "annotation": ["plugin.noarg.NoArgConstructor"],
     },
     stubs_phase = True,
     deps = [

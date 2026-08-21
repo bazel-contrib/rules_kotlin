@@ -30,8 +30,8 @@ def _plugins_payload_json_encodes_populated_plugin_test_impl(ctx):
         id = "plugin.test",
         classpath = depset([struct(path = "a.jar"), struct(path = "b.jar")]),
         options = [
-            struct(id = "plugin.test", value = "k1=v1"),
-            struct(id = "plugin.test", value = "k2=v2"),
+            struct(key = "k1", value = "v1"),
+            struct(key = "k2", value = "v2"),
         ],
         phases = ["compile", "stubs"],
     )
@@ -61,14 +61,13 @@ def _plugins_payload_json_encodes_edge_options_test_impl(ctx):
     env = unittest.begin(ctx)
 
     # A value-less option must encode with an empty value (the worker re-emits it as a bare
-    # "id:key" argument), and a value containing '=' must split at the FIRST '=' so the rest
-    # survives whole.
+    # "id:key" argument), and a value containing '=' must survive whole.
     plugin = struct(
         id = "plugin.edge",
         classpath = depset([struct(path = "p.jar")]),
         options = [
-            struct(id = "plugin.edge", value = "flagOnly"),
-            struct(id = "plugin.edge", value = "k=a=b"),
+            struct(key = "flagOnly", value = ""),
+            struct(key = "k", value = "a=b"),
         ],
         phases = ["compile"],
     )
