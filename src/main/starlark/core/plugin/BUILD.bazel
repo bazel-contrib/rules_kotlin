@@ -14,5 +14,5 @@ release_archive(
 bzl_library(
     name = "plugin",
     srcs = glob(["*.bzl"]),
-    visibility = ["//:__subpackages__"],
+    visibility = ["//visibility:public"],
 )
