@@ -401,11 +401,17 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, associate_jar
 
     inputs = depset(jdeps)
     if not toolchains.kt.experimental_report_unused_deps == "off":
-        # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs.
-        # The merger only opens the jars named in the merged jdeps, and those can only come from the compile classpath,
-        # so callers that know the classpath pass it instead of the whole transitive closure.
+        # For sandboxing to work, and for this action to be deterministic, the jars named in the merged jdeps need to
+        # be passed as inputs. They can come from either the compile classpath or the direct dependency list.
         if classpath_jars != None:
-            inputs = depset(jdeps, transitive = [classpath_jars])
+            inputs = depset(
+                jdeps,
+                transitive = [
+                    classpath_jars,
+                    _java_infos_to_compile_jars(deps),
+                    associate_jars,
+                ],
+            )
         else:
             inputs = depset(
                 jdeps,
