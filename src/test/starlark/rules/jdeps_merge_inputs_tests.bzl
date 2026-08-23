@@ -28,9 +28,9 @@ def _jdeps_merge_input_assertions(env, target):
             continue
         action.inputs().not_contains_predicate(matching.file_basename_equals(abi_jar_of(f.basename)))
 
-def _config_settings(report_unused_deps):
+def _config_settings(report_unused_deps, prune_transitive_deps = True):
     settings = {
-        str(Label("@rules_kotlin//kotlin/settings:experimental_prune_transitive_deps")): True,
+        str(Label("@rules_kotlin//kotlin/settings:experimental_prune_transitive_deps")): prune_transitive_deps,
         str(Label("@rules_kotlin//kotlin/settings:experimental_prune_transitive_deps_keep_transitive_repositories")): [],
         str(Label("@rules_kotlin//kotlin/settings:experimental_strict_associate_dependencies")): False,
     }
@@ -103,10 +103,36 @@ def _test_report_unused_deps_off_gets_no_jars(test):
         attrs = _ATTRS,
     )
 
+def _test_mixed_target_without_pruning_gets_transitive_classpath(test):
+    """A mixed Kotlin/Java target keeps transitive jars when pruning is disabled."""
+    (dependency_a_trans_dep_jar, dependency_a, main_target_library) = arrange(
+        test,
+        with_java_main = True,
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _jdeps_merge_input_assertions,
+        target = main_target_library,
+        config_settings = _config_settings(
+            report_unused_deps = True,
+            prune_transitive_deps = False,
+        ),
+        attr_values = {
+            "not_want_inputs": [],
+            "want_inputs": [
+                dependency_a,
+                dependency_a_trans_dep_jar,
+            ],
+        },
+        attrs = _ATTRS,
+    )
+
 def jdeps_merge_inputs_tests(name):
     suite(
         name,
         kotlin_only = _test_kotlin_only_target_gets_the_compile_classpath,
         with_java_sources = _test_target_with_java_sources_gets_the_compile_classpath,
         report_unused_deps_off = _test_report_unused_deps_off_gets_no_jars,
+        pruning_disabled = _test_mixed_target_without_pruning_gets_transitive_classpath,
     )
