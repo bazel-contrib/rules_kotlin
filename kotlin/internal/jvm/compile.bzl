@@ -379,7 +379,7 @@ def _build_resourcejar_action(ctx, toolchains, extra_resources = {}):
     )
     return resources_jar_output
 
-def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, associate_jars = depset(), classpath_jars = None):
+def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, classpath_jars, associate_jars = depset()):
     """Creates a Jdeps merger action invocation."""
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
@@ -403,20 +403,14 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, associate_jar
     if not toolchains.kt.experimental_report_unused_deps == "off":
         # For sandboxing to work, and for this action to be deterministic, the jars named in the merged jdeps need to
         # be passed as inputs. They can come from either the compile classpath or the direct dependency list.
-        if classpath_jars != None:
-            inputs = depset(
-                jdeps,
-                transitive = [
-                    classpath_jars,
-                    _java_infos_to_compile_jars(deps),
-                    associate_jars,
-                ],
-            )
-        else:
-            inputs = depset(
-                jdeps,
-                transitive = [dep.transitive_compile_time_jars for dep in deps] + [associate_jars],
-            )
+        inputs = depset(
+            jdeps,
+            transitive = [
+                classpath_jars,
+                _java_infos_to_compile_jars(deps),
+                associate_jars,
+            ],
+        )
 
     ctx.actions.run(
         mnemonic = mnemonic,
@@ -1068,8 +1062,7 @@ def _run_kt_java_builder_actions(
     # If there is Java source or KAPT/KSP generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
     ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(ctx.attr.plugins)
-    compiles_java = bool(srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars)
-    if compiles_java:
+    if srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars:
         javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
         javac_opts = javac_options_to_flags(javac_options)
         javac_opts.extend([
@@ -1156,9 +1149,7 @@ def _run_kt_java_builder_actions(
                 deps = compile_deps.deps,
                 associate_jars = compile_deps.associate_jars,
                 outputs = {"output": output_jdeps},
-                # javac compiles against the unpruned transitive classpath, so its jdeps can name
-                # jars outside the Kotlin compile classpath.
-                classpath_jars = None if compiles_java else compile_deps.compile_jars,
+                classpath_jars = compile_deps.compile_jars,
             )
         else:
             ctx.actions.symlink(

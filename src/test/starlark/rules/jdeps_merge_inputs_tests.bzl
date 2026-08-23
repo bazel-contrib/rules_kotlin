@@ -62,12 +62,8 @@ def _test_kotlin_only_target_gets_the_compile_classpath(test):
         attrs = _ATTRS,
     )
 
-def _test_target_with_java_sources_gets_the_transitive_closure(test):
-    """javac compiles against the unpruned transitive classpath.
-
-    Its jdeps can therefore name jars that are not on the Kotlin compile classpath, so the
-    transitive closure has to stay declared for targets that also run javac.
-    """
+def _test_target_with_java_sources_gets_the_compile_classpath(test):
+    """A mixed Kotlin/Java target gets the pruned Kotlin compile classpath for JdepsMerge."""
     (dependency_a_trans_dep_jar, dependency_a, main_target_library) = arrange(
         test,
         with_java_main = True,
@@ -79,10 +75,11 @@ def _test_target_with_java_sources_gets_the_transitive_closure(test):
         target = main_target_library,
         config_settings = _config_settings(report_unused_deps = True),
         attr_values = {
-            "not_want_inputs": [],
+            "not_want_inputs": [
+                dependency_a_trans_dep_jar,
+            ],
             "want_inputs": [
                 dependency_a,
-                dependency_a_trans_dep_jar,
             ],
         },
         attrs = _ATTRS,
@@ -110,6 +107,6 @@ def jdeps_merge_inputs_tests(name):
     suite(
         name,
         kotlin_only = _test_kotlin_only_target_gets_the_compile_classpath,
-        with_java_sources = _test_target_with_java_sources_gets_the_transitive_closure,
+        with_java_sources = _test_target_with_java_sources_gets_the_compile_classpath,
         report_unused_deps_off = _test_report_unused_deps_off_gets_no_jars,
     )
