@@ -66,7 +66,7 @@ register_toolchains("//kotlin/internal:default_toolchain")
 
 bazel_dep(name = "rules_jvm_external", version = "7.1")
 
-bazel_dep(name = "bazel_ci_rules", version = "2.0.0", dev_dependency = True)
+bazel_dep(name = "bazel_ci_rules", version = "2.1.1", dev_dependency = True)
 
 rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension", dev_dependency = True)
 rbe.config(
