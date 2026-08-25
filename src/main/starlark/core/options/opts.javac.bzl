@@ -49,13 +49,14 @@ _JOPTS = {
         args = dict(
             default = "default",
             doc = "Compile for the specified Java SE release",
-            values = ["default", "8", "11", "17", "21"],
+            values = ["default", "8", "11", "17", "21", "25"],
         ),
         type = attr.string,
         value_to_flag = {
             "11": ["--release 11"],
             "17": ["--release 17"],
             "21": ["--release 21"],
+            "25": ["--release 25"],
             "8": ["--release 8"],
             "default": None,
         },

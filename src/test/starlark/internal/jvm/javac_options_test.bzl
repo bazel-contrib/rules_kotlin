@@ -80,6 +80,20 @@ def _mixed_target_explicit_no_proc_test_impl(ctx):
 
 _mixed_target_explicit_no_proc_test = analysistest.make(_mixed_target_explicit_no_proc_test_impl)
 
+def _release_flag_reaches_javac_test_impl(ctx):
+    env = analysistest.begin(ctx)
+
+    argv = _javac_action(env).argv
+    asserts.true(
+        env,
+        "--release 25" in argv,
+        msg = "kt_javac_options(release = \"25\") should reach the Javac action as --release 25",
+    )
+
+    return analysistest.end(env)
+
+_release_flag_reaches_javac_test = analysistest.make(_release_flag_reaches_javac_test_impl)
+
 def _javac_options_contents():
     write_file(
         name = "javac_flags_java_source",
@@ -98,6 +112,12 @@ def _javac_options_contents():
     kt_javac_options(
         name = "no_proc_javac_options",
         no_proc = True,
+        tags = ["manual"],
+    )
+
+    kt_javac_options(
+        name = "release_25_javac_options",
+        release = "25",
         tags = ["manual"],
     )
 
@@ -133,6 +153,13 @@ def _javac_options_contents():
         tags = ["manual"],
     )
 
+    kt_jvm_library(
+        name = "javac_release_25_library",
+        srcs = ["javac_flags_java_source"],
+        javac_opts = ":release_25_javac_options",
+        tags = ["manual"],
+    )
+
     _no_proc_reaches_javac_test(
         name = "no_proc_reaches_the_javac_action_test",
         target_under_test = ":javac_no_proc_library",
@@ -153,6 +180,11 @@ def _javac_options_contents():
         target_under_test = ":javac_mixed_no_proc_library",
     )
 
+    _release_flag_reaches_javac_test(
+        name = "release_25_reaches_the_javac_action_test",
+        target_under_test = ":javac_release_25_library",
+    )
+
 def javac_options_test_suite(name):
     _javac_options_contents()
 
@@ -163,5 +195,6 @@ def javac_options_test_suite(name):
             ":no_proc_off_by_default_test",
             ":mixed_target_no_proc_test",
             ":mixed_target_explicit_no_proc_test",
+            ":release_25_reaches_the_javac_action_test",
         ],
     )
