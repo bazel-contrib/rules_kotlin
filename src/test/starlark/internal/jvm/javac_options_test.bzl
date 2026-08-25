@@ -83,11 +83,18 @@ _mixed_target_explicit_no_proc_test = analysistest.make(_mixed_target_explicit_n
 def _release_flag_reaches_javac_test_impl(ctx):
     env = analysistest.begin(ctx)
 
+    # The Javac action tokenizes each flag into individual argv entries, so "--release 25"
+    # reaches the action as ["--release", "25"].
     argv = _javac_action(env).argv
     asserts.true(
         env,
-        "--release 25" in argv,
+        "--release" in argv,
         msg = "kt_javac_options(release = \"25\") should reach the Javac action as --release 25",
+    )
+    asserts.equals(
+        env,
+        expected = "25",
+        actual = argv[argv.index("--release") + 1],
     )
 
     return analysistest.end(env)
