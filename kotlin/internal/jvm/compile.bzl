@@ -1047,13 +1047,7 @@ def _run_kt_java_builder_actions(
     ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(ctx.attr.plugins)
     if srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars:
         javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
-        javac_opts = javac_options_to_flags(javac_options)
-        javac_opts.extend([
-            flag
-            for plugin in ctx.attr.plugins
-            if JavacOptions in plugin
-            for flag in javac_options_to_flags(plugin[JavacOptions])
-        ])
+        javac_opts = []
 
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
         # annotation processors in `deps` also.
@@ -1074,6 +1068,16 @@ def _run_kt_java_builder_actions(
                 javac_opts.extend(_utils.javac_jvm_target_flags(jvm_target, toolchains.java.java_runtime.version))
             else:
                 javac_opts.extend(_utils.javac_jvm_target_flags(jvm_target))
+
+        # JavaBuilder gives later --release/-source/-target flags precedence. Keep explicit javac
+        # options after the flags derived from the Kotlin target so an explicit release is honored.
+        javac_opts.extend(javac_options_to_flags(javac_options))
+        javac_opts.extend([
+            flag
+            for plugin in ctx.attr.plugins
+            if JavacOptions in plugin
+            for flag in javac_options_to_flags(plugin[JavacOptions])
+        ])
 
         # Compile the Java half with the same warning mode as the kotlin part, unless the javac
         # options (or a plugin's) already set one: a single `warn` value governs the whole target.

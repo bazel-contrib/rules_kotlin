@@ -96,6 +96,17 @@ def _release_flag_reaches_javac_test_impl(ctx):
         expected = "25",
         actual = argv[argv.index("--release") + 1],
     )
+    release_index = argv.index("--release")
+    target_flag_indices = [
+        i
+        for i, arg in enumerate(argv)
+        if arg in ["-source", "-target"]
+    ]
+    asserts.true(
+        env,
+        release_index > max(target_flag_indices),
+        msg = "--release 25 must follow generated -source/-target flags so JavaBuilder keeps it",
+    )
 
     return analysistest.end(env)
 
