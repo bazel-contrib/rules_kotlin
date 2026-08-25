@@ -94,10 +94,15 @@ tasks:
       - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmBasicAssertionTest"
     test_flags:
       - "--strategy=KotlinCompile=remote"
+      - "--action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0"
   stardoc:
     <<: *common
     name: Stardoc api documentation
     platform: rbe_ubuntu2404
+    build_flags:
+      - "--action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0"
+    test_flags:
+      - "--action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0"
     build_targets:
       - //docs:stardoc
     test_targets:
