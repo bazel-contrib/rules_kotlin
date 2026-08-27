@@ -65,10 +65,10 @@ def _toolchain_versions_by_default_test_impl(ctx):
     argv = _kotlin_compile_action(env).argv
 
     # Without kotlinc options the worker channel carries the toolchain-wide versions.
-    asserts.equals(env, expected = "2.1", actual = _value_of(env, argv, "--kotlin_api_version"))
+    asserts.equals(env, expected = "2.4", actual = _value_of(env, argv, "--kotlin_api_version"))
     asserts.equals(
         env,
-        expected = "2.1",
+        expected = "2.4",
         actual = _value_of(env, argv, "--kotlin_language_version"),
     )
 
