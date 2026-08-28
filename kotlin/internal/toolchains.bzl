@@ -429,9 +429,9 @@ def define_kt_toolchain(
         experimental_build_tools_api = None,
         experimental_kover_enabled = False,
         experimental_kover_agent = None,
-        experimental_kover_exclude = [],
-        experimental_kover_exclude_annotation = [],
-        experimental_kover_exclude_inherited_from = [],
+        experimental_kover_exclude = None,
+        experimental_kover_exclude_annotation = None,
+        experimental_kover_exclude_inherited_from = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
         jvm_stdlibs = None,
@@ -442,6 +442,9 @@ def define_kt_toolchain(
         target_settings = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
+    experimental_kover_exclude = experimental_kover_exclude or []
+    experimental_kover_exclude_annotation = experimental_kover_exclude_annotation or []
+    experimental_kover_exclude_inherited_from = experimental_kover_exclude_inherited_from or []
 
     _kt_toolchain(
         name = impl_name,
