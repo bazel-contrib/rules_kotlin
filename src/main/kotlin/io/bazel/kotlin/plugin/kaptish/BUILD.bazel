@@ -1,0 +1,40 @@
+# Copyright 2026 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
+
+# The kaptish javac compiler-plugin library (Java to access internal javac APIs).
+# Registered as a com.sun.source.util.Plugin service so javac loads it via -Xplugin:Kaptish.
+java_library(
+    name = "kaptish-lib",
+    srcs = ["KotlinClassInjectorPlugin.java"],
+    javacopts = [
+        "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+    ],
+    resource_strip_prefix = "src/main/kotlin/io/bazel/kotlin/plugin/kaptish",
+    resources = ["META-INF/services/com.sun.source.util.Plugin"],
+    visibility = ["//src:__subpackages__"],
+)
+
+# java_plugin (no processor_class) to provide JavaPluginInfo so java_common.compile places the
+# jar on javac's -processorpath, where javac's ServiceLoader discovers the -Xplugin. It runs as
+# a javac Plugin (via -Xplugin:Kaptish), NOT as an annotation processor.
+java_plugin(
+    name = "kaptish",
+    visibility = ["//visibility:public"],
+    deps = [":kaptish-lib"],
+)

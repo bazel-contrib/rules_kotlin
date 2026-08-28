@@ -73,6 +73,14 @@ tasks:
     <<: [ *macos, *unittests ]
   ubuntu2404_unittests:
     <<: [ *ubuntu2404, *unittests ]
+  ubuntu2404_kaptish_assertion_tests:
+    <<: *ubuntu2404
+    name: "Kaptish Assertion Test"
+    test_flags:
+      - "--enable_bzlmod=true"
+      - "--config=kaptish"
+    test_targets:
+      - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmKaptishAssertionTest"
   ubuntu2404_integration_tests:
     <<: [ *ubuntu2404, *integration_tests ]
   ubuntu2204_unittests:

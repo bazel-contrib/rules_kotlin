@@ -1,0 +1,60 @@
+# Copyright 2026 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# Kaptish-enabled toolchain: Kotlin compiles first, then annotation processors
+# run on the compiled classes via javac's AP phase — no KAPT stub generation.
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    experimental_kaptish_enabled = True,
+)
+
+# A Kotlin library with AutoValue annotation processing via kaptish.
+# AutoValue generates AutoValue_Shape.class from the @AutoValue-annotated Shape class.
+#
+# In kaptish mode:
+#   1. kotlinc compiles Shape.kt → Shape.class (no stubs)
+#   2. KotlinClassInjectorPlugin injects Shape into javac's AP phase
+#   3. AutoValueProcessor generates AutoValue_Shape.java
+#   4. javac compiles AutoValue_Shape.java
+kt_jvm_library(
+    name = "shapes_lib",
+    srcs = ["src/Shape.kt"],
+    plugins = ["//third_party:autovalue"],
+    deps = ["@maven_rules_kotlin_example//:com_google_auto_value_auto_value_annotations"],
+)
+
+# A second Kotlin library showing kaptish with multiple source files.
+kt_jvm_library(
+    name = "geometry_lib",
+    srcs = [
+        "src/Circle.kt",
+        "src/Rectangle.kt",
+    ],
+    plugins = ["//third_party:autovalue"],
+    deps = ["@maven_rules_kotlin_example//:com_google_auto_value_auto_value_annotations"],
+)
+
+# Verify both targets build successfully.
+build_test(
+    name = "kaptish_build_test",
+    targets = [
+        ":shapes_lib",
+        ":geometry_lib",
+    ],
+)
