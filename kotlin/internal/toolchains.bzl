@@ -451,9 +451,9 @@ def define_kt_toolchain(
         btapi_runtime = None,
         experimental_kover_enabled = False,
         experimental_kover_agent = None,
-        experimental_kover_exclude = [],
-        experimental_kover_exclude_annotation = [],
-        experimental_kover_exclude_inherited_from = [],
+        experimental_kover_exclude = None,
+        experimental_kover_exclude_annotation = None,
+        experimental_kover_exclude_inherited_from = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
         jvm_stdlibs = None,
@@ -485,6 +485,9 @@ def define_kt_toolchain(
         **kwargs: see the attributes of the toolchain rule.
     """
     impl_name = name + "_impl"
+    experimental_kover_exclude = experimental_kover_exclude or []
+    experimental_kover_exclude_annotation = experimental_kover_exclude_annotation or []
+    experimental_kover_exclude_inherited_from = experimental_kover_exclude_inherited_from or []
 
     if btapi_runtime == None:
         btapi_runtime = _KT_DEFAULT_BTAPI_RUNTIME
