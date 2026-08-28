@@ -90,6 +90,21 @@ def get_kover_jvm_flags(kover_agent_file, kover_args_file):
     ]
     return jvm_args
 
+def _source_to_kover_arg(src):
+    return "--src\n%s" % _paths.dirname(src.short_path)
+
+def _classfile_to_kover_arg(classfile):
+    return "--classfiles\n%s" % classfile.short_path
+
+def _exclude_to_kover_arg(exclude):
+    return "--exclude\n%s" % exclude
+
+def _exclude_annotation_to_kover_arg(exclude_annotation):
+    return "--excludeAnnotation\n%s" % exclude_annotation
+
+def _exclude_inherited_from_to_kover_arg(exclude_inherited_from):
+    return "--excludeInheritedFrom\n%s" % exclude_inherited_from
+
 def create_kover_agent_actions(ctx, name):
     """Generate the actions needed to emit Kover code coverage metadata file.
 
@@ -143,41 +158,50 @@ def create_kover_metadata_action(
     metadata_output_name = "%s-kover_metadata.txt" % name
     kover_output_metadata_file = ctx.actions.declare_file(metadata_output_name)
 
-    srcs = []
-    classfiles = []
-    excludes = []
+    instrumented_files = depset(transitive = [
+        dep[InstrumentedFilesInfo].instrumented_files
+        for dep in deps
+        if InstrumentedFilesInfo in dep
+    ])
+    runtime_jars = depset(transitive = [
+        dep[JavaInfo].transitive_runtime_jars
+        for dep in deps
+        if JavaInfo in dep
+    ])
 
-    for dep in deps:
-        if dep.label.package != ctx.label.package:
-            continue
+    args = ctx.actions.args()
+    args.add("report")
+    args.add(kover_output_file.short_path)
+    args.add("--title")
+    args.add("Code-Coverage Analysis: %s" % ctx.label)
+    args.add_joined(
+        instrumented_files,
+        join_with = "\n",
+        map_each = _source_to_kover_arg,
+        uniquify = True,
+    )
+    args.add_joined(
+        runtime_jars,
+        join_with = "\n",
+        map_each = _classfile_to_kover_arg,
+        uniquify = True,
+    )
+    args.add_joined(
+        ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude,
+        join_with = "\n",
+        map_each = _exclude_to_kover_arg,
+    )
+    args.add_joined(
+        ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude_annotation,
+        join_with = "\n",
+        map_each = _exclude_annotation_to_kover_arg,
+    )
+    args.add_joined(
+        ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude_inherited_from,
+        join_with = "\n",
+        map_each = _exclude_inherited_from_to_kover_arg,
+    )
 
-        if InstrumentedFilesInfo in dep:
-            for src in dep[InstrumentedFilesInfo].instrumented_files.to_list():
-                if src.short_path.startswith(ctx.label.package + "/"):
-                    path = _paths.dirname(src.short_path)
-                    if path not in srcs:
-                        srcs.extend(["--src", path])
-
-        if JavaInfo in dep:
-            for classfile in dep[JavaInfo].transitive_runtime_jars.to_list():
-                if classfile.short_path.startswith(ctx.label.package + "/"):
-                    if classfile.path not in classfiles:
-                        classfiles.extend(["--classfiles", classfile.path])
-
-    for exclude in ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude:
-        excludes.extend(["--exclude", exclude])
-
-    for exclude_annotation in ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude_annotation:
-        excludes.extend(["--excludeAnnotation", exclude_annotation])
-
-    for exclude_inherited_from in ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude_inherited_from:
-        excludes.extend(["--excludeInheritedFrom", exclude_inherited_from])
-
-    ctx.actions.write(kover_output_metadata_file, "\n".join([
-        "report",
-        kover_output_file.short_path,
-        "--title",
-        "Code-Coverage Analysis: %s" % ctx.label,
-    ] + srcs + classfiles + excludes))
+    ctx.actions.write(kover_output_metadata_file, args)
 
     return kover_output_metadata_file
