@@ -107,11 +107,9 @@ def create_kover_agent_actions(ctx, name):
     binary_output_name = "%s-kover_report.ic" % name
     kover_output_file = ctx.actions.declare_file(binary_output_name)
 
-    # Hack: there is curently no way to indicate this file will be created Kover agent
-    ctx.actions.run_shell(
-        outputs = [kover_output_file],
-        command = "touch {}".format(kover_output_file.path),
-    )
+    # Declare an initial output without relying on a shell command so this also
+    # works on Windows. The Kover agent replaces it when the test runs.
+    ctx.actions.write(kover_output_file, "")
 
     # declare args file - https://kotlin.github.io/kotlinx-kover/jvm-agent/#kover-jvm-arguments-file
     kover_args_file = ctx.actions.declare_file(
@@ -119,7 +117,7 @@ def create_kover_agent_actions(ctx, name):
     )
     ctx.actions.write(
         kover_args_file,
-        "report.file=../../%s" % binary_output_name,  # Kotlin compiler runs in runfiles folder, make sure file is created is correct location
+        "report.file=%s" % kover_output_file.short_path,
     )
 
     return kover_output_file, kover_args_file
@@ -177,7 +175,7 @@ def create_kover_metadata_action(
 
     ctx.actions.write(kover_output_metadata_file, "\n".join([
         "report",
-        kover_output_file.path,
+        kover_output_file.short_path,
         "--title",
         "Code-Coverage Analysis: %s" % ctx.label,
     ] + srcs + classfiles + excludes))
