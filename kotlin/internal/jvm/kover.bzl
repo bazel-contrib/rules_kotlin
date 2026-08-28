@@ -60,36 +60,35 @@ def is_kover_enabled(ctx):
     return ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_enabled
 
 def get_kover_agent_file(ctx):
-    """Get the Kover agent runtime files, extracted from toolchain.
+    """Get the Kover agent runtime file from the toolchain.
 
     Args:
         ctx: The rule context.
 
     Returns:
-        The Kover agent runtime files as a list.
+        The Kover agent runtime file.
     """
     kover_agent = ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_agent
     if not kover_agent:
         fail("Kover agent wasn't specified in toolchain.")
 
-    kover_agent_info = kover_agent[DefaultInfo]
-    return kover_agent_info.files.to_list()
+    return kover_agent
 
-def get_kover_jvm_flags(kover_agent_files, kover_args_file):
+def get_kover_jvm_flags(kover_agent_file, kover_args_file):
     """Compute the jvm flags used to setup Kover agent.
 
     Args:
-        kover_agent_files: List of Kover agent files.
+        kover_agent_file: The Kover agent file.
         kover_args_file: The Kover arguments file.
 
     Returns:
-        The flag string to be used by test runner JVM.
+        The flags to be passed separately to the test runner JVM.
     """
     jvm_args = [
-        "-Xbootclasspath/a:%s" % (kover_agent_files[0].short_path),
-        "-javaagent:%s=file:%s" % (kover_agent_files[0].short_path, kover_args_file.short_path),
+        "-Xbootclasspath/a:%s" % (kover_agent_file.short_path),
+        "-javaagent:%s=file:%s" % (kover_agent_file.short_path, kover_args_file.short_path),
     ]
-    return " ".join(jvm_args)
+    return jvm_args
 
 def create_kover_agent_actions(ctx, name):
     """Generate the actions needed to emit Kover code coverage metadata file.
