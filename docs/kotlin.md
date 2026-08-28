@@ -650,9 +650,9 @@ libraries they need, and the internal compiler plugins in the embeddable dialect
 | <a id="define_kt_toolchain-btapi_runtime"></a>btapi_runtime |  a `kt_btapi_runtime` that replaces the default Build Tools API runtime, `//kotlin/compiler:btapi_runtime`, the runtime of the current Kotlin release. The runtime of another release is `@<name>//:runtime` of a repository the module extension tag `btapi_impl_version` declares. A runtime built on either with `base` replaces single artifacts. A runtime is an explicit choice of the Build Tools API compilation, see `experimental_build_tools_api`.   |  `None` |
 | <a id="define_kt_toolchain-experimental_kover_enabled"></a>experimental_kover_enabled |  <p align="center"> - </p>   |  `False` |
 | <a id="define_kt_toolchain-experimental_kover_agent"></a>experimental_kover_agent |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-experimental_kover_exclude"></a>experimental_kover_exclude |  <p align="center"> - </p>   |  `[]` |
-| <a id="define_kt_toolchain-experimental_kover_exclude_annotation"></a>experimental_kover_exclude_annotation |  <p align="center"> - </p>   |  `[]` |
-| <a id="define_kt_toolchain-experimental_kover_exclude_inherited_from"></a>experimental_kover_exclude_inherited_from |  <p align="center"> - </p>   |  `[]` |
+| <a id="define_kt_toolchain-experimental_kover_exclude"></a>experimental_kover_exclude |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-experimental_kover_exclude_annotation"></a>experimental_kover_exclude_annotation |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-experimental_kover_exclude_inherited_from"></a>experimental_kover_exclude_inherited_from |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-javac_options"></a>javac_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_javac_options")` |
 | <a id="define_kt_toolchain-kotlinc_options"></a>kotlinc_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_kotlinc_options")` |
 | <a id="define_kt_toolchain-jvm_stdlibs"></a>jvm_stdlibs |  <p align="center"> - </p>   |  `None` |
