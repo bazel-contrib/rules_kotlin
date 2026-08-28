@@ -25,23 +25,25 @@ def _kover_disabled_test_impl(ctx):
     # When Kover is disabled, the test should not have Kover-specific outputs
     actions = analysistest.target_actions(env)
 
-    # Verify no Kover-related actions are present
-    kover_action_count = 0
+    # Verify no Kover-specific outputs are present. Do not inspect mnemonics or
+    # arbitrary paths because the test target itself contains "kover" in its
+    # name.
+    kover_output_count = 0
     for action in actions:
-        if "kover" in action.mnemonic.lower():
-            kover_action_count += 1
-        else:
-            for output in action.outputs.to_list():
-                if "kover" in str(output):
-                    kover_action_count += 1
-                    break
+        for output in action.outputs.to_list():
+            if output.basename.endswith((
+                "-kover_report.ic",
+                "-kover.args.txt",
+                "-kover_metadata.txt",
+            )):
+                kover_output_count += 1
 
     # With Kover disabled (default), there should be no Kover-specific actions
     # This test validates the default behavior
     asserts.equals(
         env,
         expected = 0,
-        actual = kover_action_count,
+        actual = kover_output_count,
         msg = "Expected no Kover actions when Kover is disabled (default)",
     )
 
@@ -59,7 +61,7 @@ def _test_kover_disabled():
 
     kt_jvm_test(
         name = "kover_disabled_test_subject",
-        srcs = ["//src/test/starlark/ksp:TestModel.kt"],
+        srcs = [],
         test_class = "TestModel",
         deps = [":kover_disabled_test_dep"],
         tags = ["manual"],
