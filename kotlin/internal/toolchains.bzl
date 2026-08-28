@@ -101,7 +101,7 @@ def _kotlin_toolchain_impl(ctx):
         empty_jdeps = ctx.file._empty_jdeps,
         jacocorunner = ctx.attr.jacocorunner,
         experimental_kover_enabled = ctx.attr.experimental_kover_enabled,
-        experimental_kover_agent = ctx.attr.experimental_kover_agent,
+        experimental_kover_agent = ctx.file.experimental_kover_agent,
         experimental_kover_exclude = ctx.attr.experimental_kover_exclude,
         experimental_kover_exclude_annotation = ctx.attr.experimental_kover_exclude_annotation,
         experimental_kover_exclude_inherited_from = ctx.attr.experimental_kover_exclude_inherited_from,
@@ -152,7 +152,7 @@ _kt_toolchain = rule(
         ),
         "experimental_kover_agent": attr.label(
             doc = """Kover agent Jar target used for code coverage, only used if experimental_kover_enabled is true.""",
-            providers = [JavaInfo],
+            allow_single_file = True,
         ),
         "experimental_kover_enabled": attr.bool(
             doc = """Use kover for code coverage.""",

@@ -29,7 +29,7 @@ load(
     "//kotlin/internal/jvm:kover.bzl",
     _create_kover_agent_actions = "create_kover_agent_actions",
     _create_kover_metadata_action = "create_kover_metadata_action",
-    _get_kover_agent_files = "get_kover_agent_file",
+    _get_kover_agent_file = "get_kover_agent_file",
     _get_kover_jvm_flags = "get_kover_jvm_flags",
     _is_kover_enabled = "is_kover_enabled",
 )
@@ -418,7 +418,7 @@ def kt_jvm_junit_test_impl(ctx):
 
     if ctx.configuration.coverage_enabled:
         if _is_kover_enabled(ctx):
-            kover_agent_files = _get_kover_agent_files(ctx)
+            kover_agent_file = _get_kover_agent_file(ctx)
             kover_output_file, kover_args_file = _create_kover_agent_actions(ctx, ctx.attr.name)
             kover_output_metadata_file = _create_kover_metadata_action(
                 ctx,
@@ -426,11 +426,11 @@ def kt_jvm_junit_test_impl(ctx):
                 ctx.attr.deps + ctx.attr.associates,
                 kover_output_file,
             )
-            flags = _get_kover_jvm_flags(kover_agent_files, kover_args_file)
+            flags = _get_kover_jvm_flags(kover_agent_file, kover_args_file)
 
             # add Kover agent jvm_flag, inputs and outputs
-            coverage_jvm_flags = [flags]
-            coverage_inputs = [depset(kover_agent_files)]
+            coverage_jvm_flags = flags
+            coverage_inputs = [depset([kover_agent_file])]
             coverage_runfiles = [kover_args_file, kover_output_metadata_file]
         else:
             jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
