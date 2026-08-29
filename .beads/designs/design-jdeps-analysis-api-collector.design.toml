@@ -1,0 +1,79 @@
+slug = "design-jdeps-analysis-api-collector"
+kind = "design"
+title = "Re-implement jdeps dependency collection on the Kotlin Analysis API (hybrid, experiment-gated)"
+status = "approved"
+created = "2026-08-29"
+at_commit = "7907aee"
+
+rationale = """
+The current K2 jdeps plugin runs IN-PROCESS as a kotlinc compiler plugin: FIR checkers
+(checker/declaration/*, checker/expression/*) walk ConeKotlinType/FirClassLikeSymbol
+graphs into explicit/implicit path sets via ClassUsageRecorder. Two spots are brittle by
+construction and break on kotlinc bumps: (1) JdepsK2Utils uses reflection
+(Class.forName/getMethod) into non-public FIR classes (VirtualFileBasedSourceElement,
+JavaBinarySourceElement) to answer "which jar did this symbol come from"; (2) FileChecker
+COPY-PASTES private compiler logic (resolvesToClass from FirImportsChecker) for import ->
+class resolution because no stable public equivalent exists in the compiler-plugin surface.
+
+CHOSEN APPROACH (user-selected: Option 3, hybrid): keep the frontend-agnostic
+BaseJdepsGenExtension (deps.proto writer + strict-deps check + buildozer suggestion)
+UNCHANGED, and move ONLY the dependency-collection layer to a standalone tool built on the
+public Kotlin Analysis API (buildStandaloneAnalysisAPISession + analyze{}/KaSession). The
+Analysis API is NOT a compiler-plugin extension point -- it is a read-only session over a
+module graph you define yourself -- so this is an execution-model change (an out-of-process
+second pass), not a like-for-like internals swap.
+
+THE UNLOCK: model each classpath jar as its own KaLibraryModule (KaLibraryModuleBuilder.
+addBinaryRoot). Then "which jar" = symbol.containingModule as KaLibraryModule -> binaryRoots,
+a public/stable answer that DELETES the JdepsK2Utils reflection. Import + type-alias
+resolution becomes KtImportDirective.resolveToSymbol() / KaTypeAliasSymbol.expandedType,
+which DELETES the FileChecker copy-paste. Both brittle spots die -- but only in the
+out-of-process model.
+
+EXPERIMENT GATE (user-selected): ship the Analysis API collector behind an experiment
+attribute (feature flag). The existing in-process K2 FIR plugin remains the DEFAULT and
+stays wired until the flag is proven out. The gate opens only when a spike clears both
+(a) perf at scale (per-jar KaLibraryModule modeling viable at hundreds of jars; second
+frontend-resolution cost acceptable when the jdeps action is scheduled parallel to codegen)
+and (b) correctness (the existing ~50-case KotlinBuilderJvmJdepsTest suite stays green,
+byte-identical deps.proto, including the known Analysis-API edge cases: delegated
+properties, implicit invoke/receivers, synthetic members, SAM conversions).
+"""
+
+constraints = [
+  "REUSE BaseJdepsGenExtension unchanged as the seam: it already takes explicit/implicit canonical-path sets as input and writes the proto + runs strict-deps -- only the collection layer is reimplemented",
+  "deps.proto output (src/main/protobuf/deps.proto, blaze_deps.Dependencies, Kind EXPLICIT/IMPLICIT/UNUSED) MUST stay byte-compatible -- consumed by Bazel core and JdepsMerger",
+  "Eliminate JdepsK2Utils reflection into non-public FIR classes; resolve jar-of-symbol via public KaSymbol.containingModule -> KaLibraryModule.binaryRoots",
+  "Eliminate FileChecker copy-pasted resolvesToClass; use public KtImportDirective.resolveToSymbol() / KaTypeAliasSymbol.expandedType for import + type-alias resolution",
+  "New Analysis API collector ships behind an EXPERIMENT ATTRIBUTE (feature flag); the in-process K2 FIR plugin remains the default and stays wired until the gate opens",
+  "Analysis API is K2-only: the new path drops jdeps/strict-deps for language_version < 2.0 (default is already 2.1/K2); K1 in-process path is retained only for the non-experiment default",
+  "The standalone session requires the SAME classpath as compilation and pays a full second frontend resolution; the jdeps action must be schedulable PARALLEL to codegen so extra CPU stays off the wall-clock critical path",
+  "Existing KotlinBuilderJvmJdepsTest (~50 cases) is the correctness bar; the new path must produce byte-identical proto (harness may re-plumb jdeps from compile side-output to a standalone action output)",
+]
+
+rejected = [
+  { option = "Option 1: de-brittle the in-process FIR plugin (stay a kotlinc plugin, swap reflection for stable FIR accessors)", reason = "This is the FIR checker API, NOT the Analysis API -- fails the literal ask; and no stable public source-element->jar accessor exists in-compiler (that is WHY the current code reflects), so the reflection/copy-paste brittleness cannot be fully eliminated. Kept only as the fallback if the perf gate fails and K1 must stay." },
+  { option = "Option 2: standalone Analysis API fully REPLACES the plugin (new collector writes the proto directly)", reason = "Discards the frontend-agnostic BaseJdepsGenExtension seam, re-plumbs more of the test harness, and weakens the byte-compat guarantee vs reusing the existing proto writer verbatim. Option 3 is a strict subset that keeps the strongest byte-compat guarantee for free." },
+  { option = "Flag-day cutover with no experiment attribute", reason = "jdeps output is consumed by Bazel core + JdepsMerger and gated on exact proto equality; an out-of-process second-pass execution-model change with K2 edge-case risk (delegated props, implicit invoke, synthetic, SAM) must ship behind a flag with the in-process path as fallback until the spike clears." },
+]
+
+success_criteria = [
+  "SPIKE GATE (opens the experiment flag): per-jar KaLibraryModule modeling is viable at hundreds of jars AND the second frontend-resolution cost is acceptable when the jdeps action runs parallel to codegen",
+  "Existing KotlinBuilderJvmJdepsTest (~50 cases) passes against the Analysis API collector with byte-identical deps.proto, including delegated properties, implicit invoke/receivers, synthetic members, and SAM conversions",
+  "JdepsK2Utils reflection into non-public FIR classes is deleted; jar-of-symbol resolved via public KaSymbol.containingModule -> KaLibraryModule.binaryRoots",
+  "FileChecker copy-pasted resolvesToClass is deleted; import + type-alias resolution uses public Analysis API references",
+  "BaseJdepsGenExtension is unchanged and still writes the proto + runs strict-deps + emits buildozer suggestions",
+  "The Analysis API path is reachable only via the experiment attribute; with the flag off, behavior is byte-identical to today (in-process K1/K2 plugin)",
+  "deps.proto remains byte-compatible for Bazel core + JdepsMerger consumers",
+]
+
+designs_components = [
+  "rules_kotlin/src/main/kotlin/io/bazel/kotlin/plugin/jdeps/BaseJdepsGenExtension.kt",
+  "rules_kotlin/src/main/kotlin/io/bazel/kotlin/plugin/jdeps/JdepsGenComponentRegistrar.kt",
+  "rules_kotlin/src/main/kotlin/io/bazel/kotlin/plugin/jdeps/k2/ClassUsageRecorder.kt",
+  "rules_kotlin/src/main/kotlin/io/bazel/kotlin/plugin/jdeps/k2/JdepsK2Utils.kt",
+  "rules_kotlin/src/main/kotlin/io/bazel/kotlin/plugin/jdeps/k2/checker/declaration/FileChecker.kt",
+  "rules_kotlin/src/main/protobuf/deps.proto",
+  "rules_kotlin/src/test/kotlin/io/bazel/kotlin/builder/tasks/jvm/KotlinBuilderJvmJdepsTest.kt",
+  "rules_kotlin/kotlin/internal/toolchains.bzl",
+]
