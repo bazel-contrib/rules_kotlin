@@ -6,20 +6,22 @@ load(":ktlint_config.bzl", "KtlintConfigInfo")
 def _ktlint_fix_impl(ctx):
     editorconfig = get_editorconfig(ctx.attr.config)
 
-    # Build ktlint arguments (editorconfig uses rlocation since it's in runfiles)
-    args = ["--format"]
+    # Each entry becomes one line in a runtime-generated argsfile. Picocli's
+    # @-file expansion reads one argument per non-empty line, which keeps us
+    # under ARG_MAX on targets with many sources. The editorconfig path is
+    # resolved via rlocation (runfiles); sources are addressed under
+    # BUILD_WORKSPACE_DIRECTORY so --format edits the user's files in place.
+    arg_lines = ["--format"]
     if editorconfig:
-        args.append("--editorconfig=$(rlocation {})".format(to_rlocation_path(ctx, editorconfig)))
+        arg_lines.append("--editorconfig=$(rlocation {})".format(to_rlocation_path(ctx, editorconfig)))
     if is_android_rules_enabled(ctx.attr.config):
-        args.append("--android")
+        arg_lines.append("--android")
     if is_experimental_rules_enabled(ctx.attr.config):
-        args.append("--experimental")
-    args.append("--relative")
+        arg_lines.append("--experimental")
+    arg_lines.append("--relative")
+    for src in ctx.files.srcs:
+        arg_lines.append("${{BUILD_WORKSPACE_DIRECTORY}}/{}".format(src.path))
 
-    # Source files use BUILD_WORKSPACE_DIRECTORY since we want to modify the actual files
-    srcs = " ".join(['"${{BUILD_WORKSPACE_DIRECTORY}}/{}"'.format(src.path) for src in ctx.files.srcs])
-
-    # Generate bash script
     bash_launcher = ctx.actions.declare_file("%s-lint-fix.sh" % ctx.label.name)
     content = """\
 #!/usr/bin/env bash
@@ -38,12 +40,16 @@ if [[ -z "${{JAVA_RUNFILES:-}}" ]]; then
     fi
   fi
 fi
-"$(rlocation {ktlint})" {args} {srcs}
+ARGSFILE="$(mktemp)"
+trap 'rm -f "$ARGSFILE"' EXIT
+printf '%s\\n' \\
+{quoted_args} \\
+  > "$ARGSFILE"
+"$(rlocation {ktlint})" "@$ARGSFILE"
 """.format(
         rlocation_function = BASH_RLOCATION_FUNCTION,
         ktlint = to_rlocation_path(ctx, ctx.executable._ktlint_tool),
-        args = " ".join(args),
-        srcs = srcs,
+        quoted_args = " \\\n  ".join(['"{}"'.format(a) for a in arg_lines]),
     )
 
     ctx.actions.write(
