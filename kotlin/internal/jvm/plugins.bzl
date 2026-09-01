@@ -40,11 +40,11 @@ def _targets_to_annotation_processors(targets):
             pass
         elif JavaPluginInfo in t:
             p = t[JavaPluginInfo].plugins
-            if p.processor_jars:
+            if p.processor_jars and p.processor_classes.to_list():
                 plugins.append(p)
         elif JavaInfo in t:
             p = t[JavaInfo].plugins
-            if p.processor_jars:
+            if p.processor_jars and p.processor_classes.to_list():
                 plugins.append(p)
 
     return plugins
