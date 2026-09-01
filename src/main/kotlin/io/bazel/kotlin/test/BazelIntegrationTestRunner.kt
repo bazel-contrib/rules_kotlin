@@ -55,6 +55,7 @@ object BazelIntegrationTestRunner {
     val version = bazel.run(workspace, "--version").parseVersion()
 
     val workspaceEnabled = System.getenv("WORKSPACE_ENABLED") != null
+    val skipRulesKotlinQuery = System.getenv("SKIP_RULES_KOTLIN_QUERY") != null
 
     val workspaceFlags = FlagSets(
       listOf(
@@ -117,13 +118,15 @@ object BazelIntegrationTestRunner {
           *commandFlags,
           "//...",
         ).onFailThrow()
-        bazel.run(
-          workspace,
-          *systemFlags,
-          "query",
-          *commandFlags,
-          "@rules_kotlin//...",
-        ).onFailThrow()
+        if (!skipRulesKotlinQuery) {
+          bazel.run(
+            workspace,
+            *systemFlags,
+            "query",
+            *commandFlags,
+            "@rules_kotlin//...",
+          ).onFailThrow()
+        }
         bazel.run(
           workspace,
           *systemFlags,
