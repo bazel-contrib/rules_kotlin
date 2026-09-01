@@ -252,10 +252,6 @@ def _process_stub(ctx, deploy_jar_ctx, jvm_ctx, stub_preprocess_ctx, **_unused_s
     classpath_file = ctx.actions.declare_file(ctx.label.name + "_classpath")
     runfiles.append(classpath_file)
     test_class = _get_test_class(ctx)
-    if not test_class:
-        fail("test_class could not be derived for " + str(ctx.label) +
-             ". Explicitly set test_class or move this source file to " +
-             "a java source root.")
 
     _create_stub(
         ctx,
@@ -294,8 +290,9 @@ def _get_test_class(ctx):
         if path.endswith(expected):
             return _java.resolve_package(path[:-5])
 
-    # Last resort: Use the name and package name of the target.
-    return _java.resolve_package(ctx.label.package + "/" + ctx.label.name)
+    fail("test_class could not be derived for " + str(ctx.label) +
+         ". Explicitly set test_class or move this source file to " +
+         "a java source root.")
 
 def _create_stub(
         ctx,
