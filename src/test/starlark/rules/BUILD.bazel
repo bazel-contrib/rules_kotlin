@@ -17,7 +17,7 @@ associates_tests(
     name = "associates_tests",
 )
 
-# Only used by associates_tests, which pulls it in with --extra_toolchains.
+# Only used by tests that enable private-class removal through --extra_toolchains.
 define_kt_toolchain(
     name = "remove_private_classes_toolchain",
     experimental_remove_private_classes_in_abi_jars = True,
