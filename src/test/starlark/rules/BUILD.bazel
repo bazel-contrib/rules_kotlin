@@ -5,6 +5,7 @@ load(":btapi_runtime_args_tests.bzl", "btapi_runtime_args_tests")
 load(":btapi_runtime_tests.bzl", "btapi_runtime_tests")
 load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
 load(":jdeps_merge_inputs_tests.bzl", "jdeps_merge_inputs_tests")
+load(":mixed_mode_tests.bzl", "mixed_mode_tests")
 load(":plugin_dialect_tests.bzl", "plugin_dialect_tests")
 
 btapi_runtime_args_tests(
@@ -72,6 +73,10 @@ define_kt_toolchain(
 
 jdeps_merge_inputs_tests(
     name = "jdeps_merge_inputs_tests",
+)
+
+mixed_mode_tests(
+    name = "mixed_mode_tests",
 )
 
 plugin_dialect_tests(
