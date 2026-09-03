@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLIN_STDLIBS")
-load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_plugin")
 
 java_import(
     name = "worker",
@@ -34,6 +34,19 @@ java_import(
     name = "ksp2_invoker",
     jars = ["ksp2_invoker.jar"],
     visibility = ["//visibility:public"],
+)
+
+java_import(
+    name = "kaptish-lib",
+    jars = ["kaptish.jar"],
+)
+
+java_plugin(
+    name = "kaptish",
+    generates_api = True,
+    processor_class = "io.bazel.kotlin.plugin.kaptish.KotlinClassInjectorPlugin",
+    visibility = ["//visibility:public"],
+    deps = [":kaptish-lib"],
 )
 
 java_import(

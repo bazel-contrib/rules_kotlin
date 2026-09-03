@@ -13,6 +13,7 @@
 # limitations under the License.
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
@@ -86,6 +87,8 @@ def _kotlin_toolchain_impl(ctx):
             "supports-workers": "1",
         },
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
+        experimental_kaptish_enabled = ctx.attr.experimental_kaptish_enabled,
+        kaptish_plugin = ctx.attr.kaptish_plugin,
         experimental_treat_internal_as_private_in_abi_jars = ctx.attr.experimental_treat_internal_as_private_in_abi_jars,
         experimental_remove_private_classes_in_abi_jars = ctx.attr.experimental_remove_private_classes_in_abi_jars,
         experimental_remove_debug_info_in_abi_jars = ctx.attr.experimental_remove_debug_info_in_abi_jars,
@@ -143,6 +146,12 @@ _kt_toolchain = rule(
         ),
         "experimental_build_tools_api": attr.bool(
             doc = "Enables experimental support for Build Tools API integration",
+            default = False,
+        ),
+        "experimental_kaptish_enabled": attr.bool(
+            doc = """Enable Kaptish for annotation processing. Compiles Kotlin first,
+            then injects compiled classes into javac's AP phase. 1.75-2x faster than KAPT.
+            Disable per-target with tag `kaptish_disabled`.""",
             default = False,
         ),
         "experimental_multiplex_sandboxing": attr.bool(
@@ -266,6 +275,12 @@ _kt_toolchain = rule(
                 "24",
                 "25",
             ],
+        ),
+        "kaptish_plugin": attr.label(
+            doc = "The kaptish annotation processor for Kotlin class injection",
+            default = Label("//src/main/kotlin:kaptish"),
+            providers = [JavaPluginInfo],
+            cfg = "exec",
         ),
         "kotlin_home": attr.label(
             doc = "the filegroup defining the kotlin home",
@@ -405,6 +420,7 @@ def define_kt_toolchain(
         experimental_multiplex_sandboxing = None,
         supports_path_mapping = None,
         experimental_build_tools_api = None,
+        experimental_kaptish_enabled = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
         jvm_stdlibs = None,
@@ -439,6 +455,7 @@ def define_kt_toolchain(
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
         experimental_build_tools_api = experimental_build_tools_api,
+        experimental_kaptish_enabled = experimental_kaptish_enabled,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],

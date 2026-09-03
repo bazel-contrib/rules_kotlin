@@ -72,6 +72,15 @@ kt_rules_e2e_test(
     data = ["//src/test/data/jvm/ksp"],
 )
 
+# Kaptish tests require building with the kaptish-enabled toolchain:
+#   bazel test //src/test/kotlin/io/bazel/kotlin:KotlinJvmKaptishAssertionTest \
+#     --extra_toolchains=//src/test/data/jvm/kaptish:kaptish_toolchain
+kt_rules_e2e_test(
+    name = "KotlinJvmKaptishAssertionTest",
+    srcs = ["KotlinJvmKaptishAssertionTest.kt"],
+    data = ["//src/test/data/jvm/kaptish"],
+)
+
 kt_rules_e2e_test(
     name = "JavacJvmTargetAssertionTest",
     srcs = ["JavacJvmTargetAssertionTest.kt"],
