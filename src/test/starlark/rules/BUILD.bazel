@@ -3,6 +3,7 @@ load(":associates_tests.bzl", "associates_tests")
 load(":build_tools_api_toggle_tests.bzl", "build_tools_api_toggle_tests")
 load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
 load(":jdeps_merge_inputs_tests.bzl", "jdeps_merge_inputs_tests")
+load(":mixed_mode_tests.bzl", "mixed_mode_tests")
 
 build_tools_api_toggle_tests(
     name = "build_tools_api_toggle_tests",
@@ -16,7 +17,7 @@ associates_tests(
     name = "associates_tests",
 )
 
-# Only used by associates_tests, which pulls it in with --extra_toolchains.
+# Only used by tests that enable private-class removal through --extra_toolchains.
 define_kt_toolchain(
     name = "remove_private_classes_toolchain",
     experimental_remove_private_classes_in_abi_jars = True,
@@ -37,6 +38,10 @@ define_kt_toolchain(
 
 jdeps_merge_inputs_tests(
     name = "jdeps_merge_inputs_tests",
+)
+
+mixed_mode_tests(
+    name = "mixed_mode_tests",
 )
 
 # Only registered through --extra_toolchains by the tests that need unused dep reporting on.
