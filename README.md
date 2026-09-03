@@ -140,6 +140,47 @@ kotlin_repositories(
 )
 ```
 
+## Custom embeddable compiler release
+
+The embeddable compiler dialect — `kotlin-compiler-embeddable`,
+`kotlin-annotation-processing-embeddable`, and `jvm-abi-gen`, the Maven-published jars that
+back the `btapi_*`/`internal_*` toolchain attributes — follows its own
+`compiler_embeddable_release` parameter. It defaults to the release of the bundled
+distribution. To select a different release, state the version and the checksum of every
+artifact:
+
+### `MODULE.bazel`
+```python
+rules_kotlin_extensions.compiler_embeddable_release(
+    version = "2.1.20",
+    compiler_sha256 = "...",
+    annotation_processing_sha256 = "...",
+    jvm_abi_gen_sha256 = "...",
+)
+```
+
+### `WORKSPACE`
+```python
+load(
+    "@rules_kotlin//kotlin:repositories.bzl",
+    "kotlinc_embeddable_version",
+    "kotlin_repositories",
+)
+
+kotlin_repositories(
+    compiler_embeddable_release = kotlinc_embeddable_version(
+        version = "2.1.20",
+        compiler_sha256 = "...",
+        annotation_processing_sha256 = "...",
+        jvm_abi_gen_sha256 = "...",
+    ),
+)
+```
+
+Every checksum is required, so every download stays verified. The embeddable artifacts are
+version-locked to the compiler: keep `compiler_embeddable_release` on the same release as
+`compiler_release`.
+
 ## Third party dependencies 
 _(e.g. Maven artifacts)_
 

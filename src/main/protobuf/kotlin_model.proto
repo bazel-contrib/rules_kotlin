@@ -41,8 +41,23 @@ message KotlinToolchainInfo {
         string jvm_target = 1;
     }
 
+    // The Build Tools API compiler runtime the toolchain supplies for this task. Present only
+    // when the task should be compiled through the Build Tools API;
+    // the worker uses the presence of BtapiRuntime as a signal to compile using it.
+    message BtapiRuntime {
+        // The complete compilation runtime: the Build Tools implementation, the compiler,
+        // and the libraries they need, in classloader order.
+        repeated string api_impl_classpath = 1;
+        // The internal compiler plugin classpaths, matching the selected compiler's dialect.
+        repeated string jvm_abi_gen_classpath = 2;
+        repeated string skip_code_gen_classpath = 3;
+        repeated string kapt_classpath = 4;
+        repeated string jdeps_gen_classpath = 5;
+    }
+
     Common common = 1;
     Jvm jvm = 2;
+    BtapiRuntime btapi = 3;
 }
 
 enum RuleKind {
@@ -87,7 +102,10 @@ message CompilationTaskInfo {
     // Private classes are removed in abi.jar generation
     bool remove_private_classes_in_abi_jar = 13;
     // New Build Tools API. Required for incremental compilation.
-    bool build_tools_api = 14;
+    // 14 was build_tools_api; the Build Tools API path is now signaled by the presence of
+    // toolchain_info.btapi.
+    reserved 14;
+    reserved "build_tools_api";
     // Debug info is stripped in abi.jar generation
     bool remove_debug_info = 15;
     // Preserve the ABI declaration order

@@ -22,7 +22,6 @@ import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
-import io.bazel.kotlin.builder.tasks.jvm.btapi.BtapiInvoker;
 import io.bazel.kotlin.builder.tasks.jvm.btapi.BtapiTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
@@ -64,6 +63,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     private final TaskBuilder taskBuilderInstance = new TaskBuilder();
     private static KotlinJvmTaskExecutor jvmTaskExecutor;
     private static BtapiTaskExecutor btapiTaskExecutor;
+    private static KotlinToolchainInfo.BtapiRuntime btapiRuntime;
 
     @Override
     void setupForNext(CompilationTaskInfo.Builder taskInfo) {
@@ -100,7 +100,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         // typed executor, everything else through the legacy executor.
         return executeTask(
                 (context, task) -> {
-                    if (task.getInfo().getBuildToolsApi()) {
+                    if (task.getInfo().getToolchainInfo().hasBtapi()) {
                         btapiTaskExecutor().execute(context, task);
                     } else {
                         jvmTaskExecutor().execute(context, task);
@@ -125,16 +125,37 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     private static BtapiTaskExecutor btapiTaskExecutor() {
         if (btapiTaskExecutor == null) {
-            KotlinToolchain toolchain = toolchainForTest();
-            InternalCompilerPlugins plugins = new InternalCompilerPlugins(
-                    toolchain.getJvmAbiGen(),
-                    toolchain.getSkipCodeGen(),
-                    toolchain.getKapt3Plugin(),
-                    toolchain.getJdepsGen()
-            );
-            btapiTaskExecutor = new BtapiTaskExecutor(new BtapiInvoker(toolchain), plugins);
+            btapiTaskExecutor = new BtapiTaskExecutor(toolchainForTest().getBtapiClassLoader());
         }
         return btapiTaskExecutor;
+    }
+
+    /**
+     * The Build Tools API runtime the worker would receive through the --btapi_* and --internal_*
+     * flags. Tests run the embeddable compiler family (the dialect the Maven-published compiler
+     * plugins are built against) with the matching embeddable internal plugin variants, while the
+     * default toolchain exercises the CLI-distribution family through the integration fixtures.
+     */
+    static KotlinToolchainInfo.BtapiRuntime btapiRuntimeForTest() {
+        if (btapiRuntime == null) {
+            btapiRuntime = KotlinToolchainInfo.BtapiRuntime.newBuilder()
+                    .addApiImplClasspath(Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("//kotlin/compiler:kotlin-daemon-client").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("@kotlin_compiler_embeddable//file").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("@rules_kotlin//kotlin/compiler:kotlin-reflect").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("@kotlinx_coroutines_core_jvm//file").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar())
+                    .addJvmAbiGenClasspath(Dep.fromLabel("@jvm_abi_gen//file").singleCompileJar())
+                    .addSkipCodeGenClasspath(Dep.fromLabel("//src/main/kotlin:skip-code-gen-embeddable").singleCompileJar())
+                    .addKaptClasspath(Dep.fromLabel("@kotlin_annotation_processing_embeddable//file").singleCompileJar())
+                    .addJdepsGenClasspath(Dep.fromLabel("//src/main/kotlin:jdeps-gen-embeddable").singleCompileJar())
+                    .build();
+        }
+        return btapiRuntime;
     }
 
     /**
@@ -309,7 +330,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public TaskBuilder useBuildToolsApi() {
-            taskBuilder.getInfoBuilder().setBuildToolsApi(true);
+            taskBuilder.getInfoBuilder().getToolchainInfoBuilder().setBtapi(btapiRuntimeForTest());
             return this;
         }
 

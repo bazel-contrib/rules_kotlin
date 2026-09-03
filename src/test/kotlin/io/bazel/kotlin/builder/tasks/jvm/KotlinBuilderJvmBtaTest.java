@@ -29,7 +29,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_ANNOTATIONS;
 import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_STDLIB;
 
-/** Compiles through the Build Tools API path ({@code --build_tools_api=true}). */
+/** Compiles through the Build Tools API path (toolchain-supplied btapi runtime present). */
 @RunWith(JUnit4.class)
 public class KotlinBuilderJvmBtaTest {
     private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
@@ -196,6 +196,24 @@ public class KotlinBuilderJvmBtaTest {
 
         ctx.assertFilesExist(DirectoryType.JAVA_SOURCE_GEN, "autovalue/AutoValue_TestKtValue.java");
         ctx.assertFilesExist(DirectoryType.CLASSES, "autovalue/TestKtValue.class");
+    }
+
+    @Test
+    public void testAbiJarGeneration() {
+        // The abi jar is produced by the jvm-abi-gen compiler plugin configured as a typed
+        // descriptor; the plugin must load in the compiler runtime the test harness configures
+        // (the embeddable compiler family). The output jar is requested too: without it the
+        // skip-code-gen plugin would engage, and that plugin does not support the K2 compiler.
+        ctx.runCompileTask(
+                c -> {
+                    c.useBuildToolsApi();
+                    c.compileKotlin();
+                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                    c.outputJar();
+                    c.outputAbiJar();
+                    c.outputJdeps();
+                });
+        ctx.assertFilesExist(DirectoryType.ABI_CLASSES, "something/AClass.class");
     }
 
     @Test

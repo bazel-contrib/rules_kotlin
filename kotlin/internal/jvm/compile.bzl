@@ -578,6 +578,16 @@ def _run_ksp_builder_actions(
         ksp_generated_src_jar = ksp_generated_java_srcjar,
     )
 
+# The Build Tools API runtime jars and internal compiler plugins the worker receives when the
+# Build Tools API compilation is enabled: (worker flag, ToolchainInfo field) pairs.
+_BTAPI_RUNTIME_ARG_SPECS = (
+    ("--btapi_impl_classpath", "btapi_impl_classpath"),
+    ("--internal_jvm_abi_gen_classpath", "internal_jvm_abi_gen_classpath"),
+    ("--internal_skip_code_gen_classpath", "internal_skip_code_gen_classpath"),
+    ("--internal_kapt_classpath", "internal_kapt_classpath"),
+    ("--internal_jdeps_gen_classpath", "internal_jdeps_gen_classpath"),
+)
+
 # payload: the single args.add_all item, a struct(plugins = ...) carrying the list of compiler plugins
 def _plugins_payload_to_json(payload):
     return _plugin_payload.plugins_payload_json(payload.plugins)
@@ -667,7 +677,16 @@ def _run_kt_builder_action(
     if experimental_remove_data_class_copy_if_constructor_is_private:
         args.add("--remove_data_class_copy_if_constructor_is_private", "true")
 
-    args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
+    # Pass Build Tools API compilation runtime flags: the worker builds an isolated compiler classloader
+    # from these toolchain-supplied jars (cached per distinct jar set), plus the internal compiler
+    # plugins matching that runtime's dialect. Relevant to Build Tools API actions only, legacy invocation's action inputs are unchanged.
+    btapi_runtime_inputs = []
+    if toolchains.kt.experimental_build_tools_api:
+        for flag, attr_name in _BTAPI_RUNTIME_ARG_SPECS:
+            runtime_files = getattr(toolchains.kt, attr_name)
+            args.add_all(flag, runtime_files)
+            btapi_runtime_inputs.extend(runtime_files)
+
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
@@ -717,7 +736,7 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars,
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + btapi_runtime_inputs,
             transitive = [
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,

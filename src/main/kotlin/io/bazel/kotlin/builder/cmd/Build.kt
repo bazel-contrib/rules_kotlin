@@ -22,7 +22,6 @@ import io.bazel.kotlin.builder.tasks.JvmTaskExecutor
 import io.bazel.kotlin.builder.tasks.KotlinBuilder
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
-import io.bazel.kotlin.builder.tasks.jvm.btapi.BtapiInvoker
 import io.bazel.kotlin.builder.tasks.jvm.btapi.BtapiTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
@@ -40,7 +39,7 @@ private class DispatchingTaskExecutor(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
-    if (context.info.buildToolsApi) {
+    if (task.info.toolchainInfo.hasBtapi()) {
       btapiExecutor.execute(context, task)
     } else {
       legacyExecutor.execute(context, task)
@@ -64,7 +63,9 @@ object Build {
         val jvmTaskExecutor =
           DispatchingTaskExecutor(
             legacyExecutor = KotlinJvmTaskExecutor(toolchain, plugins),
-            btapiFactory = { BtapiTaskExecutor(BtapiInvoker(toolchain), plugins) },
+            btapiFactory = {
+              BtapiTaskExecutor(toolchain.btapiClassLoader)
+            },
           )
         val builder = KotlinBuilder(jvmTaskExecutor)
         start(CompileKotlin(builder))

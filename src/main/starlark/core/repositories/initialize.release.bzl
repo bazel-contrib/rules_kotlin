@@ -19,11 +19,21 @@ load(
     "http_archive",
     "http_file",
 )
-load(":compiler.bzl", "kotlin_compiler_repository")
+load(
+    ":compiler.bzl",
+    "kotlin_compiler_repository",
+    "kotlin_embeddable_compiler_repository",
+)
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
-load(":versions.bzl", "version", _versions = "versions")
+load(
+    ":versions.bzl",
+    "version",
+    _kotlinc_embeddable_version = "kotlinc_embeddable_version",
+    _versions = "versions",
+)
 
 versions = _versions
+kotlinc_embeddable_version = _kotlinc_embeddable_version
 
 # Keep these names in sync with //kotlin/internal:defs.bzl.
 _KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
@@ -34,7 +44,8 @@ def kotlin_repositories(
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
-        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
+        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE,
+        compiler_embeddable_release = versions.KOTLIN_CURRENT_COMPILER_EMBEDDABLE_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
@@ -43,6 +54,9 @@ def kotlin_repositories(
         configured_repository_name: for the default versioned kt_* rules repository. If None, no versioned repository is
          created.
         ksp_compiler_release: (internal) version provider from versions.bzl.
+        compiler_embeddable_release: a composite of version values for the embeddable
+         compiler dialect. Build one with kotlinc_embeddable_version, or keep the
+         default release from versions.bzl.
     """
 
     kotlin_compiler_repository(
@@ -101,6 +115,10 @@ def kotlin_repositories(
         name = "kotlin_build_tools_api",
         version = versions.KOTLIN_BUILD_TOOLS_API,
         downloaded_file_path = "kotlin-build-tools-api.jar",
+    )
+
+    kotlin_embeddable_compiler_repository(
+        release = compiler_embeddable_release,
     )
 
     if is_bzlmod:

@@ -33,7 +33,9 @@ def kt_rules_test(name, **kwargs):
     for dep in [
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
         "//src/main/kotlin:skip-code-gen",
+        "//src/main/kotlin:skip-code-gen-embeddable",
         "//src/main/kotlin:jdeps-gen",
+        "//src/main/kotlin:jdeps-gen-embeddable",
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-compiler",
@@ -46,8 +48,12 @@ def kt_rules_test(name, **kwargs):
         "@kotlinx_serialization_core_jvm//file",
         "@kotlinx_serialization_json//file",
         "@kotlinx_serialization_json_jvm//file",
+        "@kotlinx_coroutines_core_jvm//file",
         "@kotlin_build_tools_api//file",
         "@kotlin_build_tools_impl//file",
+        "@kotlin_compiler_embeddable//file",
+        "@kotlin_annotation_processing_embeddable//file",
+        "@jvm_abi_gen//file",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

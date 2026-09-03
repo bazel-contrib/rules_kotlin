@@ -17,8 +17,8 @@
 package io.bazel.kotlin.builder.tasks.jvm.btapi
 
 import com.google.devtools.build.lib.view.proto.Deps
+import io.bazel.kotlin.builder.tasks.BtapiRuntime
 import io.bazel.kotlin.builder.tasks.JvmTaskExecutor
-import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.emptyJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.writeJdeps
 import io.bazel.kotlin.builder.tasks.jvm.createAbiJar
@@ -34,25 +34,37 @@ import io.bazel.kotlin.builder.tasks.jvm.expandWithGeneratedSources
 import io.bazel.kotlin.builder.tasks.jvm.incrementalData
 import io.bazel.kotlin.builder.tasks.jvm.preProcessingSteps
 import io.bazel.kotlin.builder.tasks.jvm.stubs
+import io.bazel.kotlin.builder.tasks.toRuntime
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.compiler.CompilationUnit
 import io.bazel.kotlin.compiler.CompilerConfiguration
 import io.bazel.kotlin.compiler.CompilerPluginSpec
+import io.bazel.kotlin.compiler.KotlinBtapiCompiler
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask.Inputs.PluginPhase
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.PrintStream
 import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
+
+// The internal compiler plugin ids; the plugin jars come from the toolchain-supplied
+// Build Tools API runtime (BtapiRuntime).
+private const val JVM_ABI_GEN_PLUGIN_ID = "org.jetbrains.kotlin.jvm.abi"
+private const val SKIP_CODE_GEN_PLUGIN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"
+private const val KAPT_PLUGIN_ID = "org.jetbrains.kotlin.kapt3"
+private const val JDEPS_GEN_PLUGIN_ID = "io.bazel.kotlin.plugin.jdeps.JDepsGen"
 
 /**
  * Executes JVM compilation tasks through the typed Build Tools API path.
  */
 class BtapiTaskExecutor(
-  private val invoker: BtapiInvoker,
-  private val plugins: InternalCompilerPlugins,
+  private val btapiClassLoader: ClassLoader,
 ) : JvmTaskExecutor {
+  /** api_impl_classpath -> compiler invoker map */
+  private val invokers = ConcurrentHashMap<List<String>, KotlinBtapiCompiler>()
+
   private data class PluginDescriptor(
     override val id: String,
     override val classpath: List<String>,
@@ -60,14 +72,38 @@ class BtapiTaskExecutor(
     override val options: List<String>,
   ) : CompilerPluginSpec
 
+  private class TaskCompilationUnit(
+    override val sources: List<String>,
+    override val classpath: List<String>,
+    override val friendPaths: List<String>,
+    override val destination: String,
+  ) : CompilationUnit
+
+  private class TaskCompilerConfiguration(
+    override val moduleName: String,
+    override val jvmTarget: String,
+    override val apiVersion: String,
+    override val languageVersion: String,
+    override val passthroughArguments: List<String>,
+    override val verbose: Boolean,
+  ) : CompilerConfiguration
+
   override fun execute(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
+    require(task.info.toolchainInfo.hasBtapi()) {
+      "the Build Tools API compilation requires the toolchain-supplied runtime " +
+        "(the --btapi_* and --internal_* worker flags)"
+    }
+    val btapiRuntime =
+      task.info.toolchainInfo.btapi
+        .toRuntime()
+    val compiler = invokers.computeIfAbsent(btapiRuntime.apiImplClasspath, ::loadCompilerInvoker)
     val preprocessedTask =
       task
         .preProcessingSteps(context)
-        .runKaptIfNeeded(context)
+        .runKaptIfNeeded(context, compiler, btapiRuntime)
 
     context.execute("compile classes") {
       preprocessedTask.apply {
@@ -75,7 +111,7 @@ class BtapiTaskExecutor(
           try {
             context.execute("kotlinc") {
               if (compileKotlin) {
-                runKotlinCompiler(context)
+                runKotlinCompiler(context, compiler, btapiRuntime)
               } else {
                 if (outputs.jdeps.isNotEmpty()) {
                   writeJdeps(outputs.jdeps, emptyJdeps(info.label))
@@ -119,11 +155,20 @@ class BtapiTaskExecutor(
     }
   }
 
+  private fun loadCompilerInvoker(classpath: List<String>): KotlinBtapiCompiler {
+    classpath.forEach { jar ->
+      require(File(jar).isFile) { "missing Build Tools API runtime jar: $jar" }
+    }
+    return BtapiInvoker(btapiClassLoader, classpath.toTypedArray())
+  }
+
   /**
    * The KAPT stubs-and-apt pre-pass, followed by re-expanding the task with the generated sources.
    */
   private fun JvmCompilationTask.runKaptIfNeeded(
     context: CompilationTaskContext,
+    compiler: KotlinBtapiCompiler,
+    runtime: BtapiRuntime,
   ): JvmCompilationTask {
     if (
       (inputs.processorsList.isEmpty() && inputs.stubsPluginClasspathList.isEmpty()) ||
@@ -137,8 +182,8 @@ class BtapiTaskExecutor(
     }
     return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
       val descriptors =
-        listOf(kaptPluginDescriptor(context)) +
-          userPluginDescriptors(PluginPhase.PLUGIN_PHASE_STUBS)
+        listOf(kaptPluginDescriptor(context, runtime)) +
+          userPluginDescriptors(PluginPhase.PLUGIN_PHASE_STUBS, runtime)
       context
         .executeCompilerTask(
           { out ->
@@ -146,6 +191,7 @@ class BtapiTaskExecutor(
             // the user's pass-through flags and the friend paths belong to the main compile.
             invokeCompiler(
               context,
+              compiler,
               arguments = emptyList(),
               friendPaths = emptyList(),
               sources = inputs.kotlinSourcesList + inputs.javaSourcesList,
@@ -164,14 +210,18 @@ class BtapiTaskExecutor(
     }
   }
 
-  private fun JvmCompilationTask.runKotlinCompiler(context: CompilationTaskContext): List<String> {
+  private fun JvmCompilationTask.runKotlinCompiler(
+    context: CompilationTaskContext,
+    compiler: KotlinBtapiCompiler,
+    runtime: BtapiRuntime,
+  ): List<String> {
     val descriptors = mutableListOf<PluginDescriptor>()
 
     if (outputs.jdeps.isNotEmpty()) {
       descriptors.add(
         PluginDescriptor(
-          id = plugins.jdeps.id,
-          classpath = listOf(plugins.jdeps.jarPath),
+          id = JDEPS_GEN_PLUGIN_ID,
+          classpath = runtime.jdepsGenClasspath,
           options =
             listOf(
               "output=${outputs.jdeps}",
@@ -202,22 +252,22 @@ class BtapiTaskExecutor(
       }
       descriptors.add(
         PluginDescriptor(
-          id = plugins.jvmAbiGen.id,
-          classpath = listOf(plugins.jvmAbiGen.jarPath),
+          id = JVM_ABI_GEN_PLUGIN_ID,
+          classpath = runtime.jvmAbiGenClasspath,
           options = abiOptions,
         ),
       )
       if (outputs.jar.isEmpty()) {
         descriptors.add(
           PluginDescriptor(
-            id = plugins.skipCodeGen.id,
-            classpath = listOf(plugins.skipCodeGen.jarPath),
+            id = SKIP_CODE_GEN_PLUGIN_ID,
+            classpath = runtime.skipCodeGenClasspath,
             options = emptyList(),
           ),
         )
       }
     }
-    descriptors.addAll(userPluginDescriptors(PluginPhase.PLUGIN_PHASE_COMPILE))
+    descriptors.addAll(userPluginDescriptors(PluginPhase.PLUGIN_PHASE_COMPILE, runtime))
 
     context.whenTracing {
       context.printLines(
@@ -229,6 +279,7 @@ class BtapiTaskExecutor(
       { out ->
         invokeCompiler(
           context,
+          compiler,
           arguments = info.passthroughFlagsList,
           friendPaths = info.friendPathsList,
           sources = inputs.javaSourcesList + inputs.kotlinSourcesList,
@@ -241,28 +292,15 @@ class BtapiTaskExecutor(
     )
   }
 
-  private class TaskCompilationUnit(
-    override val sources: List<String>,
-    override val classpath: List<String>,
-    override val friendPaths: List<String>,
-    override val destination: String,
-  ) : CompilationUnit
-
-  private class TaskCompilerConfiguration(
-    override val moduleName: String,
-    override val jvmTarget: String,
-    override val apiVersion: String,
-    override val languageVersion: String,
-    override val passthroughArguments: List<String>,
-    override val verbose: Boolean,
-  ) : CompilerConfiguration
-
   /**
    * The user's structured plugins for one phase, excluding kapt (which the pre-pass configures itself).
    */
-  private fun JvmCompilationTask.userPluginDescriptors(phase: PluginPhase): List<PluginDescriptor> =
+  private fun JvmCompilationTask.userPluginDescriptors(
+    phase: PluginPhase,
+    runtime: BtapiRuntime,
+  ): List<PluginDescriptor> =
     inputs.pluginsList
-      .filter { phase in it.phasesList && it.id != plugins.kapt.id }
+      .filter { phase in it.phasesList && it.id != KAPT_PLUGIN_ID }
       .map { plugin ->
         val tokens =
           mapOf(
@@ -294,6 +332,7 @@ class BtapiTaskExecutor(
    */
   private fun JvmCompilationTask.kaptPluginDescriptor(
     context: CompilationTaskContext,
+    runtime: BtapiRuntime,
   ): PluginDescriptor {
     val jvmTarget = info.toolchainInfo.jvm.jvmTarget
     val javacArgs =
@@ -318,7 +357,7 @@ class BtapiTaskExecutor(
     val apOptions =
       inputs.pluginsList
         .asSequence()
-        .filter { it.id == plugins.kapt.id }
+        .filter { it.id == KAPT_PLUGIN_ID }
         .flatMap { it.optionsList.asSequence() }
         .filter { it.key == "apoption" }
         .map { option ->
@@ -329,14 +368,15 @@ class BtapiTaskExecutor(
     }
 
     return PluginDescriptor(
-      id = plugins.kapt.id,
-      classpath = listOf(plugins.kapt.jarPath),
+      id = KAPT_PLUGIN_ID,
+      classpath = runtime.kaptClasspath,
       options = options,
     )
   }
 
   private fun JvmCompilationTask.invokeCompiler(
     context: CompilationTaskContext,
+    compiler: KotlinBtapiCompiler,
     arguments: List<String>,
     friendPaths: List<String>,
     sources: List<String>,
@@ -344,7 +384,7 @@ class BtapiTaskExecutor(
     destination: String,
     out: PrintStream,
   ): Int =
-    invoker.exec(
+    compiler.exec(
       errStream = out,
       compilationUnit =
         TaskCompilationUnit(

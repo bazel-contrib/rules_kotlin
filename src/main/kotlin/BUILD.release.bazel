@@ -39,11 +39,26 @@ java_import(
 java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "jdeps-gen",
     jars = ["jdeps-gen.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# Embeddable-dialect plugin variants for the Build Tools API runtime override attributes.
+java_import(
+    name = "skip-code-gen-embeddable",
+    jars = ["skip-code-gen-embeddable.jar"],
+    visibility = ["//visibility:public"],
+)
+
+java_import(
+    name = "jdeps-gen-embeddable",
+    jars = ["jdeps-gen-embeddable.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_binary(
@@ -56,6 +71,7 @@ java_binary(
         "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:kotlin-daemon-client",
         "//kotlin/compiler:kotlin-reflect",
+        "//kotlin/compiler:kotlin-stdlib",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
         "@kotlin_build_tools_api//file",
@@ -73,6 +89,7 @@ java_binary(
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kotlin-daemon-client=$(rlocationpath //kotlin/compiler:kotlin-daemon-client)",
+        "-D@com_github_jetbrains_kotlin...kotlin-stdlib=$(rlocationpath //kotlin/compiler:kotlin-stdlib)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",

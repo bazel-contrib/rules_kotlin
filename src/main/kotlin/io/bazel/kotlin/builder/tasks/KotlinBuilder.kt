@@ -25,6 +25,7 @@ import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.JvmCompilationTask
+import io.bazel.kotlin.model.KotlinToolchainInfo
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
 import io.bazel.worker.WorkerContext
@@ -82,7 +83,11 @@ class KotlinBuilder(
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
-      BUILD_TOOLS_API("--build_tools_api"),
+      BTAPI_IMPL_CLASSPATH("--btapi_impl_classpath"),
+      INTERNAL_JVM_ABI_GEN_CLASSPATH("--internal_jvm_abi_gen_classpath"),
+      INTERNAL_SKIP_CODE_GEN_CLASSPATH("--internal_skip_code_gen_classpath"),
+      INTERNAL_KAPT_CLASSPATH("--internal_kapt_classpath"),
+      INTERNAL_JDEPS_GEN_CLASSPATH("--internal_jdeps_gen_classpath"),
     }
   }
 
@@ -156,6 +161,7 @@ class KotlinBuilder(
         argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
       toolchainInfoBuilder.commonBuilder.languageVersion =
         argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
+      buildBtapiRuntime(argMap, toolchainInfoBuilder)
       strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
       reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE)?.let {
@@ -166,9 +172,6 @@ class KotlinBuilder(
       }
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
         removeDebugInfo = it == "true"
-      }
-      argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
-        buildToolsApi = it == "true"
       }
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_PRESERVE_DECLARATION_ORDER)?.let {
         preserveDeclarationOrder = it == "true"
@@ -192,6 +195,47 @@ class KotlinBuilder(
       printProto("jvm task message:", task)
     }
     jvmTaskExecutor.execute(context, task)
+  }
+
+  private val btapiRuntimeFlags =
+    listOf(
+      KotlinBuilderFlags.BTAPI_IMPL_CLASSPATH,
+      KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN_CLASSPATH,
+      KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN_CLASSPATH,
+      KotlinBuilderFlags.INTERNAL_KAPT_CLASSPATH,
+      KotlinBuilderFlags.INTERNAL_JDEPS_GEN_CLASSPATH,
+    )
+
+  /**
+   * The task's Build Tools API runtime configuration, recorded on the toolchain info. The
+   * --btapi_* and --internal_* flags are emitted together and only when the Build Tools API
+   * compilation is enabled for the action, so the runtime flag set is none-or-everything:
+   * all flags absent means a legacy request and the btapi message stays absent -- its
+   * presence is the worker's signal to compile through the Build Tools API. A partial flag
+   * set can only come from a malformed direct worker invocation and is rejected.
+   */
+  private fun buildBtapiRuntime(
+    argMap: ArgMap,
+    toolchainInfo: KotlinToolchainInfo.Builder,
+  ) {
+    val missing = btapiRuntimeFlags.filter { argMap.optional(it) == null }
+    if (missing.size == btapiRuntimeFlags.size) {
+      return
+    }
+    check(missing.isEmpty()) {
+      "incomplete Build Tools API runtime flag set: missing ${missing.joinToString { it.flag }}"
+    }
+    toolchainInfo.btapiBuilder.apply {
+      addAllApiImplClasspath(argMap.mandatory(KotlinBuilderFlags.BTAPI_IMPL_CLASSPATH))
+      addAllJvmAbiGenClasspath(
+        argMap.mandatory(KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN_CLASSPATH),
+      )
+      addAllSkipCodeGenClasspath(
+        argMap.mandatory(KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN_CLASSPATH),
+      )
+      addAllKaptClasspath(argMap.mandatory(KotlinBuilderFlags.INTERNAL_KAPT_CLASSPATH))
+      addAllJdepsGenClasspath(argMap.mandatory(KotlinBuilderFlags.INTERNAL_JDEPS_GEN_CLASSPATH))
+    }
   }
 
   private fun buildJvmTask(

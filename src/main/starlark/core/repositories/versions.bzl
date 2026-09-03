@@ -19,6 +19,54 @@ def _use_repository(rule, name, version, **kwargs):
 
     maybe(rule, name = name, **rule_arguments)
 
+# The Kotlin compiler release train: the CLI distribution, the Build Tools API jars, and the
+# embeddable compiler family ship together under this one version. Bump them together; each
+# entry keeps its own per-artifact sha256.
+_KOTLIN_CURRENT_RELEASE = "2.4.10"
+
+def kotlinc_embeddable_version(
+        version,
+        compiler_sha256,
+        annotation_processing_sha256,
+        jvm_abi_gen_sha256):
+    """Describes the embeddable compiler dialect artifacts of one release.
+
+    Builds the value of the compiler_embeddable_release argument of kotlin_repositories from
+    the Maven Central artifacts of the given release. Every checksum is required, so every
+    download stays verified.
+
+    Args:
+        version: the compiler release version, for example "2.3.11".
+        compiler_sha256: the checksum of kotlin-compiler-embeddable.
+        annotation_processing_sha256: the checksum of kotlin-annotation-processing-embeddable.
+        jvm_abi_gen_sha256: the checksum of jvm-abi-gen.
+
+    Returns:
+        a composite with one version attribute and one struct per artifact of the dialect,
+        each holding url_templates and sha256.
+    """
+    return struct(
+        version = version,
+        annotation_processing = struct(
+            url_templates = [
+                "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/{version}/kotlin-annotation-processing-embeddable-{version}.jar",
+            ],
+            sha256 = annotation_processing_sha256,
+        ),
+        compiler = struct(
+            url_templates = [
+                "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/{version}/kotlin-compiler-embeddable-{version}.jar",
+            ],
+            sha256 = compiler_sha256,
+        ),
+        jvm_abi_gen = struct(
+            url_templates = [
+                "https://repo1.maven.org/maven2/org/jetbrains/kotlin/jvm-abi-gen/{version}/jvm-abi-gen-{version}.jar",
+            ],
+            sha256 = jvm_abi_gen_sha256,
+        ),
+    )
+
 versions = struct(
     # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
     # This means the bazel_skylib_workspace call is skipped, as it only registers the unittest
@@ -66,7 +114,7 @@ versions = struct(
         sha256 = "a3fd620207d5c40da6ca789b95e7f823c54e854b7fade7f613e91096a3706d75",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.4.10",
+        version = _KOTLIN_CURRENT_RELEASE,
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
@@ -80,7 +128,7 @@ versions = struct(
         sha256 = "b0e7666caf7afb634350ca64af9a88c3bd3e04df393fd33dbf430daaf285c6b3",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.4.10",
+        version = _KOTLIN_CURRENT_RELEASE,
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
         ],
@@ -89,11 +137,22 @@ versions = struct(
     # Starting with Kotlin 2.4.0 the Build Tools API interfaces are no longer bundled in
     # kotlin-compiler.jar, so they must be provided as a separate jar.
     KOTLIN_BUILD_TOOLS_API = version(
-        version = "2.4.10",
+        version = _KOTLIN_CURRENT_RELEASE,
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/{version}/kotlin-build-tools-api-{version}.jar",
         ],
         sha256 = "3953d283e7710c990672e403a87df393d9726a9bf3e172194ebb5c33e062fcb0",
+    ),
+    # The embeddable compiler family: the Maven-published kotlinc build whose bundled third-party
+    # packages are shaded (e.g. org.jetbrains.kotlin.com.intellij). Compiler plugins published for
+    # Gradle/Maven consumption are compiled against this dialect. These jars are an alternative
+    # runtime for the Build Tools API compilation path, selectable through the btapi_*/internal_*
+    # toolchain attributes; the bundled CLI distribution remains the default.
+    KOTLIN_CURRENT_COMPILER_EMBEDDABLE_RELEASE = kotlinc_embeddable_version(
+        version = _KOTLIN_CURRENT_RELEASE,
+        compiler_sha256 = "9309638a2ee03e6bde9ef4b7444055a94b84ab906563675d71ff9aecb64da913",
+        annotation_processing_sha256 = "9b48f56404afc57c8498c7a9a9e678ea5954693e9550b185573de46fba22052e",
+        jvm_abi_gen_sha256 = "baaa13b3c428b2a1ea81c0e7ff4474779735fe47e7fc3bca8ff79793671f0e60",
     ),
     RULES_ANDROID = version(
         version = "0.7.0",

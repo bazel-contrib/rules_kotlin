@@ -95,6 +95,12 @@ def _kotlin_toolchain_impl(ctx):
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
         experimental_build_tools_api = ctx.attr.experimental_build_tools_api or ctx.attr._experimental_build_tools_api_setting[BuildSettingInfo].value,
+        btapi_embedded_compiler = ctx.attr.btapi_embedded_compiler,
+        btapi_impl_classpath = ctx.files.btapi_impl_classpath,
+        internal_jdeps_gen_classpath = ctx.files.internal_jdeps_gen_classpath,
+        internal_jvm_abi_gen_classpath = ctx.files.internal_jvm_abi_gen_classpath,
+        internal_kapt_classpath = ctx.files.internal_kapt_classpath,
+        internal_skip_code_gen_classpath = ctx.files.internal_skip_code_gen_classpath,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -133,6 +139,36 @@ _kt_toolchain = rule(
                 "2.3",
                 "2.4",
             ],
+        ),
+        "btapi_embedded_compiler": attr.bool(
+            doc = """The compiler in btapi_impl_classpath is the embeddable dialect
+            (kotlin-compiler-embeddable). The classpath of a kt_compiler_plugin is reshaded to
+            match the dialect of the compiler that runs it. define_kt_toolchain requires an
+            explicit value when the toolchain configures the Build Tools API compilation.""",
+            default = False,
+        ),
+        "btapi_impl_classpath": attr.label_list(
+            doc = """The complete Build Tools API compilation runtime, loaded into one isolated
+            classloader: the kotlin-build-tools-impl jar, a compiler jar, and the libraries they
+            need. Defaults to the compiler jar of the bundled CLI distribution, which keeps the
+            default Build Tools API behavior identical to previous releases. To compile with the
+            embeddable dialect, replace the compiler jar with
+            org.jetbrains.kotlin:kotlin-compiler-embeddable (available as
+            @kotlin_compiler_embeddable//file).""",
+            default = [
+                Label("@kotlin_build_tools_impl//file"),
+                Label("//kotlin/compiler:kotlin-daemon-client"),
+                Label("//kotlin/compiler:kotlin-compiler"),
+                Label("//kotlin/compiler:kotlin-stdlib"),
+                Label("//kotlin/compiler:kotlin-reflect"),
+                Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
+                Label("//kotlin/compiler:annotations"),
+                Label("@kotlinx_serialization_core_jvm//file"),
+                Label("@kotlinx_serialization_json//file"),
+                Label("@kotlinx_serialization_json_jvm//file"),
+            ],
+            allow_files = True,
+            cfg = "exec",
         ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
@@ -218,6 +254,38 @@ _kt_toolchain = rule(
             doc = """Compile using abi jars. Can be disabled for an individual target using the tag
             `kt_abi_plugin_incompatible`""",
             default = False,
+        ),
+        "internal_jdeps_gen_classpath": attr.label_list(
+            doc = """The jdeps-gen compiler plugin classpath used by the Build Tools API
+            compilation. Must match the dialect of the compiler in btapi_impl_classpath
+            (the embeddable variant is //src/main/kotlin:jdeps-gen-embeddable).""",
+            default = [Label("//src/main/kotlin:jdeps-gen")],
+            allow_files = True,
+            cfg = "exec",
+        ),
+        "internal_jvm_abi_gen_classpath": attr.label_list(
+            doc = """The jvm-abi-gen compiler plugin classpath used by the Build Tools API
+            compilation. Must match the dialect of the compiler in btapi_impl_classpath
+            (the embeddable variant is @jvm_abi_gen//file).""",
+            default = [Label("//kotlin/compiler:jvm-abi-gen")],
+            allow_files = True,
+            cfg = "exec",
+        ),
+        "internal_kapt_classpath": attr.label_list(
+            doc = """The kapt compiler plugin classpath used by the Build Tools API
+            compilation. Must match the dialect of the compiler in btapi_impl_classpath
+            (the embeddable variant is @kotlin_annotation_processing_embeddable//file).""",
+            default = [Label("//kotlin/compiler:kotlin-annotation-processing")],
+            allow_files = True,
+            cfg = "exec",
+        ),
+        "internal_skip_code_gen_classpath": attr.label_list(
+            doc = """The skip-code-gen compiler plugin classpath used by the Build Tools API
+            compilation. Must match the dialect of the compiler in btapi_impl_classpath
+            (the embeddable variant is //src/main/kotlin:skip-code-gen-embeddable).""",
+            default = [Label("//src/main/kotlin:skip-code-gen")],
+            allow_files = True,
+            cfg = "exec",
         ),
         "jacocorunner": attr.label(
             default = Label("@remote_java_tools//:jacoco_coverage_runner"),
@@ -405,6 +473,12 @@ def define_kt_toolchain(
         experimental_multiplex_sandboxing = None,
         supports_path_mapping = None,
         experimental_build_tools_api = None,
+        btapi_embedded_compiler = None,
+        btapi_impl_classpath = None,
+        internal_jdeps_gen_classpath = None,
+        internal_jvm_abi_gen_classpath = None,
+        internal_kapt_classpath = None,
+        internal_skip_code_gen_classpath = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
         jvm_stdlibs = None,
@@ -414,6 +488,12 @@ def define_kt_toolchain(
         target_compatible_with = None,
         target_settings = None):
     """Define the Kotlin toolchain."""
+    if btapi_embedded_compiler == None and (experimental_build_tools_api == True or btapi_impl_classpath != None):
+        fail(
+            ("%s: btapi_embedded_compiler must be set explicitly when the toolchain configures " +
+             "the Build Tools API compilation: True when btapi_impl_classpath carries " +
+             "kotlin-compiler-embeddable, False when it carries the CLI-distribution compiler.") % name,
+        )
     impl_name = name + "_impl"
 
     _kt_toolchain(
@@ -439,6 +519,12 @@ def define_kt_toolchain(
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
         experimental_build_tools_api = experimental_build_tools_api,
+        btapi_embedded_compiler = btapi_embedded_compiler,
+        btapi_impl_classpath = btapi_impl_classpath,
+        internal_jdeps_gen_classpath = internal_jdeps_gen_classpath,
+        internal_jvm_abi_gen_classpath = internal_jvm_abi_gen_classpath,
+        internal_kapt_classpath = internal_kapt_classpath,
+        internal_skip_code_gen_classpath = internal_skip_code_gen_classpath,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],

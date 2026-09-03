@@ -1,11 +1,12 @@
 load("//kotlin:core.bzl", "define_kt_toolchain")
 load(":associates_tests.bzl", "associates_tests")
-load(":build_tools_api_toggle_tests.bzl", "build_tools_api_toggle_tests")
+load(":btapi_runtime_args_tests.bzl", "btapi_runtime_args_tests")
 load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
 load(":jdeps_merge_inputs_tests.bzl", "jdeps_merge_inputs_tests")
+load(":plugin_dialect_tests.bzl", "plugin_dialect_tests")
 
-build_tools_api_toggle_tests(
-    name = "build_tools_api_toggle_tests",
+btapi_runtime_args_tests(
+    name = "btapi_runtime_args_tests",
 )
 
 experimental_prune_transitive_deps_tests(
@@ -37,6 +38,18 @@ define_kt_toolchain(
 
 jdeps_merge_inputs_tests(
     name = "jdeps_merge_inputs_tests",
+)
+
+plugin_dialect_tests(
+    name = "plugin_dialect_tests",
+)
+
+# Only registered through --extra_toolchains by plugin_dialect_tests: declares that the
+# compilation actions run the embeddable compiler dialect through the Build Tools API.
+define_kt_toolchain(
+    name = "embeddable_runtime_toolchain",
+    btapi_embedded_compiler = True,
+    experimental_build_tools_api = True,
 )
 
 # Only registered through --extra_toolchains by the tests that need unused dep reporting on.

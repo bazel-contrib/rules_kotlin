@@ -4,6 +4,7 @@ load("@bazel_skylib//lib:modules.bzl", "modules")
 load(
     "//src/main/starlark/core/repositories:initialize.release.bzl",
     _kotlin_repositories = "kotlin_repositories",
+    _kotlinc_embeddable_version = "kotlinc_embeddable_version",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",
 )
@@ -15,6 +16,7 @@ def _rules_kotlin_extensions_impl(mctx):
         _kotlin_repositories,
         _kotlinc_version,
         _ksp_version,
+        _kotlinc_embeddable_version,
     )
     return modules.use_all_repos(mctx, reproducible = True)
 

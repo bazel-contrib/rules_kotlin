@@ -152,6 +152,17 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "BtapiRuntimeFlagsValidationTest",
+    srcs = ["BtapiRuntimeFlagsValidationTest.kt"],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "//src/main/kotlin/io/bazel/worker",
+        "@kotlin_rules_maven_test//:com_google_truth_truth",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
+kt_rules_test(
     name = "PluginsPayloadExpansionTest",
     srcs = ["PluginsPayloadExpansionTest.kt"],
     deps = [
@@ -165,6 +176,7 @@ kt_rules_test(
 test_suite(
     name = "tasks_tests",
     tests = [
+        ":BtapiRuntimeFlagsValidationTest",
         ":JdepsMergerTest",
         ":JdepsParserTest",
         ":KotlinBuilderBuildTest",

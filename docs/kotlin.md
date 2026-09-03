@@ -348,7 +348,7 @@ kt_jvm_library(
 | <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | required |  |
 | <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Supports the following template values:<br><br>- `{generatedClasses}`: directory for generated class output - `{temp}`: temporary directory, discarded between invocations - `{generatedSources}`:  directory for generated source output - `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin in kapt stub generation.   | Boolean | optional |  `True`  |
-| <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc dependencies, and will fail when running against a non-embeddable compiler.   | Boolean | optional |  `False`  |
+| <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. The plugin classpath is reshaded when this dialect differs from the dialect of the compiler that the toolchain runs.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_javac_options"></a>
@@ -546,9 +546,11 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>, <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>,
                     <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>, <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>,
                     <a href="#define_kt_toolchain-experimental_multiplex_sandboxing">experimental_multiplex_sandboxing</a>, <a href="#define_kt_toolchain-supports_path_mapping">supports_path_mapping</a>,
-                    <a href="#define_kt_toolchain-experimental_build_tools_api">experimental_build_tools_api</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>,
-                    <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>,
-                    <a href="#define_kt_toolchain-target_settings">target_settings</a>)
+                    <a href="#define_kt_toolchain-experimental_build_tools_api">experimental_build_tools_api</a>, <a href="#define_kt_toolchain-btapi_embedded_compiler">btapi_embedded_compiler</a>, <a href="#define_kt_toolchain-btapi_impl_classpath">btapi_impl_classpath</a>,
+                    <a href="#define_kt_toolchain-internal_jdeps_gen_classpath">internal_jdeps_gen_classpath</a>, <a href="#define_kt_toolchain-internal_jvm_abi_gen_classpath">internal_jvm_abi_gen_classpath</a>,
+                    <a href="#define_kt_toolchain-internal_kapt_classpath">internal_kapt_classpath</a>, <a href="#define_kt_toolchain-internal_skip_code_gen_classpath">internal_skip_code_gen_classpath</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>,
+                    <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>, <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>,
+                    <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -575,6 +577,12 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-experimental_multiplex_sandboxing"></a>experimental_multiplex_sandboxing |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-supports_path_mapping"></a>supports_path_mapping |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-experimental_build_tools_api"></a>experimental_build_tools_api |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_embedded_compiler"></a>btapi_embedded_compiler |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_impl_classpath"></a>btapi_impl_classpath |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_jdeps_gen_classpath"></a>internal_jdeps_gen_classpath |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_jvm_abi_gen_classpath"></a>internal_jvm_abi_gen_classpath |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_kapt_classpath"></a>internal_kapt_classpath |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_skip_code_gen_classpath"></a>internal_skip_code_gen_classpath |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-javac_options"></a>javac_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_javac_options")` |
 | <a id="define_kt_toolchain-kotlinc_options"></a>kotlinc_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_kotlinc_options")` |
 | <a id="define_kt_toolchain-jvm_stdlibs"></a>jvm_stdlibs |  <p align="center"> - </p>   |  `None` |
@@ -611,7 +619,7 @@ This macro registers the kotlin toolchain.
 load("@rules_kotlin//kotlin:repositories.doc.bzl", "kotlin_repositories")
 
 kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-ksp_repository_name">ksp_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>,
-                    <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>)
+                    <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>, <a href="#kotlin_repositories-compiler_embeddable_release">compiler_embeddable_release</a>)
 </pre>
 
 Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -626,6 +634,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "473dd66c7a3ef4b182065b3da670466c1bf2773a9dbb0ed8b33a39fe9d4f876d", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.4.10")` |
 | <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "b0e7666caf7afb634350ca64af9a88c3bd3e04df393fd33dbf430daaf285c6b3", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.11")` |
+| <a id="kotlin_repositories-compiler_embeddable_release"></a>compiler_embeddable_release |  a composite of version values for the embeddable compiler dialect. Build one with kotlinc_embeddable_version, or keep the default release from versions.bzl.   |  `struct(annotation_processing = struct(sha256 = "9b48f56404afc57c8498c7a9a9e678ea5954693e9550b185573de46fba22052e", url_templates = ["https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/{version}/kotlin-annotation-processing-embeddable-{version}.jar"]), compiler = struct(sha256 = "9309638a2ee03e6bde9ef4b7444055a94b84ab906563675d71ff9aecb64da913", url_templates = ["https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/{version}/kotlin-compiler-embeddable-{version}.jar"]), jvm_abi_gen = struct(sha256 = "baaa13b3c428b2a1ea81c0e7ff4474779735fe47e7fc3bca8ff79793671f0e60", url_templates = ["https://repo1.maven.org/maven2/org/jetbrains/kotlin/jvm-abi-gen/{version}/jvm-abi-gen-{version}.jar"]), version = "2.4.10")` |
 
 
 <a id="versions.use_repository"></a>

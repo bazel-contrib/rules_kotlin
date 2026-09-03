@@ -458,7 +458,8 @@ def kt_jvm_junit_test_impl(ctx):
 _KtCompilerPluginClasspathInfo = provider(
     fields = {
         "infos": "list JavaInfos of a compiler library",
-        "reshaded_infos": "list reshaded JavaInfos of a compiler library",
+        "reshaded_infos": "list JavaInfos of a compiler library, reshaded to the CLI-distribution compiler dialect",
+        "reshaded_infos_embeddable": "list JavaInfos of a compiler library, reshaded to the embeddable compiler dialect",
     },
 )
 
@@ -479,6 +480,7 @@ def kt_compiler_deps_aspect_impl(target, ctx):
         if _KtCompilerPluginClasspathInfo in t
     ]
     reshaded_infos = []
+    reshaded_infos_embeddable = []
     infos = [
         i
         for t in transitive_infos
@@ -488,9 +490,11 @@ def kt_compiler_deps_aspect_impl(target, ctx):
         ji = target[JavaInfo]
         infos.append(ji)
         reshaded_infos.append(
-            _reshade_embedded_kotlinc_jars(
+            _reshade_kotlinc_jars(
                 target = target,
                 ctx = ctx,
+                rules_file = ctx.file._kotlin_compiler_reshade_rules,
+                output_infix = "reshaded",
                 jars = ji.runtime_output_jars,
                 deps = [
                     i
@@ -499,15 +503,30 @@ def kt_compiler_deps_aspect_impl(target, ctx):
                 ],
             ),
         )
+        reshaded_infos_embeddable.append(
+            _reshade_kotlinc_jars(
+                target = target,
+                ctx = ctx,
+                rules_file = ctx.file._kotlin_compiler_embeddable_reshade_rules,
+                output_infix = "embeddable_reshaded",
+                jars = ji.runtime_output_jars,
+                deps = [
+                    i
+                    for t in transitive_infos
+                    for i in t.reshaded_infos_embeddable
+                ],
+            ),
+        )
 
     return [
         _KtCompilerPluginClasspathInfo(
-            reshaded_infos = reshaded_infos,
             infos = [java_common.merge(infos)],
+            reshaded_infos = reshaded_infos,
+            reshaded_infos_embeddable = reshaded_infos_embeddable,
         ),
     ]
 
-def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
+def _reshade_kotlinc_jars(target, ctx, rules_file, output_infix, jars, deps):
     # No jars to reshade — just propagate transitive deps (e.g. sourceless libraries).
     if not jars:
         return java_common.merge(deps) if deps else java_common.merge([])
@@ -516,10 +535,10 @@ def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         jarjar_action(
             actions = ctx.actions,
             jarjar = ctx.executable._jarjar,
-            rules = ctx.file._kotlin_compiler_reshade_rules,
+            rules = rules_file,
             input = jar,
             output = ctx.actions.declare_file(
-                "%s_reshaded_%s" % (target.label.name, jar.basename),
+                "%s_%s_%s" % (target.label.name, output_infix, jar.basename),
             ),
         )
         for jar in jars
@@ -536,23 +555,33 @@ def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
 def _expand_location_with_data_deps(ctx):
     return lambda targets: ctx.expand_location(targets, ctx.attr.data)
 
+def _runs_embedded_compiler(ctx):
+    """Tells whether the compilation actions run the embeddable compiler dialect.
+
+    The legacy invocation always runs the CLI distribution; a Build Tools API invocation runs
+    the dialect the toolchain declares. Without a resolved toolchain the selection keeps the
+    CLI-distribution dialect.
+    """
+    toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
+    return toolchain != None and toolchain.experimental_build_tools_api and toolchain.btapi_embedded_compiler
+
 def kt_compiler_plugin_impl(ctx):
     plugin_id = ctx.attr.id
 
-    deps = ctx.attr.deps
-    info = None
+    # Select the plugin jars matching the dialect of the compiler that runs them: a matching
+    # dialect loads the original jars, a mismatched dialect loads the jars reshaded to the
+    # compiler dialect.
     if ctx.attr.target_embedded_compiler:
-        info = java_common.merge([
-            i
-            for d in deps
-            for i in d[_KtCompilerPluginClasspathInfo].reshaded_infos
-        ])
+        field = "infos" if _runs_embedded_compiler(ctx) else "reshaded_infos"
     else:
-        info = java_common.merge([
-            i
-            for d in deps
-            for i in d[_KtCompilerPluginClasspathInfo].infos
-        ])
+        field = "reshaded_infos_embeddable" if _runs_embedded_compiler(ctx) else "infos"
+
+    deps = ctx.attr.deps
+    info = java_common.merge([
+        i
+        for d in deps
+        for i in getattr(d[_KtCompilerPluginClasspathInfo], field)
+    ])
 
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 

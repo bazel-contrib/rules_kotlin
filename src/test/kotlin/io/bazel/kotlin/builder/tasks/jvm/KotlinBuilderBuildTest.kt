@@ -86,6 +86,8 @@ class KotlinBuilderBuildTest {
     val toolchain =
       KotlinToolchain.createToolchain(
         File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
+        File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
+        File(Deps.Dep.fromLabel("@rules_kotlin//kotlin/compiler:kotlin-reflect").singleCompileJar()),
         File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-daemon-client").singleCompileJar()),
         File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
         File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),

@@ -2,8 +2,10 @@
 Defines kotlin compiler repositories.
 """
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "get_auth")
 load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "TEMPLATES")
+load(":versions.bzl", "version", "versions")
 
 def _kotlin_compiler_impl(repository_ctx):
     attr = repository_ctx.attr
@@ -163,4 +165,49 @@ def kotlin_compiler_repository(name, urls, sha256, compiler_version):
         name = name,
         git_repository_name = git_repo,
         compiler_version = compiler_version,
+    )
+
+def kotlin_embeddable_compiler_repository(release):
+    """Creates every repository of the embeddable compiler dialect.
+
+    The embeddable dialect is the Maven-published form of the compiler, with the bundled
+    third-party packages shaded (e.g. org.jetbrains.kotlin.com.intellij). It mirrors the CLI
+    distribution: the compiler, the kapt plugin, and the jvm-abi-gen plugin. One call creates
+    @kotlin_compiler_embeddable, @kotlin_annotation_processing_embeddable, and @jvm_abi_gen.
+
+    Args:
+      release: a composite with one version attribute and one struct per artifact —
+        compiler, annotation_processing, and jvm_abi_gen — each holding url_templates and
+        sha256. See versions.KOTLIN_CURRENT_COMPILER_EMBEDDABLE_RELEASE for the default
+        release.
+    """
+    versions.use_repository(
+        http_file,
+        name = "kotlin_compiler_embeddable",
+        version = version(
+            version = release.version,
+            url_templates = release.compiler.url_templates,
+            sha256 = release.compiler.sha256,
+        ),
+        downloaded_file_path = "kotlin-compiler-embeddable.jar",
+    )
+    versions.use_repository(
+        http_file,
+        name = "kotlin_annotation_processing_embeddable",
+        version = version(
+            version = release.version,
+            url_templates = release.annotation_processing.url_templates,
+            sha256 = release.annotation_processing.sha256,
+        ),
+        downloaded_file_path = "kotlin-annotation-processing-embeddable.jar",
+    )
+    versions.use_repository(
+        http_file,
+        name = "jvm_abi_gen",
+        version = version(
+            version = release.version,
+            url_templates = release.jvm_abi_gen.url_templates,
+            sha256 = release.jvm_abi_gen.sha256,
+        ),
+        downloaded_file_path = "jvm-abi-gen.jar",
     )
