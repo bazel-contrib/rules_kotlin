@@ -1,4 +1,7 @@
+"""Utilities for deriving compiler flags from option values."""
+
 _value_to_flag_info = provider(
+    doc = "Binds a derive callable to context for turning an option value into compiler flags.",
     fields = {
         "ctx": "_derive_flag_ctx",
         "derive": "Callable(ctx, value) -> List[str] ",
@@ -6,6 +9,7 @@ _value_to_flag_info = provider(
 )
 
 _derive_flag_ctx = provider(
+    doc = "Context carrying the compiler flag name used when deriving flags from a value.",
     fields = {"name": "flag name for the compiler"},
 )
 

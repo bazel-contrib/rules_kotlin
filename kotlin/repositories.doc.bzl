@@ -1,3 +1,5 @@
+"""Stubs for stardoc generation."""
+
 load(
     "//src/main/starlark/core/repositories:initialize.release.bzl",
     _kotlin_repositories = "kotlin_repositories",

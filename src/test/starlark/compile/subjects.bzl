@@ -1,3 +1,5 @@
+"""Truth subject factories for compile-rule assertions."""
+
 load("@rules_testing//lib:truth.bzl", "subjects")
 
 def java_info_subject_factory(value, meta):

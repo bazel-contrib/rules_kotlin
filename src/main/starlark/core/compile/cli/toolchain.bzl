@@ -1,3 +1,5 @@
+"""Defines the CLI Kotlin compile toolchain rule and provider."""
+
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE", "JAVA_TOOLCHAIN_TYPE")

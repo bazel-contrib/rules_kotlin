@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-
+Public Kotlin/JVM rule API.
 
 <a id="kt_javac_options"></a>
 
@@ -217,7 +217,7 @@ Setup a simple kotlin_test.
 
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-
+Public ktlint rules.
 
 <a id="ktlint_config"></a>
 
@@ -291,7 +291,7 @@ Lint Kotlin files, and fail if the linter raises errors.
 
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-
+Core Kotlin rule and providers.
 
 <a id="kt_compiler_plugin"></a>
 
@@ -592,16 +592,22 @@ Define the Kotlin toolchain.
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
-kt_register_toolchains()
+kt_register_toolchains(<a href="#kt_register_toolchains-name">name</a>)
 </pre>
 
 This macro registers the kotlin toolchain.
 
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="kt_register_toolchains-name"></a>name |  unused; present for lint and buildozer.   |  `"kt_register_toolchains"` |
 
 
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-
+Stubs for stardoc generation.
 
 <a id="kotlin_repositories"></a>
 
@@ -621,9 +627,9 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  `False` |
+| <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  whether the repositories are being set up under bzlmod.   |  `False` |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
-| <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
+| <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  for the KSP compiler plugin repository.   |  `"com_github_google_ksp"` |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "473dd66c7a3ef4b182065b3da670466c1bf2773a9dbb0ed8b33a39fe9d4f876d", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.4.10")` |
 | <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "b0e7666caf7afb634350ca64af9a88c3bd3e04df393fd33dbf430daaf285c6b3", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.11")` |
 

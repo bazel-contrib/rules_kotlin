@@ -1,3 +1,5 @@
+"""Released bzlmod module extension setup for rules_kotlin."""
+
 load("@bazel_skylib//lib:modules.bzl", "modules")
 load(
     "//src/main/starlark/core/repositories:initialize.bzl",

@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Implementation of kt_android_library rule."""
+
 load(
     "@rules_android//providers:providers.bzl",
     _AndroidLibraryResourceClassJarProvider = "AndroidLibraryResourceClassJarProvider",
@@ -116,8 +118,17 @@ def _kt_android_produce_jar_actions(
         outputs,
         rClass = None,
         extra_resources = {}):
-    """Setup The actions to compile a jar and if any resources or resource_jars were provided to merge these in with the
-    compilation output.
+    """Sets up the actions to compile an Android jar and merge in any provided resources.
+
+    Args:
+        ctx: the rule context providing attrs, actions, and the Android SDK.
+        rule_kind: the rule kind driving the compile action.
+        outputs: a struct of declared output files to produce.
+        rClass: the optional JavaInfo for the generated Android R class.
+        extra_resources: a dict of additional resource files to merge into the output jar.
+
+    Returns:
+        The providers produced by compiling the Android jar.
     """
     deps = getattr(ctx.attr, "deps", [])
     associates = getattr(ctx.attr, "associates", [])

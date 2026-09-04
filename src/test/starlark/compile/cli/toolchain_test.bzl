@@ -49,6 +49,11 @@ def _toolchain_attrs_test_impl(ctx):
 toolchain_attrs_test = analysistest.make(_toolchain_attrs_test_impl)
 
 def cli_toolchain_test_suite(name):
+    """Registers the CLI toolchain analysis tests under the given suite name.
+
+    Args:
+        name: the name of the generated test_suite target.
+    """
     write_file(
         name = "fake_kotlinc_sh",
         out = "fake_kotlinc.sh",

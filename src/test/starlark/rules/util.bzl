@@ -1,3 +1,5 @@
+"""Shared utilities for the Kotlin Starlark rule tests."""
+
 def basename_of(path):
     """Extract basename from a path string."""
     return path.split("/")[-1]

@@ -1,3 +1,5 @@
+"""Assorted internal utilities."""
+
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "//kotlin/internal:defs.bzl",
@@ -6,8 +8,14 @@ load(
 
 # TODO unexport this once init builder args can take care of associates.
 def _derive_module_name(ctx):
-    """Gets the `module_name` attribute if it's set in the ctx, otherwise derive a unique module name using the elements
-    found in the label."""
+    """Derives a unique module name from the ctx, using module_name or the label.
+
+    Args:
+        ctx: rule context for module_name and label.
+
+    Returns:
+        The module name string, either the explicit attribute or one derived from the label.
+    """
     module_name = getattr(ctx.attr, "module_name", "")
     if module_name == "":
         package = ctx.label.package.lstrip("/").replace("/", "_")

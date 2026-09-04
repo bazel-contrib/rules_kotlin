@@ -1,3 +1,5 @@
+"""Tests for the option-to-flag conversion helpers."""
+
 load(
     "@bazel_skylib//lib:unittest.bzl",
     "asserts",
@@ -30,8 +32,13 @@ _TEST_OPTS = {
 }
 
 def _convert_options_to_flags_empty_options_test(ctx):
-    """Asserts that the converts return None when the
-    attr_provider doesn't exist
+    """Asserts that the converters return None when the attr_provider doesn't exist.
+
+    Args:
+        ctx: unittest rule context used to run the assertions.
+
+    Returns:
+        unittest analysis result.
     """
     env = unittest.begin(ctx)
 

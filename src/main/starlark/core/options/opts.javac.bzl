@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Defines the kt_javac_options rule and flag mapping."""
 
 load("//src/main/starlark/core/options:convert.bzl", "convert")
 load("//src/main/starlark/core/options:derive.bzl", "derive")
@@ -122,7 +123,9 @@ _JOPTS = {
 def _javac_options_impl(ctx):
     return [JavacOptions(**{n: getattr(ctx.attr, n, None) for n in _JOPTS})]
 
+# buildifier: disable=name-conventions
 JavacOptions = provider(
+    doc = "Java compiler options for kt_jvm_* rules with Java sources.",
     fields = {
         name: o.args["doc"]
         for name, o in _JOPTS.items()

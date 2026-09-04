@@ -1,3 +1,5 @@
+"""Analysis tests for the Kotlin compiler-plugin rules."""
+
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("//kotlin:core.bzl", "kt_compiler_plugin", "kt_plugin_cfg")

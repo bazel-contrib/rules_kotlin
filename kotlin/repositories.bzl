@@ -1,3 +1,5 @@
+"""Repository & version functions for workspace support."""
+
 load(
     "//src/main/starlark/core/repositories:initialize.bzl",
     _kotlin_repositories = "kotlin_repositories",

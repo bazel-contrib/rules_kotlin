@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Kotlin and Java compiler option providers."""
 
 load(
     "//src/main/starlark/core/options:opts.javac.bzl",
@@ -25,10 +26,12 @@ load(
     _kt_kotlinc_options = "kt_kotlinc_options",
 )
 
+# buildifier: disable=name-conventions
 JavacOptions = _JavacOptions
 javac_options_to_flags = _javac_options_to_flags
 kt_javac_options = _kt_javac_options
 
+# buildifier: disable=name-conventions
 KotlincOptions = _KotlincOptions
 kotlinc_options_to_flags = _kotlinc_options_to_flags
 kt_kotlinc_options = _kt_kotlinc_options

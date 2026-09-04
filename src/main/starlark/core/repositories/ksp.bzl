@@ -1,3 +1,5 @@
+"""Repository rule for fetching the KSP compiler plugin."""
+
 _JARS_INSIDE_REPO = [
     "symbol-processing-aa",
     "symbol-processing-common-deps",

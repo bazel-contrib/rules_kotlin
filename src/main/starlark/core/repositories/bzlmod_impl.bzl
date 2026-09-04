@@ -1,4 +1,14 @@
+"""Implementation of the rules_kotlin module extension."""
+
 def configure_modules_and_repositories(modules, kotlin_repositories, kotlinc_version, ksp_version):
+    """Configures Kotlin repositories from the extension's version overrides.
+
+    Args:
+        modules: extensions whose kotlinc_version/ksp_version tags are read.
+        kotlin_repositories: repositories macro invoked with the resolved versions.
+        kotlinc_version: constructor for a kotlinc version override.
+        ksp_version: constructor for a KSP version override.
+    """
     kotlinc = None
     ksp = None
     for mod in modules:

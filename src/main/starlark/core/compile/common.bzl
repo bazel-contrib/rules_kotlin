@@ -1,3 +1,5 @@
+"""Utilities and providers for the compile toolchains."""
+
 load("@bazel_features//:features.bzl", "bazel_features")
 
 TYPE = "//src/main/starlark/core/compile:toolchain_type"
@@ -41,6 +43,7 @@ def get_launcher_maker_toolchain_for_action():
     return None
 
 KtJvmInfo = provider(
+    doc = "Kotlin/JVM compilation outputs and metadata consumed by rules and IDE aspects.",
     fields = {
         "additional_generated_source_jars": "Returns additional Jars containing generated source files from kapt, ksp, etc. [bazel-bsp-aspect]",
         "all_output_jars": "Returns all the output Jars produced by this rule. [bazel-bsp-aspect]",

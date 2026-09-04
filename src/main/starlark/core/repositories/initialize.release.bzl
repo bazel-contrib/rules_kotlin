@@ -38,10 +38,10 @@ def kotlin_repositories(
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
+        is_bzlmod: whether the repositories are being set up under bzlmod.
         compiler_repository_name: for the kotlinc compiler repository.
+        ksp_repository_name: for the KSP compiler plugin repository.
         compiler_release: version provider from versions.bzl.
-        configured_repository_name: for the default versioned kt_* rules repository. If None, no versioned repository is
-         created.
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
 
