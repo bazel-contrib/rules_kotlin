@@ -1,0 +1,37 @@
+module(name = "kaptish-example")
+
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_kotlin", version = "2.2.0")
+local_path_override(
+    module_name = "rules_kotlin",
+    path = "../..",
+)
+
+register_toolchains("//:kotlin_toolchain")
+
+bazel_dep(name = "rules_jvm_external", version = "6.10")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "maven_rules_kotlin_example",
+    artifacts = [
+        "com.google.auto.service:auto-service-annotations:jar:1.1.1",
+        "com.google.auto.value:auto-value-annotations:1.11.1",
+        "com.google.auto.value:auto-value:1.11.1",
+        "com.google.dagger:dagger-compiler:2.57.2",
+        "com.google.dagger:dagger-producers:2.57.2",
+        "com.google.dagger:dagger:2.57.2",
+        "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
+        "com.squareup.moshi:moshi-kotlin:1.15.2",
+        "com.squareup.moshi:moshi:1.15.2",
+        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
+    ],
+    lock_file = "//:maven_install.json",
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(maven, "maven_rules_kotlin_example")

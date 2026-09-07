@@ -44,6 +44,12 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "kaptish",
+    actual = "//src/main/kotlin/io/bazel/kotlin/plugin/kaptish",
+    visibility = ["//visibility:public"],
+)
+
 release_archive(
     name = "pkg",
     srcs = [
@@ -56,6 +62,7 @@ release_archive(
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/plugin/kaptish:libkaptish-lib.jar": "kaptish.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
