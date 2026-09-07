@@ -64,6 +64,7 @@ import org.jetbrains.kotlin.types.typeUtil.supertypes
  * @param project the current compilation project
  * @param configuration the current compilation configuration
  */
+@OptIn(org.jetbrains.kotlin.K1Deprecation::class)
 class JdepsGenExtension(
   configuration: CompilerConfiguration,
 ) : BaseJdepsGenExtension(configuration),

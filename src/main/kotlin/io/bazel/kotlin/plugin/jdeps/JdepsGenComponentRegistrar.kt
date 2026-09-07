@@ -26,6 +26,7 @@ class JdepsGenComponentRegistrar : CompilerPluginRegistrar() {
     }
   }
 
+  @OptIn(org.jetbrains.kotlin.K1Deprecation::class)
   private fun ExtensionStorage.registerForK1(configuration: CompilerConfiguration) {
     // Capture all types referenced by the compiler for this module and look up the jar from which
     // they were loaded from
