@@ -79,11 +79,11 @@ versions = struct(
         sha256 = "473dd66c7a3ef4b182065b3da670466c1bf2773a9dbb0ed8b33a39fe9d4f876d",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "2.3.11",
+        version = "2.3.12",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "b0e7666caf7afb634350ca64af9a88c3bd3e04df393fd33dbf430daaf285c6b3",
+        sha256 = "31e83f087c3e822d16d93b2fd240769872ba1fad26e7f3b5dfb3f71513e7399f",
     ),
     # Starting with Kotlin 2.4.0 the Build Tools API interfaces are no longer bundled in
     # kotlin-compiler.jar, so they must be provided as a separate jar.
