@@ -27,6 +27,14 @@ load(
     _compile = "compile",
 )
 load(
+    "//kotlin/internal/jvm:kover.bzl",
+    _create_kover_agent_actions = "create_kover_agent_actions",
+    _create_kover_metadata_action = "create_kover_metadata_action",
+    _get_kover_agent_file = "get_kover_agent_file",
+    _get_kover_jvm_flags = "get_kover_jvm_flags",
+    _is_kover_enabled = "is_kover_enabled",
+)
+load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
@@ -207,7 +215,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
     prefix = "" if _is_absolute_target_platform_path(ctx, java_bin_path) else "${JAVA_RUNFILES}/"
     java_bin = "JAVABIN=${JAVABIN:-" + prefix + java_bin_path + "}"
 
-    if ctx.configuration.coverage_enabled:
+    if ctx.configuration.coverage_enabled and not _is_kover_enabled(ctx):
         jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
         classpath = ctx.configuration.host_path_separator.join(
             ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list() + jacocorunner.files.to_list()],
@@ -441,9 +449,22 @@ def kt_jvm_junit_test_impl(ctx):
     runtime_jars = depset(ctx.files._bazel_test_runner, transitive = [providers.java.transitive_runtime_jars])
 
     coverage_runfiles = []
+    coverage_jvm_flags = []
     if ctx.configuration.coverage_enabled:
-        jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
-        coverage_runfiles = jacocorunner.files.to_list()
+        if _is_kover_enabled(ctx):
+            agent = _get_kover_agent_file(ctx)
+            output, args = _create_kover_agent_actions(ctx, ctx.label.name)
+            metadata = _create_kover_metadata_action(
+                ctx,
+                ctx.label.name,
+                ctx.attr.deps + ctx.attr.associates,
+                output,
+            )
+            coverage_jvm_flags = _get_kover_jvm_flags(agent, args)
+            coverage_runfiles = [agent, args, metadata]
+        else:
+            jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
+            coverage_runfiles = jacocorunner.files.to_list()
 
     test_class = ctx.attr.test_class
 
@@ -462,7 +483,7 @@ def kt_jvm_junit_test_impl(ctx):
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
         jvm_flags = ctx.fragments.java.default_jvm_opts
 
-    jvm_flags.extend(ctx.attr.jvm_flags)
+    jvm_flags.extend(coverage_jvm_flags + ctx.attr.jvm_flags)
     launcher_result = _write_launcher_action(
         ctx,
         runtime_jars,
