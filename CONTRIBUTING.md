@@ -41,10 +41,13 @@ for a single Bazel version rather than the entire expensive matrix.
 The `rules_kotlin_extensions` Bzlmod extension creates external repositories for the Kotlin compiler,
 KSP, and supporting tools. The rules and worker sources live in `@rules_kotlin` itself.
 
-The extension selects one Kotlin compiler release and one KSP release. It accepts at most one
+The extension selects one CLI compiler release and one KSP release. It accepts at most one
 `kotlinc_version` tag and one `ksp_version` tag across participating modules; duplicate tags are
-rejected even if they specify the same version. Using multiple Kotlin compiler versions through
-this extension is not currently supported.
+rejected even if they specify the same version. Multiple CLI compiler versions are not supported.
+
+For Build Tools API compilation, the root module can declare multiple named `btapi_impl_version`
+records and select their runtimes per toolchain with `btapi_runtime`. See
+[Build Tools API implementation releases](README.md#build-tools-api-implementation-releases).
 
 ## Idioms and Styles
 TBD
