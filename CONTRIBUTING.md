@@ -36,11 +36,15 @@ The example integration tests unpack this same archive and use it as a dependenc
 packaging, run representative examples (such as `//examples:trivial_bzlmod` and `//examples:ksp_bzlmod`)
 for a single Bazel version rather than the entire expensive matrix.
 
-### Multi-repo runtime
+### Compiler repositories and versioning
 
-The `rules_kotlin` runtime is comprised of multiple repositories. The end user will interact with a single repository, that repository delegates to 
-versioned feature sub-repositories. Currently, the delegation is managed by using well known names (e.g. core lives in `@rules_kotlin_configured`),
-a necessity while the initial repository can be named arbitrarily. Future development intends to remove this restriction.
+The `rules_kotlin_extensions` Bzlmod extension creates external repositories for the Kotlin compiler,
+KSP, and supporting tools. The rules and worker sources live in `@rules_kotlin` itself.
+
+The extension selects one Kotlin compiler release and one KSP release. It accepts at most one
+`kotlinc_version` tag and one `ksp_version` tag across participating modules; duplicate tags are
+rejected even if they specify the same version. Using multiple Kotlin compiler versions through
+this extension is not currently supported.
 
 ## Idioms and Styles
 TBD
