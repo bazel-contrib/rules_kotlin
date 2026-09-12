@@ -156,7 +156,7 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_dagger_dagger",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
@@ -201,7 +201,7 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_dagger_dagger",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
@@ -248,7 +248,7 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_dagger_dagger",
         "@kotlin_rules_maven_test//:com_google_dagger_dagger_compiler",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
@@ -278,7 +278,7 @@ java_plugin(
     name = "autovalue",
     generates_api = True,
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value"],
 )
 
 # Generate srcjars for the coffee app integration test
@@ -362,8 +362,8 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_dagger_dagger",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
@@ -391,8 +391,8 @@ kt_jvm_library(
     srcs = ["coffee/CoffeeAppModel.kt"],
     plugins = [":moshi"],
     deps = [
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],
