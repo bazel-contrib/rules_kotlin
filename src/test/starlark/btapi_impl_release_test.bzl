@@ -7,7 +7,7 @@ load("//kotlin/internal:btapi_runtime.bzl", "BTAPI_RUNTIME_ATTRIBUTES")
 load("//src/main/starlark/core/repositories:btapi_impl.bzl", "btapi_impl_build_file")
 load("//src/main/starlark/core/repositories:bzlmod_impl.bzl", "collect_btapi_impl_releases")
 load(
-    "//src/main/starlark/core/repositories:initialize.release.bzl",
+    "//src/main/starlark/core/repositories:initialize.bzl",
     "btapi_impl_version",
     "versions",
 )
