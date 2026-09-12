@@ -23,9 +23,10 @@ class JavacJvmTargetAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/j
   fun javaHalfIsCompiledForTheKotlincJvmTarget() {
     jarTestCase(
       "mixed_jvm8.jar",
-      description = "In a mixed Kotlin/Java target the Java sources must compile to the same " +
-        "bytecode version as the kotlinc jvm_target",
+      description = "In a mixed Kotlin/Java target Java must compile against file-private Kotlin " +
+        "classes and use the same bytecode version as the kotlinc jvm_target",
     ) {
+      assertContainsEntries("mixed/PrivateKotlinClass.class")
       // The Java half must follow the kotlinc jvm_target (1.8 -> major 52), not the pinned default.
       assertEquals(
         52,
