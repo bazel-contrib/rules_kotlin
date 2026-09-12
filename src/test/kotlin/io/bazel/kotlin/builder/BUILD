@@ -22,8 +22,8 @@ _COMMON_DEPS = [
     "//src/main/protobuf:deps_java_proto",
     "@kotlin_rules_maven_test//:com_google_truth_truth",
     "@kotlin_rules_maven_test//:junit_junit",
-    "@kotlin_rules_maven//:com_google_guava_guava",
-    "@kotlin_rules_maven//:com_google_code_findbugs_jsr305",
+    "@kotlin_rules_maven_test//:com_google_guava_guava",
+    "@kotlin_rules_maven_test//:com_google_code_findbugs_jsr305",
 ]
 
 java_library(
@@ -47,7 +47,7 @@ java_library(
     deps = _COMMON_DEPS + [
         "//kotlin/compiler:kotlin-reflect",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
-        "//third_party:autovalue",
+        "//src/test:autovalue",
     ],
 )
 
