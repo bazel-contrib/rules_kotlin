@@ -9,6 +9,9 @@ common --incompatible_autoload_externally=
 common --java_runtime_version=remotejdk_17
 common --tool_java_runtime_version=remotejdk_17
 
+# The pinned rules_android tools require Java 17 source syntax.
+build --tool_java_language_version=17
+
 build --test_output=all
 build --verbose_failures
 

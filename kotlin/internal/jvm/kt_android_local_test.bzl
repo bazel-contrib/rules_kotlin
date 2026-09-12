@@ -55,11 +55,24 @@ _ATTRS = _utils.add_dicts(_BASE_ATTRS, _attrs.runnable_common_attr, {
     ),
 })
 
-kt_android_local_test = _make_rule(
-    implementation = _kt_android_local_test_impl,
-    attrs = _ATTRS,
-    additional_toolchains = [
-        _TOOLCHAIN_TYPE,
-        _JAVA_RUNTIME_TOOLCHAIN_TYPE,
-    ],
-)
+def make_rule(attrs = {}, implementation = _kt_android_local_test_impl, additional_toolchains = []):
+    """Creates a Kotlin Android local test rule with a custom processing pipeline.
+
+    Args:
+      attrs: Additional attributes or overrides for the Kotlin test attributes.
+      implementation: Rule implementation running the processing pipeline.
+      additional_toolchains: Toolchains required by custom processors.
+
+    Returns:
+      A test rule with the Kotlin compilation attributes and toolchains.
+    """
+    return _make_rule(
+        implementation = implementation,
+        attrs = _utils.add_dicts(_ATTRS, attrs),
+        additional_toolchains = [
+            _TOOLCHAIN_TYPE,
+            _JAVA_RUNTIME_TOOLCHAIN_TYPE,
+        ] + additional_toolchains,
+    )
+
+kt_android_local_test = make_rule()

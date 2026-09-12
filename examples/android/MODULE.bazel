@@ -40,3 +40,13 @@ maven.install(
     use_starlark_android_rules = True,
 )
 use_repo(maven, "maven_rules_kotlin_example")
+
+# CoverageProcessor API from https://github.com/bazelbuild/rules_android/pull/562.
+# Replace this override with a rules_android release once available.
+archive_override(
+    module_name = "rules_android",
+    integrity = "sha256-GCZvGN7DyFBmeOQz0RCzJJUZiln+F8Nk5rwUxPFxQ2U=",
+    strip_prefix = "rules_android-9e7e6f868e663bbbd3ff07bb2781e12d0d4d3cbf",
+    type = "tar.gz",
+    urls = ["https://codeload.github.com/bazelbuild/rules_android/tar.gz/9e7e6f868e663bbbd3ff07bb2781e12d0d4d3cbf"],
+)

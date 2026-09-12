@@ -27,3 +27,6 @@ build:android_worker \
   --strategy=JavaSourceJar=remote,local \
   --strategy=Turbine=remote,local \
   --strategy=PackageAndroidResources=local
+
+# The pinned rules_android tools require Java 17 source syntax.
+build --tool_java_language_version=17
