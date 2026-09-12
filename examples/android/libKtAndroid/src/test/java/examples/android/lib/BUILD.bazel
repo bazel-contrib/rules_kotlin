@@ -9,6 +9,7 @@ kt_android_local_test(
         "-Djava.security.manager=allow",
     ],
     manifest = "AndroidManifest.xml",
+    test_class = "examples.android.lib.SomeTest",
     deps = [
         "@maven_rules_kotlin_example//:junit_junit",
         "@robolectric//bazel:android-all",

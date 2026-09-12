@@ -149,8 +149,20 @@ object BazelIntegrationTestRunner {
                 "--test_output=all",
                 "//...",
               ).onFailThrow()
+              // TODO: Fix Kover coverage on Windows.
               if (isWindows) {
-                println("Skipping coverage on Windows integration runs.")
+                println("Skipping Kover coverage on Windows integration runs.")
+              } else {
+                bazel.run(
+                  workspace,
+                  *systemFlags,
+                  "coverage",
+                  *commandFlags,
+                  *coverageTargets,
+                ).onFailThrow()
+              }
+              if (isWindows) {
+                println("Skipping lcov coverage on Windows integration runs.")
               } else {
                 bazel.run(
                   workspace,
