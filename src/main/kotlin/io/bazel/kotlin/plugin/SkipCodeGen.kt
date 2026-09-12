@@ -31,7 +31,10 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
 /**
  *  SkipCodeGen registers an extension to skip code generation. Must be the last compiler plugin.
  */
-@OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
+@OptIn(
+  org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class,
+  org.jetbrains.kotlin.K1Deprecation::class,
+)
 class SkipCodeGen : CompilerPluginRegistrar() {
   override val pluginId: String = COMPILER_PLUGIN_ID
 

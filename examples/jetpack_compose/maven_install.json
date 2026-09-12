@@ -11,7 +11,7 @@
     "androidx.core:core-ktx": -1348396836,
     "androidx.lifecycle:lifecycle-common": 234331668,
     "androidx.lifecycle:lifecycle-runtime": -526123229,
-    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": 212040376,
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": 15526871,
     "repositories": 1670674627
   },
   "__RESOLVED_ARTIFACTS_HASH": {
@@ -183,8 +183,8 @@
     "androidx.viewpager:viewpager:jar:sources": -1999416519,
     "com.google.guava:listenablefuture": -1728764445,
     "com.google.guava:listenablefuture:jar:sources": 428207214,
-    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": 412466121,
-    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:jar:sources": 987141179,
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": 257751711,
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:jar:sources": 1251134462,
     "org.jetbrains.kotlin:kotlin-stdlib": 1646588665,
     "org.jetbrains.kotlin:kotlin-stdlib-common": 2031482529,
     "org.jetbrains.kotlin:kotlin-stdlib-common:jar:sources": -50887075,
@@ -1154,10 +1154,10 @@
     },
     "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": {
       "shasums": {
-        "jar": "07edff96c6196c5354caa275b748616794cc8883af02e380d091d221f02bdc80",
-        "sources": "c8bc960e0ce21534127e638d0bdd750bc64ec391db0e8333665ea0dad48e0139"
+        "jar": "e6fc101fd0b8592911de57f96a75b09e0b6158eaccbc71ddd6ca82e05e0386a2",
+        "sources": "bee47d61e35cb6b5c91e1d3d6bcc589bb9510f1c1aa0c64943784cc133312b16"
       },
-      "version": "2.4.10"
+      "version": "2.4.20"
     },
     "org.jetbrains.kotlin:kotlin-stdlib": {
       "shasums": {
@@ -1895,7 +1895,6 @@
       "androidx.compose.compiler.plugins.kotlin",
       "androidx.compose.compiler.plugins.kotlin.analysis",
       "androidx.compose.compiler.plugins.kotlin.inference",
-      "androidx.compose.compiler.plugins.kotlin.k1",
       "androidx.compose.compiler.plugins.kotlin.k2",
       "androidx.compose.compiler.plugins.kotlin.lower",
       "androidx.compose.compiler.plugins.kotlin.lower.hiddenfromobjc"

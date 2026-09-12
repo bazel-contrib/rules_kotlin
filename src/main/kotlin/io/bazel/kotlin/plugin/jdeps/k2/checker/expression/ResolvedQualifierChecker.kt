@@ -13,7 +13,7 @@ internal class ResolvedQualifierChecker(
 ) : FirResolvedQualifierChecker(MppCheckerKind.Common) {
   context(context: CheckerContext, reporter: DiagnosticReporter)
   override fun check(expression: FirResolvedQualifier) {
-    expression.symbol?.let {
+    expression.qualifierSymbol?.let {
       classUsageRecorder.recordClass(it, context)
     }
   }
