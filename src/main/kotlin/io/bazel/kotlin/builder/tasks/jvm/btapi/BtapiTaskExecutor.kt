@@ -37,6 +37,7 @@ import io.bazel.kotlin.builder.tasks.jvm.stubs
 import io.bazel.kotlin.builder.tasks.toRuntime
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.utils.fingerprintOf
 import io.bazel.kotlin.compiler.CompilationUnit
 import io.bazel.kotlin.compiler.CompilerConfiguration
 import io.bazel.kotlin.compiler.CompilerPluginSpec
@@ -63,7 +64,12 @@ class BtapiTaskExecutor(
   private val btapiClassLoader: ClassLoader,
 ) : JvmTaskExecutor {
   /** api_impl_classpath -> compiler invoker map */
-  private val invokers = ConcurrentHashMap<List<String>, KotlinBtapiCompiler>()
+  private val invokers = ConcurrentHashMap<List<String>, CacheEntry>()
+
+  private data class CacheEntry(
+    val compiler: KotlinBtapiCompiler,
+    val fingerprint: String,
+  )
 
   private data class PluginDescriptor(
     override val id: String,
@@ -99,7 +105,7 @@ class BtapiTaskExecutor(
     val btapiRuntime =
       task.info.toolchainInfo.btapi
         .toRuntime()
-    val compiler = invokers.computeIfAbsent(btapiRuntime.apiImplClasspath, ::loadCompilerInvoker)
+    val compiler = getCompilerInvoker(btapiRuntime.apiImplClasspath)
     val preprocessedTask =
       task
         .preProcessingSteps(context)
@@ -153,6 +159,19 @@ class BtapiTaskExecutor(
         }
       }
     }
+  }
+
+  fun getCompilerInvoker(classpath: List<String>): KotlinBtapiCompiler {
+    val fingerprint = fingerprintOf(classpath)
+    return invokers
+      .compute(classpath) { _, existing ->
+        if (existing != null && existing.fingerprint == fingerprint) {
+          existing
+        } else {
+          CacheEntry(loadCompilerInvoker(classpath), fingerprint)
+        }
+      }!!
+      .compiler
   }
 
   private fun loadCompilerInvoker(classpath: List<String>): KotlinBtapiCompiler {
