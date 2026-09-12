@@ -20,6 +20,12 @@ load("//src/main/starlark/release:packager.bzl", "release_archive")
 kt_configure_toolchains()
 
 release_archive(
+    name = "default_toolchain_pkg",
+    srcs = ["//kotlin/internal/default_toolchain:BUILD.bazel"],
+    package_dir = "default_toolchain",
+)
+
+release_archive(
     name = "pkg",
     srcs = glob(
         ["*.bzl"],
@@ -28,6 +34,7 @@ release_archive(
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
+        ":default_toolchain_pkg",
         "//kotlin/internal/jvm:pkg",
         "//kotlin/internal/lint:pkg",
         "//kotlin/internal/utils:pkg",

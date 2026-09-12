@@ -35,4 +35,4 @@ use_repo(
     "kotlinx_serialization_json_jvm",
 )
 
-register_toolchains("//kotlin/internal:default_toolchain")
+register_toolchains("//kotlin/internal/default_toolchain")
