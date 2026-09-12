@@ -662,17 +662,11 @@ libraries they need, and the internal compiler plugins in the embeddable dialect
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
-kt_register_toolchains(<a href="#kt_register_toolchains-name">name</a>)
+kt_register_toolchains()
 </pre>
 
 This macro registers the kotlin toolchain.
 
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="kt_register_toolchains-name"></a>name |  unused; present for lint and buildozer.   |  `"kt_register_toolchains"` |
 
 
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->

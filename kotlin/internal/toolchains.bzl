@@ -386,12 +386,9 @@ _kt_toolchain = rule(
 
 _KT_DEFAULT_TOOLCHAIN = Label("//kotlin/internal:default_toolchain")
 
-def kt_register_toolchains(name = "kt_register_toolchains"):
-    """This macro registers the kotlin toolchain.
-
-    Args:
-      name: unused; present for lint and buildozer.
-    """
+# buildifier: disable=unnamed-macro
+def kt_register_toolchains():
+    """This macro registers the kotlin toolchain."""
     native.register_toolchains(str(_KT_DEFAULT_TOOLCHAIN))
 
 # Evaluating the select in the context of bzl file to get its repository
@@ -533,14 +530,12 @@ _kt_toolchain_alias = rule(
     toolchains = [_TOOLCHAIN_TYPE],
 )
 
-def kt_configure_toolchains(name = "kt_configure_toolchains"):
+# buildifier: disable=unnamed-macro
+def kt_configure_toolchains():
     """
     Defines the toolchain_type and default toolchain for kotlin compilation.
 
     Must be called in kotlin/internal/BUILD.bazel
-
-    Args:
-      name: unused; present for lint and buildozer.
     """
     if native.package_name() != "kotlin/internal":
         fail("kt_configure_toolchains must be called in kotlin/internal not %s" % native.package_name())
