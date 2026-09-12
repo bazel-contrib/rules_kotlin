@@ -21,14 +21,12 @@ load(
 
 _KSP_COMPILER_PLUGIN_REPO_PREFIX = "@" + _KSP_COMPILER_PLUGIN_REPO + "//:"
 
-def kt_configure_ksp(name = "kt_configure_ksp"):
+# buildifier: disable=unnamed-macro
+def kt_configure_ksp():
     """
     Defines the toolchain_type and default toolchain for KSP plugins.
 
     Must be called in kotlin/internal/BUILD.bazel
-
-    Args:
-      name: unused; present to satisfy the unnamed-macro lint convention.
     """
     if native.package_name() != "kotlin/compiler":
         fail("kt_configure_ksp must be called in kotlin/compiler not %s" % native.package_name())

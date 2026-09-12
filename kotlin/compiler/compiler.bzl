@@ -53,14 +53,12 @@ def _import_labels(labels, rule_kind, **rule_args):
             args["srcjar"] = "@%s//:%s" % (_KT_COMPILER_REPO, sources)
         rule_kind(**args)
 
-def kt_configure_compiler(name = "kt_configure_compiler"):
+# buildifier: disable=unnamed-macro
+def kt_configure_compiler():
     """
     Defines the toolchain_type and default toolchain for kotlin compilation.
 
     Must be called in kotlin/internal/BUILD.bazel
-
-    Args:
-      name: unused; present to satisfy the unnamed-macro lint convention.
     """
     if native.package_name() != "kotlin/compiler":
         fail("kt_configure_compiler must be called in kotlin/compiler not %s" % native.package_name())
