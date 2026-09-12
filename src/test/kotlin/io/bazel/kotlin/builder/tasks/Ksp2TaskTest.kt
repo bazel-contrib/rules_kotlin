@@ -20,10 +20,10 @@ import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2EntryPoint
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.Ksp2Flags
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.clearKspClassLoaderCacheForTesting
-import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.fingerprintOf
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.getKspClassLoader
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.parseKspOptions
 import io.bazel.kotlin.builder.utils.ArgMap
+import io.bazel.kotlin.builder.utils.fingerprintOf
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -243,7 +243,9 @@ class Ksp2TaskTest {
     val classpath = listOf(jar.absolutePath)
 
     val firstClassLoader = getKspClassLoader(classpath)
-    jar.writeBytes(byteArrayOf(4, 5, 6, 7))
+    val timestamp = jar.lastModified()
+    jar.writeBytes(byteArrayOf(4, 5, 6))
+    check(jar.setLastModified(timestamp))
     val secondClassLoader = getKspClassLoader(classpath)
 
     assertThat(secondClassLoader).isNotSameInstanceAs(firstClassLoader)
@@ -262,7 +264,9 @@ class Ksp2TaskTest {
     val classpath = listOf(jar.absolutePath)
     val before = fingerprintOf(classpath)
 
-    jar.writeBytes(byteArrayOf(4, 5, 6, 7))
+    val timestamp = jar.lastModified()
+    jar.writeBytes(byteArrayOf(4, 5, 6))
+    check(jar.setLastModified(timestamp))
     val after = fingerprintOf(classpath)
 
     assertThat(after).isNotEqualTo(before)
