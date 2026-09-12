@@ -1,5 +1,30 @@
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@rules_multirun//:defs.bzl", "multirun")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+# Package sources only; workers are compiled in the consuming repository.
+pkg_tar(
+    name = "rules_kotlin_release",
+    srcs = ["//:release_sources"],
+    extension = "tgz",
+    mode = "0644",
+    strip_prefix = "/",
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "release_archive_test",
+    srcs = ["release_archive_test.sh"],
+    args = [
+        "$(rootpath :rules_kotlin_release)",
+        "$(rootpath //:MODULE.bazel)",
+    ],
+    data = [
+        ":rules_kotlin_release",
+        "//:MODULE.bazel",
+    ],
+)
 
 multirun(
     name = "ktlint_fix_all",
@@ -58,5 +83,30 @@ buildifier(
     lint_mode = "fix",
     lint_warnings = [
         "+unsorted-dict-items",
+    ],
+)
+
+# The entire test suite excluding local tests.
+test_suite(
+    name = "all_tests",
+    tests = [
+        ":release_archive_test",
+        "//src/test/kotlin/io/bazel/kotlin:assertion_tests",
+        "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
+        "//src/test/kotlin/io/bazel/worker:worker_tests",
+        "//src/test/starlark:convert_tests",
+        "//src/test/starlark:resource_strip_prefix_tests",
+    ],
+)
+
+# Local tests. Tests that shouldn't be run on the CI server.
+test_suite(
+    name = "all_local_tests",
+    tests = [
+        ":all_tests",
+        "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
+        "//src/test/kotlin/io/bazel/worker:local_worker_tests",
+        "//src/test/starlark:convert_tests",
+        "//src/test/starlark:resource_strip_prefix_tests",
     ],
 )

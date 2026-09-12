@@ -18,18 +18,14 @@ package(default_applicable_licenses = [":license"])
 
 exports_files(["MODULE.bazel"])
 
-# Integration tests reference this repository with paths relative to their fixture workspace.
-# Keep the repository sources as declared test inputs so those paths resolve within runfiles.
+# Sources shared by the release archive and its integration tests.
 filegroup(
-    name = "local_repository_files",
+    name = "release_sources",
     srcs = [
-        ".bazelignore",
-        ".bazelrc",
-        ".bazelversion",
+        ".editorconfig",
         "BUILD",
         "LICENSE",
         "MODULE.bazel",
-        "MODULE.bazel.lock",
         "kotlin_rules_maven_install.json",
         "//kotlin:all_files",
         "//kotlin/compiler:all_files",

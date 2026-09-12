@@ -1,7 +1,7 @@
 # Cut a release whenever a new tag is pushed to the repo.
 # You should use an annotated tag, like `git tag -a v1.2.3`
 # and put the release notes into the commit message for the tag.
-name: Release Binary Package
+name: Release Source Package
 on:
   push:
     tags:
@@ -20,11 +20,6 @@ jobs:
             ~/.cache/bazel-disk-cache
           key: bazel-cache-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', 'WORKSPACE', 'WORKSPACE.bzlmod') }}
           restore-keys: bazel-cache-
-      - name: Install JDK 11
-        uses: actions/setup-java@v6
-        with:
-          distribution: "zulu"
-          java-version: "11"
       - name: Prepare release notes and artifacts
         run: .github/workflows/release_prep.sh ${{ env.GITHUB_REF_NAME }}
       - name: Release

@@ -1,23 +1,37 @@
-# The entire test suite excluding local tests.
-test_suite(
-    name = "all_tests",
-    tests = [
-        "//src/test/kotlin/io/bazel/kotlin:assertion_tests",
-        "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
-        "//src/test/kotlin/io/bazel/worker:worker_tests",
-        "//src/test/starlark:convert_tests",
-        "//src/test/starlark:resource_strip_prefix_tests",
+load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
+
+java_plugin(
+    name = "dagger_component_plugin",
+    generates_api = 1,
+    processor_class = "dagger.internal.codegen.ComponentProcessor",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger_compiler",
     ],
 )
 
-# Local tests. Tests that shouldn't be run on the CI server.
-test_suite(
-    name = "all_local_tests",
-    tests = [
-        ":all_tests",
-        "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
-        "//src/test/kotlin/io/bazel/worker:local_worker_tests",
-        "//src/test/starlark:convert_tests",
-        "//src/test/starlark:resource_strip_prefix_tests",
+java_library(
+    name = "dagger",
+    exported_plugins = [":dagger_component_plugin"],
+    visibility = ["//src/test:__subpackages__"],
+    exports = [
+        "@kotlin_rules_maven_test//:com_google_dagger_dagger",
+        "@kotlin_rules_maven_test//:javax_inject_javax_inject",
     ],
+)
+
+java_plugin(
+    name = "autovalue_plugin",
+    generates_api = 1,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    visibility = ["//visibility:private"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value"],
+)
+
+java_library(
+    name = "autovalue",
+    exported_plugins = [":autovalue_plugin"],
+    neverlink = 1,
+    visibility = ["//src/test:__subpackages__"],
+    exports = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations"],
 )

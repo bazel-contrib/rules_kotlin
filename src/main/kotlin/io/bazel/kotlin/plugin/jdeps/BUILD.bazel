@@ -18,10 +18,7 @@ load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
 filegroup(
     name = "all_files",
-    srcs = glob([
-        "*",
-        "**/*",
-    ]),
+    srcs = glob(["**"]),
     visibility = ["//:__subpackages__"],
 )
 

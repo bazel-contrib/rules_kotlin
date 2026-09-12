@@ -28,10 +28,13 @@ Otherwise, the Buildkite CI will yell at you about formatting/linting violations
 
 ## Packaging
 
-Releases contain the source tree from the tagged commit. There is no separate release workspace or
-release-specific set of BUILD files. Contributors changing packaging or dependencies should verify
-that the repository builds both as the root module and as a dependency, then run the example tests
-and regenerate the documentation.
+Build the source-only release with `bazel build //tools:rules_kotlin_release`. The archive contains
+the same MODULE and BUILD files used during development; consumers compile the workers and compiler
+plugins themselves. Source-only releases require Bzlmod. Packaging uses `rules_pkg` without generated release BUILD files or bundled binaries.
+
+The example integration tests unpack this same archive and use it as a dependency. When changing
+packaging, run representative examples (such as `//examples:trivial_bzlmod` and `//examples:ksp_bzlmod`)
+for a single Bazel version rather than the entire expensive matrix.
 
 ### Multi-repo runtime
 

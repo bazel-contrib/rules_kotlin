@@ -100,7 +100,7 @@ def _apoptions_to_kotlinc(rule_under_test, **kwargs):
                 option_key: [option_value],
             },
             deps = [
-                "//third_party:dagger",
+                "//src/test:dagger",
                 test.have(
                     kt_jvm_import,
                     name = "dep_jar",
@@ -189,7 +189,7 @@ def _options_to_javac(rule_under_test, **kwargs):
                 option_key: [option_value],
             },
             deps = [
-                "//third_party:dagger",
+                "//src/test:dagger",
                 test.have(
                     kt_jvm_import,
                     name = "dep_jar",

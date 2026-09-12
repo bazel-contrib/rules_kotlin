@@ -5,48 +5,17 @@ module(
     repo_name = "rules_kotlin",
 )
 
-proto_version = "4.33.4"
-
-proto_version_parts = proto_version.split(".")
-
-proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
-
-bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
-bazel_dep(name = "platforms", version = "0.0.11")
-bazel_dep(name = "bazel_skylib", version = "1.8.2")
-bazel_dep(name = "rules_java", version = "8.9.0")
-bazel_dep(name = "rules_license", version = "1.0.0")
-bazel_dep(name = "rules_android", version = "0.7.3")
-
-remote_android_extensions = use_extension(
-    "@rules_android//bzlmod_extensions:android_extensions.bzl",
-    "remote_android_tools_extensions",
-    dev_dependency = True,
-)
-use_repo(remote_android_extensions, "android_tools")
-
-android_sdk_repository_extension = use_extension(
-    "@rules_android//rules/android_sdk_repository:rule.bzl",
-    "android_sdk_repository_extension",
-    dev_dependency = True,
-)
-use_repo(android_sdk_repository_extension, "androidsdk")
-
-register_toolchains(
-    "@androidsdk//:all",
-    dev_dependency = True,
-)
-
+# Dependencies needed by the shipped rules and source-built workers.
 bazel_dep(name = "bazel_features", version = "1.50.0")
 bazel_dep(name = "bazel_lib", version = "3.1.0")
-
-bazel_dep(name = "rules_shell", version = "0.4.1", dev_dependency = True)
-
-bazel_dep(name = "bazel_worker_api", version = "0.0.11")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "bazel_worker_java", version = "0.0.11")
-
-bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.4", dev_dependency = True)
-bazel_dep(name = "rules_multirun", version = "0.14.0", dev_dependency = True)
+bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
+bazel_dep(name = "rules_android", version = "0.7.3")
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_jvm_external", version = "7.1")
+bazel_dep(name = "rules_license", version = "1.0.0")
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
@@ -70,19 +39,6 @@ register_toolchains("//src/main/starlark/core/compile/cli")
 
 register_toolchains("//kotlin/internal:default_toolchain")
 
-# Consumers compile the workers and tools from source.
-
-bazel_dep(name = "rules_jvm_external", version = "7.1")
-
-bazel_dep(name = "bazel_ci_rules", version = "2.1.1", dev_dependency = True)
-
-rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension", dev_dependency = True)
-rbe.config(
-    name = "buildkite_config",
-    preset = "ubuntu",
-)
-use_repo(rbe, "buildkite_config")
-
 MAVEN_REPOSITORIES = [
     "https://maven-central.storage.googleapis.com/repos/central/data/",
     "https://maven.google.com",
@@ -93,12 +49,6 @@ maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "kotlin_rules_maven",
     artifacts = [
-        "com.google.code.findbugs:jsr305:3.0.2",
-        "com.google.errorprone:error_prone_annotations:2.23.0",
-        "com.google.guava:guava:33.0.0-jre",
-        "com.google.auto.value:auto-value:1.11.0",
-        "com.google.auto.value:auto-value-annotations:1.11.0",
-        "org.apache.commons:commons-compress:1.26.2",
         "com.eed3si9n.jarjar:jarjar:1.17.0",
     ],
     fail_if_repin_required = True,
@@ -106,39 +56,67 @@ maven.install(
     lock_file = "//:kotlin_rules_maven_install.json",
     repositories = MAVEN_REPOSITORIES,
 )
-maven.override(
-    name = "override_target_in_deps_kotlin_stdlib",
-    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib",
-)
-maven.override(
-    name = "override_target_in_deps_kotlin_stdlib_jdk7",
-    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk7",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk7",
-)
-maven.override(
-    name = "override_target_in_deps_kotlin_stdlib_jdk8",
-    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk8",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
-)
-use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
+use_repo(maven, "kotlin_rules_maven")
 
-# Artifacts used only by rules_kotlin's own tests, never by the builder or the released rules.
+# Development dependencies are ignored when rules_kotlin is consumed as a dependency.
+bazel_dep(name = "bazel_ci_rules", version = "2.1.1", dev_dependency = True)
+bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.4", dev_dependency = True)
+bazel_dep(name = "rules_bazel_integration_test", version = "0.37.1", dev_dependency = True)
+bazel_dep(name = "rules_multirun", version = "0.14.0", dev_dependency = True)
+bazel_dep(name = "rules_pkg", version = "1.0.1", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.4.1", dev_dependency = True)
+bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
+bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True, repo_name = "io_bazel_stardoc")
+
+# SDK discovery and Android toolchain registration are only for our own tests.
+remote_android_extensions = use_extension(
+    "@rules_android//bzlmod_extensions:android_extensions.bzl",
+    "remote_android_tools_extensions",
+    dev_dependency = True,
+)
+use_repo(remote_android_extensions, "android_tools")
+
+android_sdk_repository_extension = use_extension(
+    "@rules_android//rules/android_sdk_repository:rule.bzl",
+    "android_sdk_repository_extension",
+    dev_dependency = True,
+)
+use_repo(android_sdk_repository_extension, "androidsdk")
+
+register_toolchains(
+    "@androidsdk//:all",
+    dev_dependency = True,
+)
+
+rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension", dev_dependency = True)
+rbe.config(
+    name = "buildkite_config",
+    preset = "ubuntu",
+)
+use_repo(rbe, "buildkite_config")
+
+# Both Maven uses share one extension. Root builds include both installs; consumers
+# only include kotlin_rules_maven. Shared production artifacts stay in that install.
 maven_test = use_extension("@rules_jvm_external//:extensions.bzl", "maven", dev_dependency = True)
 maven_test.install(
     name = "kotlin_rules_maven_test",
     artifacts = [
-        "junit:junit:4.13-beta-3",
-        "com.google.truth:truth:0.45",
-        "com.google.auto.service:auto-service:1.1.1",
         "com.google.auto.service:auto-service-annotations:1.1.1",
-        "com.google.dagger:dagger:2.57.2",
+        "com.google.auto.service:auto-service:1.1.1",
+        "com.google.auto.value:auto-value-annotations:1.11.0",
+        "com.google.auto.value:auto-value:1.11.0",
+        "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.dagger:dagger-compiler:2.57.2",
-        "javax.inject:javax.inject:1",
-        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
-        "com.squareup.moshi:moshi:1.15.2",
-        "com.squareup.moshi:moshi-kotlin:1.15.2",
+        "com.google.dagger:dagger:2.57.2",
+        "com.google.guava:guava:33.0.0-jre",
+        "com.google.truth:truth:0.45",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
+        "com.squareup.moshi:moshi-kotlin:1.15.2",
+        "com.squareup.moshi:moshi:1.15.2",
+        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
+        "javax.inject:javax.inject:1",
+        "junit:junit:4.13-beta-3",
+        "org.apache.commons:commons-compress:1.26.2",
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],
     fail_if_repin_required = True,
@@ -146,12 +124,7 @@ maven_test.install(
     lock_file = "//:kotlin_rules_maven_test_install.json",
     repositories = MAVEN_REPOSITORIES,
 )
-use_repo(maven_test, "kotlin_rules_maven_test", "unpinned_kotlin_rules_maven_test")
-
-
-bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True, repo_name = "io_bazel_stardoc")
-bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
-bazel_dep(name = "rules_bazel_integration_test", version = "0.37.1", dev_dependency = True)
+use_repo(maven_test, "kotlin_rules_maven_test", "unpinned_kotlin_rules_maven", "unpinned_kotlin_rules_maven_test")
 
 bazel_binaries = use_extension("@rules_bazel_integration_test//:extensions.bzl", "bazel_binaries", dev_dependency = True)
 bazel_binaries.download(version = "7.x")
