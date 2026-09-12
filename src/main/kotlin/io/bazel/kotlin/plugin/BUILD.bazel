@@ -16,6 +16,12 @@ load("@rules_java//java:defs.bzl", "java_binary")
 load("//kotlin/internal/utils:generate_jvm_service.bzl", "generate_jvm_service")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
+)
+
 # The compiler binary, this is co-located in the kotlin compiler classloader.
 kt_bootstrap_library(
     name = "skip-code-gen-lib",

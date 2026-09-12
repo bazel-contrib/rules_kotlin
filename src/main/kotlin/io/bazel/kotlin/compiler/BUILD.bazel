@@ -13,7 +13,12 @@
 # limitations under the License.
 
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
-load("//src/main/starlark/release:packager.bzl", "release_archive")
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
+)
 
 # The compiler library, this is co-located in the kotlin compiler classloader.
 kt_bootstrap_library(
@@ -26,13 +31,4 @@ kt_bootstrap_library(
         "//kotlin/compiler:kotlin-script-runtime",
     ],
     visibility = ["//src:__subpackages__"],
-)
-
-release_archive(
-    name = "pkg",
-    package_dir = "io/bazel/kotlin/compiler",
-    src_map = {
-        ":compiler.jar": "compiler.jar",
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
 )

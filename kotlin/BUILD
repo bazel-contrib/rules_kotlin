@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//src/main/starlark/release:packager.bzl", "release_archive")
-
 exports_files([
     "jvm.bzl",
     "lint.bzl",
@@ -20,20 +18,8 @@ exports_files([
     "repositories.doc.bzl",
 ])
 
-release_archive(
-    name = "pkg",
-    srcs = glob(
-        ["*.bzl"],
-        exclude = [
-            "repositories.doc.bzl",
-        ],
-    ),
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
-    deps = [
-        "//kotlin/compiler:pkg",
-        "//kotlin/internal:pkg",
-        "//kotlin/settings:pkg",
-    ],
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
 )

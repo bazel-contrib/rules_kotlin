@@ -44,7 +44,7 @@ define_kt_toolchain(
     language_version = "2.1",
 )
 ```
-and then register it in the `WORKSPACE`:
+and then register it in `MODULE.bazel`:
 ```bzl
 register_toolchains("//:custom_toolchain")
 ```

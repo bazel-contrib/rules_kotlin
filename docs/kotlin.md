@@ -684,16 +684,19 @@ kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a h
                     <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>, <a href="#kotlin_repositories-btapi_impl_releases">btapi_impl_releases</a>)
 </pre>
 
-Call this in the WORKSPACE file to setup the Kotlin rules.
+Internal repository setup for the rules_kotlin Bzlmod extension.
+
+Source-only releases require Bzlmod; WORKSPACE callers must migrate to MODULE.bazel.
+
 
 **PARAMETERS**
 
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  `False` |
+| <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  Whether this is called by the Bzlmod extension. Must be True.   |  `False` |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
-| <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
+| <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  for the KSP compiler plugin repository.   |  `"com_github_google_ksp"` |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "473dd66c7a3ef4b182065b3da670466c1bf2773a9dbb0ed8b33a39fe9d4f876d", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.4.10")` |
 | <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "b0e7666caf7afb634350ca64af9a88c3bd3e04df393fd33dbf430daaf285c6b3", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.11")` |
 | <a id="kotlin_repositories-btapi_impl_releases"></a>btapi_impl_releases |  the Build Tools API implementation records, a dict of repository name to a record built with btapi_impl_version. The record of the current release is always created as @btapi_impl unless the dict replaces it.   |  `None` |

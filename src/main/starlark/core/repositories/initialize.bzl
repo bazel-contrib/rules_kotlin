@@ -16,7 +16,6 @@
 
 load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
-    "http_archive",
     "http_file",
 )
 load(
@@ -47,18 +46,23 @@ def kotlin_repositories(
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE,
         btapi_impl_releases = None):
-    """Call this in the WORKSPACE file to setup the Kotlin rules.
+    """Internal repository setup for the rules_kotlin Bzlmod extension.
+
+    Source-only releases require Bzlmod; WORKSPACE callers must migrate to MODULE.bazel.
 
     Args:
+        is_bzlmod: Whether this is called by the Bzlmod extension. Must be True.
         compiler_repository_name: for the kotlinc compiler repository.
         compiler_release: version provider from versions.bzl.
-        configured_repository_name: for the default versioned kt_* rules repository. If None, no versioned repository is
-         created.
+        ksp_repository_name: for the KSP compiler plugin repository.
         ksp_compiler_release: (internal) version provider from versions.bzl.
         btapi_impl_releases: the Build Tools API implementation records, a dict of repository
          name to a record built with btapi_impl_version. The record of the current release is
          always created as @btapi_impl unless the dict replaces it.
     """
+
+    if not is_bzlmod:
+        fail("Source-only rules_kotlin releases require Bzlmod. Add rules_kotlin to MODULE.bazel instead of calling kotlin_repositories() from WORKSPACE.")
 
     kotlin_compiler_repository(
         name = compiler_repository_name,
@@ -121,56 +125,6 @@ def kotlin_repositories(
         releases[BTAPI_IMPL_DEFAULT_REPOSITORY] = versions.BTAPI_IMPL_CURRENT_RELEASE
     for name, release in releases.items():
         btapi_impl_repository(name = name, release = release)
-
-    if is_bzlmod:
-        return
-
-    versions.use_repository(
-        http_archive,
-        name = "py_absl",
-        version = versions.PY_ABSL,
-    )
-
-    versions.use_repository(
-        http_archive,
-        name = "rules_cc",
-        version = versions.RULES_CC,
-    )
-    versions.use_repository(
-        http_archive,
-        name = "rules_license",
-        version = versions.RULES_LICENSE,
-    )
-    versions.use_repository(
-        http_archive,
-        name = "rules_android",
-        version = versions.RULES_ANDROID,
-    )
-
-    versions.use_repository(
-        http_archive,
-        name = "rules_java",
-        version = versions.RULES_JAVA,
-    )
-
-    # See note in versions.bzl before updating bazel_skylib
-    versions.use_repository(
-        http_archive,
-        name = "bazel_skylib",
-        version = versions.BAZEL_SKYLIB,
-    )
-
-    versions.use_repository(
-        http_archive,
-        name = "bazel_features",
-        version = versions.BAZEL_FEATURES,
-    )
-
-    versions.use_repository(
-        http_archive,
-        name = "bazel_lib",
-        version = versions.BAZEL_LIB,
-    )
 
 def kotlinc_version(release, sha256):
     return version(

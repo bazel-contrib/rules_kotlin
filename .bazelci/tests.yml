@@ -9,6 +9,7 @@
   test_flags: ${{ test_flags }}
   test_targets:
     - "//src/..."
+    - "//tools:release_archive_test"
   build_targets:
     - "//src/..."
 

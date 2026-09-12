@@ -15,20 +15,8 @@
 
 ### Setup
 
-Add the following snippet to your `WORKSPACE` file:
-
-```bzl
-git_repository(
-    name = "rules_kotlin",
-    remote = "https://github.com/bazelbuild/rules_kotlin.git",
-    commit = "<COMMIT_HASH>",
-)
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-kotlin_repositories(kotlin_release_version = "1.4.0")
-
-load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-kt_register_toolchains()
-```
+Add the Bzlmod snippet from the release notes to your `MODULE.bazel` file.
+Source-only releases require Bzlmod and compile their workers and compiler plugins as part of your build.
 
 To enable persistent worker support, add the following to the appropriate `bazelrc` file:
 

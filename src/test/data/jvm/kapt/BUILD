@@ -21,7 +21,7 @@ java_plugin(
     name = "autovalue",
     generates_api = 1,
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value"],
 )
 
 java_plugin(
@@ -34,14 +34,14 @@ java_plugin(
 java_plugin(
     name = "autovalue_no_processor_class",
     generates_api = 1,
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations"],
 )
 
 kt_jvm_library(
     name = "ap_kotlin",
     srcs = ["kotlin/TestKtValue.kt"],
     plugins = [":autovalue"],
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations"],
 )
 
 kt_jvm_library(
@@ -50,7 +50,7 @@ kt_jvm_library(
         "java/TestAPNoGenReferences.java",
         "kotlin/TestKtAPNoGenReference.kt",
     ],
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations"],
 )
 
 kt_jvm_library(
@@ -60,7 +60,7 @@ kt_jvm_library(
         "kotlin/TestKtValue.kt",
     ],
     plugins = [":autovalue"],
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations"],
 )
 
 kt_plugin_cfg(
@@ -89,7 +89,7 @@ kt_jvm_library(
     visibility = [
         "//src/test:__subpackages__",
     ],
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations"],
 )
 
 kt_jvm_library(
@@ -122,8 +122,8 @@ kt_jvm_library(
         ":autovalue",
     ],
     deps = [
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
     ],
 )
 
@@ -140,8 +140,8 @@ kt_jvm_library(
         ":autovalue_no_processor_class",
     ],
     deps = [
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
     ],
 )
 
@@ -164,8 +164,8 @@ kt_jvm_library(
     plugins = [":autovalue"],
     deps = [
         "library_exporting_autovalue_and_junit",
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
     ],
 )
 
