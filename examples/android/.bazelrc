@@ -27,3 +27,6 @@ build:android_worker \
   --strategy=JavaSourceJar=remote,local \
   --strategy=Turbine=remote,local \
   --strategy=PackageAndroidResources=local
+
+# Android build tools use Java 17 language features.
+common --tool_java_language_version=17

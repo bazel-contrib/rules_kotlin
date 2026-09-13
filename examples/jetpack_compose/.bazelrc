@@ -14,3 +14,6 @@ common --tool_java_runtime_version=remotejdk_17
 # Required for abseil-cpp which requires C++17
 build --cxxopt=-std=c++17
 build --host_cxxopt=-std=c++17
+
+# Android build tools use Java 17 language features.
+common --tool_java_language_version=17

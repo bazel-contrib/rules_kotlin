@@ -10,7 +10,6 @@ android_binary(
     manifest_values = {
         "lib_name": "lib",
     },
-    multidex = "native",
     deps = [
         "//libKtAndroid:my_kt",
     ],
@@ -25,7 +24,6 @@ android_binary(
     manifest_values = {
         "lib_name": "lib2",
     },
-    multidex = "native",
     deps = [
         "//libAndroid:my_android",
     ],
@@ -40,7 +38,6 @@ android_binary(
     manifest_values = {
         "lib_name": "lib",
     },
-    multidex = "native",
     deps = [
         "//libKtAndroid:my_kt",
     ],
