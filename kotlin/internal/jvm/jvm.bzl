@@ -93,7 +93,6 @@ kt_jvm_binary(
 """
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(
@@ -122,7 +121,6 @@ load(
     _kt_jvm_library_impl = "kt_jvm_library_impl",
     _kt_ksp_plugin_impl = "kt_ksp_plugin_impl",
 )
-load("//kotlin/internal/jvm:native_libs.bzl", "native_libraries_aspect")
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 # Toolchain type for the Windows launcher maker
@@ -191,11 +189,6 @@ _runnable_implicit_deps = utils.add_dicts(
             cfg = "target",
             executable = True,
         ),
-        "_native_java_launcher": attr.label(
-            default = Label("//kotlin/internal/jvm:native_java_launcher"),
-            cfg = "target",
-            executable = True,
-        ),
         "_windows_constraint": attr.label(
             default = "@platforms//os:windows",
         ),
@@ -226,11 +219,9 @@ _common_attr = utils.add_dicts(
             allow_files = True,
         ),
         "deps": attr.label_list(
-            aspects = [native_libraries_aspect],
             doc = """A list of dependencies of this rule.See general comments about `deps` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
             providers = [
-                [CcInfo],
                 [JavaInfo],
                 [_KtJvmInfo],
             ],
@@ -285,7 +276,6 @@ _common_attr = utils.add_dicts(
             allow_files = True,
         ),
         "runtime_deps": attr.label_list(
-            aspects = [native_libraries_aspect],
             doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
         appear on the runtime classpath, but unlike them, not on the compile-time classpath.""",
             default = [],
@@ -319,7 +309,7 @@ Exported libraries.
 Deps listed here will be made available to other rules, as if the parents explicitly depended on
 these deps. This is not true for regular (non-exported) deps.""",
         default = [],
-        providers = [[JavaInfo], [CcInfo]],
+        providers = [JavaInfo],
     ),
     "neverlink": attr.bool(
         doc = """If true only use this library for compilation and not at runtime.""",
@@ -482,7 +472,7 @@ kt_jvm_import(
             doc = """Compile and runtime dependencies""",
             default = [],
             mandatory = False,
-            providers = [[JavaInfo], [CcInfo]],
+            providers = [JavaInfo],
         ),
         "exported_compiler_plugins": attr.label_list(
             doc = """\
@@ -526,7 +516,7 @@ DEPRECATED - please use `jar` and `srcjar` attributes.""",
             doc = """Additional runtime deps.""",
             default = [],
             mandatory = False,
-            providers = [[JavaInfo], [CcInfo]],
+            providers = [JavaInfo],
         ),
         "srcjar": attr.label(
             doc = """The sources for the class jar.""",

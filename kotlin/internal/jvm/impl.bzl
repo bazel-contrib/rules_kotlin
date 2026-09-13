@@ -14,7 +14,6 @@
 """Rule implementations for Kotlin/JVM rules."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_skylib//lib:shell.bzl", _shell = "shell")
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
@@ -27,7 +26,6 @@ load(
     "//kotlin/internal/jvm:compile.bzl",
     _compile = "compile",
 )
-load("//kotlin/internal/jvm:native_libs.bzl", "collect_native_libraries", "runtime_native_libraries")
 load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
@@ -41,9 +39,6 @@ load(
 )
 load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
 load("//third_party:jarjar.bzl", "jarjar_action")
-
-def _runfile_path(ctx, artifact):
-    return paths.normalize(ctx.workspace_name + "/" + artifact.short_path)
 
 def _artifact_short_path(artifact):
     return artifact.short_path
@@ -127,7 +122,7 @@ def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, ma
         mnemonic = "JavaLauncherMaker",
     )
 
-def _write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, is_test = False):
+def _write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
     """Writes out a launcher shell script for a java target.
 
       Args:
@@ -135,11 +130,10 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, 
         rjars: All of the runtime jars required to launch this java target.
         main_class: the main class to launch.
         jvm_flags: The flags that should be passed to the jvm.
-        native_libraries: Shared libraries needed at runtime.
         is_test: Whether this is a test target (enables security manager for test runner).
       Returns:
         A struct with:
-          - extra_runfiles: Additional launcher runfiles (coverage metadata and native JVM helper)
+          - coverage_metadata: List of coverage metadata files (may be empty)
           - executable: The declared executable file (only set on Windows, None otherwise)
     """
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
@@ -149,33 +143,6 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, 
     if not _is_absolute_target_platform_path(ctx, java_bin_path):
         java_bin_path = ctx.workspace_name + "/" + java_bin_path
     java_bin_path = paths.normalize(java_bin_path)
-
-    native_runfiles = []
-    if native_libraries:
-        if is_windows(ctx):
-            native_java = ctx.actions.declare_file(ctx.label.name + "-native-java.exe")
-            launch_info = ctx.actions.args().use_param_file("%s", use_always = True).set_param_file_format("multiline")
-            launch_info.add(java_bin_path, format = "java_bin_path=%s")
-            launch_info.add_joined(
-                [_runfile_path(ctx, f) for f in native_libraries.to_list()],
-                join_with = "\t",
-                format_joined = "native_libraries=%s",
-            )
-            ctx.actions.run(
-                executable = find_launcher_maker(ctx),
-                inputs = [ctx.executable._native_java_launcher],
-                outputs = [native_java],
-                arguments = [ctx.executable._native_java_launcher.path, launch_info, native_java.path],
-                toolchain = get_launcher_maker_toolchain_for_action(),
-                mnemonic = "KotlinNativeLauncher",
-            )
-            java_bin_path = _runfile_path(ctx, native_java)
-            native_runfiles.append(native_java)
-        else:
-            # Resolve the library paths through the shell launcher's runfiles lookup.
-            dirs = {paths.dirname(_runfile_path(ctx, f)): _runfile_path(ctx, f) for f in native_libraries.to_list()}
-            native_path = ":".join(["$(dirname \"$(rlocation %s)\")" % _shell.quote(f) for f in dirs.values()])
-            jvm_flags = ['-Djava.library.path="' + native_path + '"'] + jvm_flags
 
     # Following rules_java: enable security manager for tests on Java 17-23
     # See https://github.com/bazelbuild/rules_java/blob/7ff9193af58807c9b77f3b7cd56063c9b8a9f028/java/bazel/rules/bazel_java_binary.bzl#L78-L81
@@ -218,7 +185,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, 
                 runfiles_enabled = runfiles_enabled,
                 coverage_main_class = main_class,
             )
-            return struct(extra_runfiles = [jacoco_metadata_file] + native_runfiles, executable = executable)
+            return struct(coverage_metadata = [jacoco_metadata_file], executable = executable)
 
         _create_windows_exe_launcher(
             ctx,
@@ -229,7 +196,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, 
             jvm_flags_for_launcher = jvm_flags_list,
             runfiles_enabled = runfiles_enabled,
         )
-        return struct(extra_runfiles = native_runfiles, executable = executable)
+        return struct(coverage_metadata = [], executable = executable)
 
     # Unix: use shell script template
     jvm_flags_str = " ".join(jvm_flags_list)
@@ -272,7 +239,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, 
             },
             is_executable = True,
         )
-        return struct(extra_runfiles = [jacoco_metadata_file], executable = None)
+        return struct(coverage_metadata = [jacoco_metadata_file], executable = None)
 
     classpath = ctx.configuration.host_path_separator.join(
         ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
@@ -297,7 +264,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, 
         },
         is_executable = True,
     )
-    return struct(extra_runfiles = [], executable = None)
+    return struct(coverage_metadata = [], executable = None)
 
 # buildifier: disable=unused-variable
 def _is_source_jar_stub(jar):
@@ -367,7 +334,7 @@ def kt_jvm_import_impl(ctx):
             runfiles = ctx.runfiles(
                 # Append class jar with the optional sources jar
                 files = [artifact.class_jar] + [artifact.source_jar] if artifact.source_jar else [],
-            ).merge_all([d[DefaultInfo].default_runfiles for d in ctx.attr.deps + ctx.attr.runtime_deps + getattr(ctx.attr, "exports", [])]),
+            ).merge_all([d[DefaultInfo].default_runfiles for d in ctx.attr.deps]),
         ),
         JavaInfo(
             output_jar = artifact.class_jar,
@@ -375,8 +342,7 @@ def kt_jvm_import_impl(ctx):
             source_jar = artifact.source_jar,
             runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps if JavaInfo in dep],
             deps = [dep[JavaInfo] for dep in ctx.attr.deps if JavaInfo in dep],
-            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", []) if JavaInfo in d],
-            native_libraries = collect_native_libraries(ctx.attr.deps, ctx.attr.runtime_deps, getattr(ctx.attr, "exports", [])),
+            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
             neverlink = getattr(ctx.attr, "neverlink", False),
         ),
         kt_info,
@@ -431,7 +397,6 @@ def kt_jvm_binary_impl(ctx):
         providers.java.transitive_runtime_jars,
         ctx.attr.main_class,
         jvm_flags,
-        runtime_native_libraries(ctx, providers.java),
     )
     if len(ctx.attr.srcs) == 0 and len(ctx.attr.deps) > 0:
         fail("deps without srcs is invalid. To add runtime classpath and resources, use runtime_deps.", attr = "deps")
@@ -445,8 +410,7 @@ def kt_jvm_binary_impl(ctx):
         ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
         depset(
             order = "default",
-            transitive = [providers.java.transitive_runtime_jars, java_runtime.files, runtime_native_libraries(ctx, providers.java)],
-            direct = launcher_result.extra_runfiles,
+            transitive = [providers.java.transitive_runtime_jars, java_runtime.files],
         ),
         launcher_result.executable,
         RunEnvironmentInfo(
@@ -507,7 +471,6 @@ def kt_jvm_junit_test_impl(ctx):
             "-ea",
             "-Dbazel.test_suite=%s" % test_class,
         ] + jvm_flags,
-        native_libraries = runtime_native_libraries(ctx, providers.java),
         is_test = True,
     )
 
@@ -520,7 +483,7 @@ def kt_jvm_junit_test_impl(ctx):
         ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
         depset(
             order = "default",
-            transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.extra_runfiles), java_runtime.files, runtime_native_libraries(ctx, providers.java)],
+            transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.coverage_metadata), java_runtime.files],
         ),
         launcher_result.executable,
         # adds common test variables, including TEST_WORKSPACE.

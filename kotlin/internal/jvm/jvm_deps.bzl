@@ -19,7 +19,9 @@ load(
     "JavaInfo",
 )
 load("//kotlin/internal/jvm:associates.bzl", _associate_utils = "associate_utils")
-load("//kotlin/internal/jvm:native_libs.bzl", "collect_native_libraries")
+
+def _java_info(target):
+    return target[JavaInfo] if JavaInfo in target else None
 
 def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
@@ -30,7 +32,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
     )
     dep_infos = (
         deps_java_infos +
-        [d[JavaInfo] for d in deps if JavaInfo in d] +
+        [_java_info(d) for d in deps] +
         associates.dep_infos +
         [toolchains.kt.jvm_stdlibs]
     )
@@ -85,14 +87,13 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         java_deps = dep_infos
 
     return struct(
-        native_libraries = collect_native_libraries(deps, runtime_deps, exports),
         module_name = associates.module_name,
         deps = dep_infos,
         java_deps = java_deps,
-        exports = [d[JavaInfo] for d in exports if JavaInfo in d],
+        exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),
-        runtime_deps = [d[JavaInfo] for d in runtime_deps if JavaInfo in d],
+        runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 
 jvm_deps_utils = struct(
