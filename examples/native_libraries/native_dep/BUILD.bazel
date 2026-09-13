@@ -1,0 +1,36 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_binary(
+    name = "libnative.so",
+    srcs = ["native.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+cc_binary(
+    name = "libnative.dylib",
+    srcs = ["native.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+cc_binary(
+    name = "native.dll",
+    srcs = ["native.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+alias(
+    name = "native",
+    actual = select({
+        "@platforms//os:macos": ":libnative.dylib",
+        "@platforms//os:windows": ":native.dll",
+        "//conditions:default": ":libnative.so",
+    }),
+)
