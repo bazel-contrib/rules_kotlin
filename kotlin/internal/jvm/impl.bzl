@@ -431,7 +431,7 @@ def kt_jvm_binary_impl(ctx):
         providers.java.transitive_runtime_jars,
         ctx.attr.main_class,
         jvm_flags,
-        runtime_native_libraries(providers.java),
+        runtime_native_libraries(ctx, providers.java),
     )
     if len(ctx.attr.srcs) == 0 and len(ctx.attr.deps) > 0:
         fail("deps without srcs is invalid. To add runtime classpath and resources, use runtime_deps.", attr = "deps")
@@ -445,7 +445,7 @@ def kt_jvm_binary_impl(ctx):
         ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
         depset(
             order = "default",
-            transitive = [providers.java.transitive_runtime_jars, java_runtime.files, runtime_native_libraries(providers.java)],
+            transitive = [providers.java.transitive_runtime_jars, java_runtime.files, runtime_native_libraries(ctx, providers.java)],
             direct = launcher_result.extra_runfiles,
         ),
         launcher_result.executable,
@@ -507,7 +507,7 @@ def kt_jvm_junit_test_impl(ctx):
             "-ea",
             "-Dbazel.test_suite=%s" % test_class,
         ] + jvm_flags,
-        native_libraries = runtime_native_libraries(providers.java),
+        native_libraries = runtime_native_libraries(ctx, providers.java),
         is_test = True,
     )
 
@@ -520,7 +520,7 @@ def kt_jvm_junit_test_impl(ctx):
         ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
         depset(
             order = "default",
-            transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.extra_runfiles), java_runtime.files, runtime_native_libraries(providers.java)],
+            transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.extra_runfiles), java_runtime.files, runtime_native_libraries(ctx, providers.java)],
         ),
         launcher_result.executable,
         # adds common test variables, including TEST_WORKSPACE.

@@ -20,8 +20,8 @@ package(default_visibility = ["//visibility:public"])
 alias(
     name = "native",
     actual = select({
-        "@platforms//os:windows": ":native.dll",
         "@platforms//os:macos": ":libnative.dylib",
+        "@platforms//os:windows": ":native.dll",
         "//conditions:default": ":libnative.so",
     }),
 )

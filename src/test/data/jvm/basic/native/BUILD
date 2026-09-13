@@ -21,8 +21,8 @@ load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import", "kt_jvm_library", "kt
 alias(
     name = "native_lib",
     actual = select({
-        "@platforms//os:windows": ":native_lib.dll",
         "@platforms//os:macos": ":libnative_lib.dylib",
+        "@platforms//os:windows": ":native_lib.dll",
         "//conditions:default": ":libnative_lib.so",
     }),
 )
@@ -88,10 +88,10 @@ kt_jvm_import(
     for name, dep in {
         "direct_deps": ":native_lib",
         "direct_runtime_deps": ":native_lib",
-        "through_java": ":java_bridge",
         "through_exports": ":export_only",
-        "through_runtime_only": ":runtime_only",
         "through_import": ":imported",
+        "through_java": ":java_bridge",
+        "through_runtime_only": ":runtime_only",
     }.items()
 ]
 

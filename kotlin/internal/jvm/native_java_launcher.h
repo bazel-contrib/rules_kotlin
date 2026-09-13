@@ -72,7 +72,7 @@ static std::string NativeLibraryPath(const Runfiles &runfiles,
   std::string flag = "-Djava.library.path=";
   for (std::string library; std::getline(input, library, '\t');) {
     const std::string directory =
-        fs::u8path(Resolve(runfiles, library)).parent_path().u8string();
+        fs::u8path(Resolve(runfiles, library)).parent_path().generic_u8string();
     if (!seen.insert(directory).second)
       continue;
     if (seen.size() > 1)

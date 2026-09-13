@@ -122,6 +122,7 @@ load(
     _kt_jvm_library_impl = "kt_jvm_library_impl",
     _kt_ksp_plugin_impl = "kt_ksp_plugin_impl",
 )
+load("//kotlin/internal/jvm:native_libs.bzl", "native_libraries_aspect")
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 # Toolchain type for the Windows launcher maker
@@ -225,6 +226,7 @@ _common_attr = utils.add_dicts(
             allow_files = True,
         ),
         "deps": attr.label_list(
+            aspects = [native_libraries_aspect],
             doc = """A list of dependencies of this rule.See general comments about `deps` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
             providers = [
@@ -283,6 +285,7 @@ _common_attr = utils.add_dicts(
             allow_files = True,
         ),
         "runtime_deps": attr.label_list(
+            aspects = [native_libraries_aspect],
             doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
         appear on the runtime classpath, but unlike them, not on the compile-time classpath.""",
             default = [],

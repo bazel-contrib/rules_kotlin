@@ -24,8 +24,8 @@ int main() {
       "_main/native.dll\texternal+/other.dll\t_main/native.dll";
   for (char separator : {':', ';'}) {
     assert(NativeLibraryPath(*runfiles, libraries, separator) ==
-           "-Djava.library.path=" + first.u8string() + separator +
-               second.u8string());
+           "-Djava.library.path=" + first.generic_u8string() + separator +
+               second.generic_u8string());
   }
   bool failed = false;
   try {
