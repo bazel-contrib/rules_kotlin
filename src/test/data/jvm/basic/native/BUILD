@@ -1,3 +1,4 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_java//java:defs.bzl", "java_library", "java_test")
 load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import", "kt_jvm_library", "kt_jvm_test")
@@ -122,4 +123,20 @@ kt_jvm_test(
     main_class = "native_lib.LibraryPathOverride",
     test_class = "native_lib.LibraryPathOverride",
     runtime_deps = [":native_lib"],
+)
+
+cc_test(
+    name = "native_java_launcher_test",
+    srcs = ["NativeLauncherTest.cc"],
+    copts = select({
+        "@platforms//os:windows": [
+            "/std:c++17",
+            "/UNDEBUG",
+        ],
+        "//conditions:default": [
+            "-std=c++17",
+            "-UNDEBUG",
+        ],
+    }),
+    deps = ["//kotlin/internal/jvm:native_java_launcher_lib"],
 )

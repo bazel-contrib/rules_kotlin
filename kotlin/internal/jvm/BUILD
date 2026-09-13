@@ -15,7 +15,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 exports_files([
@@ -60,24 +59,9 @@ cc_binary(
     deps = [":native_java_launcher_lib"],
 )
 
-cc_test(
-    name = "native_java_launcher_test",
-    srcs = ["native_java_launcher_test.cc"],
-    copts = select({
-        "@platforms//os:windows": [
-            "/std:c++17",
-            "/UNDEBUG",
-        ],
-        "//conditions:default": [
-            "-std=c++17",
-            "-UNDEBUG",
-        ],
-    }),
-    deps = [":native_java_launcher_lib"],
-)
-
 cc_library(
     name = "native_java_launcher_lib",
     hdrs = ["native_java_launcher.h"],
+    visibility = ["//src/test:__subpackages__"],
     deps = ["@rules_cc//cc/runfiles"],
 )

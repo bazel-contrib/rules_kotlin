@@ -1,5 +1,5 @@
 // Tests the Windows launcher's portable path resolution and launch-data logic.
-#include "native_java_launcher.h"
+#include "kotlin/internal/jvm/native_java_launcher.h"
 
 #include <cassert>
 

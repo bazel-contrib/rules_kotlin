@@ -9,7 +9,6 @@
   test_flags: ${{ test_flags }}
   test_targets:
     - "//src/..."
-    - "//kotlin/internal/jvm:native_java_launcher_test"
   build_targets:
     - "//src/..."
 
