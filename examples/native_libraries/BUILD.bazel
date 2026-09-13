@@ -41,6 +41,8 @@ kt_jvm_test(
         ":as_tool",
         ":native_binary",
     ],
+    # Encode embedded quotes before passing arguments to the Windows launcher.
+    jvm_flags = ["-Djdk.lang.Process.allowAmbiguousCommands=false"],
     main_class = "LaunchTest",
     test_class = "LaunchTest",
 )
