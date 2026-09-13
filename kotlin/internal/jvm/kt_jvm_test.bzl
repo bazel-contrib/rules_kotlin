@@ -24,6 +24,7 @@ load(
     _write_launcher_action = "write_launcher_action",
 )
 load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
+load("//kotlin/internal/jvm:native_libs.bzl", "runtime_native_libraries")
 load(
     "//kotlin/internal/jvm:kover.bzl",
     _create_kover_agent_actions = "create_kover_agent_actions",
@@ -112,6 +113,7 @@ def _process_test_launcher(context):
         jvm_flags = ctx.fragments.java.default_jvm_opts
 
     jvm_flags.extend(coverage_jvm_flags + ctx.attr.jvm_flags)
+    native_libraries = runtime_native_libraries(ctx, providers.java)
 
     runtime_jars = depset(
         ctx.files._bazel_test_runner,
@@ -126,6 +128,7 @@ def _process_test_launcher(context):
             "-ea",
             "-Dbazel.test_suite=%s" % test_class,
         ] + jvm_flags,
+        native_libraries = native_libraries,
         is_test = True,
     )
 
@@ -138,7 +141,7 @@ def _process_test_launcher(context):
             executable = launcher_result.executable,
             transitive_files = depset(
                 order = "default",
-                transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.coverage_metadata), java_runtime.files],
+                transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.extra_runfiles), java_runtime.files, native_libraries],
             ),
         ),
         runfiles = None,
