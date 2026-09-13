@@ -1,0 +1,27 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+[
+    cc_binary(
+        name = filename,
+        srcs = ["native.cc"],
+        linkshared = True,
+        tags = ["manual"],
+        deps = ["@rules_java//toolchains:jni"],
+    )
+    for filename in [
+        "libnative.so",
+        "libnative.dylib",
+        "native.dll",
+    ]
+]
+
+alias(
+    name = "native",
+    actual = select({
+        "@platforms//os:windows": ":native.dll",
+        "@platforms//os:macos": ":libnative.dylib",
+        "//conditions:default": ":libnative.so",
+    }),
+)
