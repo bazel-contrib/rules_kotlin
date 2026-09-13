@@ -18,6 +18,16 @@ bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_android", version = "0.7.3")
 
+# CoverageProcessor API from https://github.com/bazelbuild/rules_android/pull/562.
+# Replace this override with a rules_android release once available.
+archive_override(
+    module_name = "rules_android",
+    integrity = "sha256-GCZvGN7DyFBmeOQz0RCzJJUZiln+F8Nk5rwUxPFxQ2U=",
+    strip_prefix = "rules_android-9e7e6f868e663bbbd3ff07bb2781e12d0d4d3cbf",
+    type = "tar.gz",
+    urls = ["https://codeload.github.com/bazelbuild/rules_android/tar.gz/9e7e6f868e663bbbd3ff07bb2781e12d0d4d3cbf"],
+)
+
 remote_android_extensions = use_extension(
     "@rules_android//bzlmod_extensions:android_extensions.bzl",
     "remote_android_tools_extensions",

@@ -14,3 +14,6 @@ common --tool_java_runtime_version=remotejdk_17
 # Required for abseil-cpp which requires C++17
 build --cxxopt=-std=c++17
 build --host_cxxopt=-std=c++17
+
+# The pinned rules_android tools require Java 17 source syntax.
+build --tool_java_language_version=17

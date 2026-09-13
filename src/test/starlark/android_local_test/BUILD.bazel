@@ -1,0 +1,3 @@
+load(":coverage_test.bzl", "coverage_test_suite")
+
+coverage_test_suite(name = "coverage_tests")
