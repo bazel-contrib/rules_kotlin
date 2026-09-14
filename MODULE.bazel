@@ -24,10 +24,27 @@ remote_android_extensions = use_extension(
 )
 use_repo(remote_android_extensions, "android_tools")
 
-android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
-use_repo(android_sdk_repository_extension, "androidsdk")
+bazel_dep(name = "hermetic_android_toolchains", version = "0.4.0", dev_dependency = True)
 
-register_toolchains("@androidsdk//:all")
+android = use_extension("@hermetic_android_toolchains//:extensions.bzl", "android", dev_dependency = True)
+android.sdk(
+    build_tools_version = "35.0.0",
+    version = "35",
+)
+use_repo(android, "androidsdk")
+
+android_sdk_repository_extension = use_extension(
+    "@rules_android//rules/android_sdk_repository:rule.bzl",
+    "android_sdk_repository_extension",
+    dev_dependency = True,
+)
+
+override_repo(android_sdk_repository_extension, "androidsdk")
+
+register_toolchains(
+    "@androidsdk//:all",
+    dev_dependency = True,
+)
 
 bazel_dep(name = "bazel_features", version = "1.50.0")
 bazel_dep(name = "bazel_lib", version = "3.1.0")

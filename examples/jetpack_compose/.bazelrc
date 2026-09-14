@@ -17,3 +17,5 @@ build --host_cxxopt=-std=c++17
 
 # Android build tools use Java 17 language features.
 common --tool_java_language_version=17
+
+common --repo_env=ACCEPTED_ANDROID_SDK_LICENSE_VERSION=35

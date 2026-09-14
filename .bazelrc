@@ -38,5 +38,7 @@ common --@com_google_protobuf//bazel/toolchains:prefer_prebuilt_protoc=true
 # Android build tools use Java 17 language features.
 common --tool_java_language_version=17
 
+common --repo_env=ACCEPTED_ANDROID_SDK_LICENSE_VERSION=35
+
 # User-specific .bazelrc
 try-import %workspace%/user.bazelrc
