@@ -1,0 +1,18 @@
+load("//kotlin:core.bzl", "define_kt_toolchain")
+load("//src/test/starlark/internal/jvm:kover_test.bzl", "kover_test_suite")
+load(":coverage_test.bzl", "coverage_test_suite")
+load(":kover_test.bzl", "kover_pipeline_test_suite")
+
+coverage_test_suite(name = "coverage_tests")
+
+# Opt in with --extra_toolchains=//src/test/starlark/android_local_test:kover_toolchain.
+define_kt_toolchain(
+    name = "kover_toolchain",
+    experimental_kover_agent = "@kover_test_agent//file",
+    experimental_kover_enabled = True,
+    experimental_kover_exclude = ["com.example.generated.*"],
+)
+
+kover_pipeline_test_suite(name = "kover_pipeline_tests")
+
+kover_test_suite(name = "kover_flags_tests")

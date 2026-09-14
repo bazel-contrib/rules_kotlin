@@ -107,6 +107,11 @@ def _kotlin_toolchain_impl(ctx):
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
         jacocorunner = ctx.attr.jacocorunner,
+        experimental_kover_enabled = ctx.attr.experimental_kover_enabled,
+        experimental_kover_agent = ctx.file.experimental_kover_agent,
+        experimental_kover_exclude = ctx.attr.experimental_kover_exclude,
+        experimental_kover_exclude_annotation = ctx.attr.experimental_kover_exclude_annotation,
+        experimental_kover_exclude_inherited_from = ctx.attr.experimental_kover_exclude_inherited_from,
         experimental_prune_transitive_deps = ctx.attr._experimental_prune_transitive_deps[BuildSettingInfo].value,
         experimental_prune_transitive_deps_keep_transitive_repositories = ctx.attr._experimental_prune_transitive_deps_keep_transitive_repositories[BuildSettingInfo].value,
         experimental_strict_associate_dependencies = ctx.attr._experimental_strict_associate_dependencies[BuildSettingInfo].value,
@@ -156,6 +161,23 @@ _kt_toolchain = rule(
             enabled via the defines `kt_timings=1` and `kt_trace=1`. These can also be enabled on a per target bases by
             using `tags` attribute defined directly on the rules.""",
             allow_empty = True,
+        ),
+        "experimental_kover_agent": attr.label(
+            doc = "Kover agent JAR used when experimental_kover_enabled is true.",
+            allow_single_file = [".jar"],
+        ),
+        "experimental_kover_enabled": attr.bool(
+            doc = "Use Kover runtime instrumentation for Kotlin tests.",
+            default = False,
+        ),
+        "experimental_kover_exclude": attr.string_list(
+            doc = "Class exclusions for Kover CLI reports.",
+        ),
+        "experimental_kover_exclude_annotation": attr.string_list(
+            doc = "Annotation exclusions for Kover CLI reports.",
+        ),
+        "experimental_kover_exclude_inherited_from": attr.string_list(
+            doc = "Superclass exclusions for Kover CLI reports.",
         ),
         "experimental_build_tools_api": attr.bool(
             doc = "Enables experimental support for Build Tools API integration",
@@ -426,6 +448,11 @@ def define_kt_toolchain(
         experimental_multiplex_sandboxing = None,
         supports_path_mapping = None,
         experimental_build_tools_api = None,
+        experimental_kover_enabled = False,
+        experimental_kover_agent = None,
+        experimental_kover_exclude = None,
+        experimental_kover_exclude_annotation = None,
+        experimental_kover_exclude_inherited_from = None,
         btapi_runtime = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
@@ -444,6 +471,11 @@ def define_kt_toolchain(
     libraries they need, and the internal compiler plugins in the embeddable dialect.
 
     Args:
+        experimental_kover_enabled: Use runtime Kover instrumentation instead of offline JaCoCo.
+        experimental_kover_agent: Label of the Kover JVM agent JAR.
+        experimental_kover_exclude: Class patterns excluded from Kover CLI reports.
+        experimental_kover_exclude_annotation: Annotation patterns excluded from Kover CLI reports.
+        experimental_kover_exclude_inherited_from: Superclass patterns excluded from Kover CLI reports.
         name: the toolchain name.
         experimental_build_tools_api: `True` enables the Build Tools API compilation for the
             toolchain. Unset, it is `True` when `btapi_runtime` is set and `False` otherwise.
@@ -493,6 +525,11 @@ def define_kt_toolchain(
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
         experimental_build_tools_api = experimental_build_tools_api,
+        experimental_kover_enabled = experimental_kover_enabled,
+        experimental_kover_agent = experimental_kover_agent,
+        experimental_kover_exclude = experimental_kover_exclude or [],
+        experimental_kover_exclude_annotation = experimental_kover_exclude_annotation or [],
+        experimental_kover_exclude_inherited_from = experimental_kover_exclude_inherited_from or [],
         btapi_runtime = btapi_runtime,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,

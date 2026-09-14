@@ -69,6 +69,14 @@ load(
     "//kotlin/internal/jvm:jvm_deps.bzl",
     _jvm_deps_utils = "jvm_deps_utils",
 )
+load(
+    "//kotlin/internal/jvm:kover.bzl",
+    _create_kover_agent_actions = "create_kover_agent_actions",
+    _create_kover_metadata_action = "create_kover_metadata_action",
+    _get_kover_agent_file = "get_kover_agent_file",
+    _get_kover_jvm_flags = "get_kover_jvm_flags",
+    _is_kover_enabled = "is_kover_enabled",
+)
 
 _JACOCOCO_CLASS = "com.google.testing.coverage.JacocoCoverageRunner"
 
@@ -110,7 +118,48 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         value = resources_ctx,
     )
 
-def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
+def _process_coverage(ctx, **_unused_sub_ctxs):
+    """Selects the Kotlin toolchain's coverage runtime independently of compilation."""
+    if ctx.configuration.coverage_enabled and _is_kover_enabled(ctx):
+        agent = _get_kover_agent_file(ctx)
+        output, args = _create_kover_agent_actions(ctx, ctx.label.name)
+        metadata = _create_kover_metadata_action(
+            ctx,
+            ctx.label.name,
+            ctx.attr.deps + ctx.attr.associates,
+            output,
+        )
+        return _ProviderInfo(
+            name = "coverage_ctx",
+            value = struct(
+                deps = [],
+                java_start_class = ctx.attr.main_class,
+                coverage_start_class = None,
+                additional_jvm_flags = _get_kover_jvm_flags(agent, args),
+            ),
+            runfiles = ctx.runfiles(files = [agent, args, metadata]),
+        )
+
+    deps = []
+    if ctx.configuration.coverage_enabled:
+        deps.append(ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner)
+        java_start_class = _JACOCOCO_CLASS
+        coverage_start_class = ctx.attr.main_class
+    else:
+        java_start_class = ctx.attr.main_class
+        coverage_start_class = None
+
+    return _ProviderInfo(
+        name = "coverage_ctx",
+        value = struct(
+            deps = deps,
+            java_start_class = java_start_class,
+            coverage_start_class = coverage_start_class,
+            additional_jvm_flags = [],
+        ),
+    )
+
+def _process_jvm(ctx, resources_ctx, coverage_ctx, **_unused_sub_ctxs):
     """Custom JvmProcessor that handles Kotlin compilation
     """
     _compile.verify_associates_not_duplicated_in_deps(deps = getattr(ctx.attr, "deps", []), associate_deps = getattr(ctx.attr, "associates", []))
@@ -120,16 +169,9 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
     deps = (
         [_get_android_toolchain(ctx).testsupport] +
         getattr(ctx.attr, "associates", []) +
-        getattr(ctx.attr, "deps", [])
+        getattr(ctx.attr, "deps", []) +
+        coverage_ctx.deps
     )
-
-    if ctx.configuration.coverage_enabled:
-        deps.append(ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner)
-        java_start_class = _JACOCOCO_CLASS
-        coverage_start_class = ctx.attr.main_class
-    else:
-        java_start_class = ctx.attr.main_class
-        coverage_start_class = None
 
     # Setup the compile action.
     providers = _compile.kt_jvm_produce_output_jar_actions(
@@ -173,7 +215,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         runfiles.append(filtered_jdeps)
 
     # Append the security manager override
-    jvm_flags = []
+    jvm_flags = list(coverage_ctx.additional_jvm_flags)
     java_runtime = ctx.toolchains[_JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime
 
     _java_runtime_version = getattr(java_runtime, "version", 0)
@@ -186,8 +228,8 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
             java_info = java_info,
             providers = providers,
             deps = deps,
-            java_start_class = java_start_class,
-            coverage_start_class = coverage_start_class,
+            java_start_class = coverage_ctx.java_start_class,
+            coverage_start_class = coverage_ctx.coverage_start_class,
             android_properties_file = ctx.file.robolectric_properties_file.short_path,
             additional_jvm_flags = jvm_flags,
         ),
@@ -197,6 +239,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
 PROCESSORS = _processing_pipeline.replace(
     _BASE_PROCESSORS,
     ResourceProcessor = _process_resources,
+    CoverageProcessor = _process_coverage,
     JvmProcessor = _process_jvm,
 )
 

@@ -1,2 +1,5 @@
 common --java_runtime_version=remotejdk_21
 common --tool_java_runtime_version=remotejdk_21
+
+# The pinned rules_android tools require Java 17 source syntax.
+build --tool_java_language_version=17
