@@ -50,21 +50,37 @@ load(
     "kt_kotlinc_options",
 )
 
+def _stdlib_providers(target, neverlink):
+    """One JavaInfo per Java output of a stdlib target.
+
+    The full class jar is the compile jar, because the Kotlin compiler reads inline function bodies
+    from the classpath. The source jar is kept, so it reaches the consumers of the compiled targets
+    through JavaInfo. The target's own dependencies are not carried: the toolchain lists every jar
+    it puts on the classpath.
+    """
+    providers = []
+    for output in target[JavaInfo].java_outputs:
+        source_jars = output.source_jars.to_list()
+        if len(source_jars) > 1:
+            fail("%s: a toolchain stdlib target has at most one source jar per output, got %s" % (target.label, source_jars))
+        providers.append(JavaInfo(
+            output_jar = output.class_jar,
+            compile_jar = output.class_jar,
+            source_jar = source_jars[0] if source_jars else None,
+            neverlink = neverlink,
+        ))
+    return providers
+
 def _kotlin_toolchain_impl(ctx):
     compile_time_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-            neverlink = True,
-        )
-        for jar in ctx.files.jvm_stdlibs
+        provider
+        for target in ctx.attr.jvm_stdlibs
+        for provider in _stdlib_providers(target, neverlink = True)
     ]
     runtime_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-        )
-        for jar in ctx.files.jvm_runtime
+        provider
+        for target in ctx.attr.jvm_runtime
+        for provider in _stdlib_providers(target, neverlink = False)
     ]
 
     build_tools_api = ctx.attr.experimental_build_tools_api or ctx.attr._experimental_build_tools_api_setting[BuildSettingInfo].value

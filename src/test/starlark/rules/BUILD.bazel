@@ -1,5 +1,6 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//kotlin:core.bzl", "define_kt_toolchain", "kt_btapi_runtime")
+load("//kotlin:jvm.bzl", "kt_jvm_import")
 load(":associates_tests.bzl", "associates_tests")
 load(":btapi_runtime_args_tests.bzl", "btapi_runtime_args_tests")
 load(":btapi_runtime_tests.bzl", "btapi_runtime_tests")
@@ -7,6 +8,7 @@ load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transi
 load(":jdeps_merge_inputs_tests.bzl", "jdeps_merge_inputs_tests")
 load(":mixed_mode_tests.bzl", "mixed_mode_tests")
 load(":plugin_dialect_tests.bzl", "plugin_dialect_tests")
+load(":stdlib_provider_tests.bzl", "stdlib_provider_tests")
 
 btapi_runtime_args_tests(
     name = "btapi_runtime_args_tests",
@@ -42,6 +44,36 @@ define_kt_toolchain(
     name = "setting_controlled_runtime_toolchain",
     btapi_runtime = ":override_runtime",
     experimental_build_tools_api = False,
+)
+
+stdlib_provider_tests(
+    name = "stdlib_provider_tests",
+)
+
+# Only registered through --extra_toolchains by stdlib_provider_tests: a stdlib import that carries
+# a source jar, as the compile-time and the runtime stdlib of one toolchain.
+write_file(
+    name = "stdlib_with_sources_jar",
+    out = "stdlib-fixture.jar",
+    content = [""],
+)
+
+write_file(
+    name = "stdlib_with_sources_srcjar",
+    out = "stdlib-fixture-sources.jar",
+    content = [""],
+)
+
+kt_jvm_import(
+    name = "stdlib_with_sources",
+    jars = [":stdlib_with_sources_jar"],
+    srcjar = ":stdlib_with_sources_srcjar",
+)
+
+define_kt_toolchain(
+    name = "stdlib_sources_toolchain",
+    jvm_runtime = [":stdlib_with_sources"],
+    jvm_stdlibs = [":stdlib_with_sources"],
 )
 
 experimental_prune_transitive_deps_tests(
