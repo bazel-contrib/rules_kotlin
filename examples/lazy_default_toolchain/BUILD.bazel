@@ -1,0 +1,13 @@
+load(":unrelated_toolchain.bzl", "unrelated_target", "unrelated_toolchain")
+
+toolchain_type(name = "unrelated_toolchain_type")
+
+unrelated_toolchain(name = "unrelated_toolchain_impl")
+
+toolchain(
+    name = "unrelated_toolchain",
+    toolchain = ":unrelated_toolchain_impl",
+    toolchain_type = ":unrelated_toolchain_type",
+)
+
+unrelated_target(name = "unrelated")

@@ -56,9 +56,12 @@ use_repo(
     "kotlinx_serialization_json_jvm",
 )
 
-register_toolchains("//src/main/starlark/core/compile/cli")
+register_toolchains(
+    "//src/main/starlark/core/compile/cli",
+    dev_dependency = True,
+)
 
-register_toolchains("//kotlin/internal:default_toolchain")
+register_toolchains("//kotlin/internal/default_toolchain")
 
 # Development dependencies
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
