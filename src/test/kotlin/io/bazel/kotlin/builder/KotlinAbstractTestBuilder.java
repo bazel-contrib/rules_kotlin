@@ -230,17 +230,12 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@rules_kotlin//kotlin/compiler:kotlin-reflect").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-daemon-client").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@btapi_impl//:kotlin-build-tools-impl.jar").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar())
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar())
         );
     }
 }

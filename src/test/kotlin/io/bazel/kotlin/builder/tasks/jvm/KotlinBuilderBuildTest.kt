@@ -88,8 +88,6 @@ class KotlinBuilderBuildTest {
         File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
         File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
         File(Deps.Dep.fromLabel("@rules_kotlin//kotlin/compiler:kotlin-reflect").singleCompileJar()),
-        File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-daemon-client").singleCompileJar()),
-        File(Deps.Dep.fromLabel("@btapi_impl//:kotlin-build-tools-impl.jar").singleCompileJar()),
         File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
         File(
           Deps.Dep
@@ -104,9 +102,6 @@ class KotlinBuilderBuildTest {
             .fromLabel("//kotlin/compiler:kotlin-annotation-processing")
             .singleCompileJar(),
         ),
-        File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
-        File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
-        File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar()),
       )
     return KotlinJvmTaskExecutor(
       toolchain,

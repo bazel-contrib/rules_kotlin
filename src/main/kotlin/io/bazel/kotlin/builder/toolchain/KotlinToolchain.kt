@@ -84,13 +84,6 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
-    private val KOTLIN_DAEMON_CLIENT by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kotlin-daemon-client",
-        ).toPath()
-    }
-
     private val COMPILER_STDLIB by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
@@ -102,34 +95,6 @@ class KotlinToolchain private constructor(
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@rules_kotlin..kotlin.compiler.kotlin-reflect",
-        ).toPath()
-    }
-
-    private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-core-jvm",
-        ).toPath()
-    }
-
-    private val KOTLINX_SERIALIZATION_JSON by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-json",
-        ).toPath()
-    }
-
-    private val KOTLINX_SERIALIZATION_JSON_JVM by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-json-jvm",
-        ).toPath()
-    }
-
-    private val BUILD_TOOLS_IMPL by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...build-tools-impl",
         ).toPath()
     }
 
@@ -146,17 +111,12 @@ class KotlinToolchain private constructor(
         KOTLINC.verified().absoluteFile,
         COMPILER_STDLIB.verified().absoluteFile,
         COMPILER_REFLECT.verified().absoluteFile,
-        KOTLIN_DAEMON_CLIENT.verified().absoluteFile,
-        BUILD_TOOLS_IMPL.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
         COMPILER.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
         KAPT_PLUGIN.verified().absoluteFile,
-        KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
-        KOTLINX_SERIALIZATION_JSON.toFile(),
-        KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
       )
 
     @JvmStatic
@@ -164,31 +124,20 @@ class KotlinToolchain private constructor(
       kotlinc: File,
       compilerStdlib: File,
       compilerReflect: File,
-      kotlinDaemonClient: File,
-      buildTools: File,
       buildToolsApi: File,
       compiler: File,
       jvmAbiGenFile: File,
       skipCodeGenFile: File,
       jdepsGenFile: File,
       kaptFile: File,
-      kotlinxSerializationCoreJvm: File,
-      kotlinxSerializationJson: File,
-      kotlinxSerializationJsonJvm: File,
     ): KotlinToolchain =
       KotlinToolchain(
+        // The legacy compiler classloader: the rules_kotlin compiler wrapper and the CLI compiler
+        // distribution, whose manifest Class-Path resolves the standard library and friends from
+        // the distribution's lib directory.
         listOf(
           kotlinc,
-          kotlinDaemonClient,
           compiler,
-          buildTools,
-          buildToolsApi,
-          jvmAbiGenFile,
-          skipCodeGenFile,
-          jdepsGenFile,
-          kotlinxSerializationCoreJvm,
-          kotlinxSerializationJson,
-          kotlinxSerializationJsonJvm,
         ),
         btapiJars =
           listOf(
