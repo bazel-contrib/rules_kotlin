@@ -21,6 +21,7 @@ kt_jvm_library(
 # Pin java_language_version so the test is independent of the repository's global Java config.
 java_language_version_env(
     name = "mixed_jvm8_java11",
+    extra_toolchains = ["//src/test/starlark/rules:remove_private_classes_toolchain"],
     java_language_version = "11",
     target = ":mixed_jvm8",
 )
