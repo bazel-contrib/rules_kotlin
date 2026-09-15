@@ -1,0 +1,4 @@
+# No consumer dependencies can mask a missing production dependency.
+common --ignore_dev_dependency
+common --java_runtime_version=remotejdk_21
+common --tool_java_runtime_version=remotejdk_21

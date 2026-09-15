@@ -1,5 +1,3 @@
-load("//src/main/starlark/release:packager.bzl", "release_archive")
-
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +15,12 @@ load(":compiler.bzl", "kt_configure_compiler")
 load(":kapt.bzl", "kapt_compiler_plugin")
 load(":ksp.bzl", "kt_configure_ksp")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["*"]),
+    visibility = ["//:__subpackages__"],
+)
+
 package(default_visibility = ["//visibility:public"])
 
 # Configures the compiler
@@ -24,14 +28,6 @@ kt_configure_compiler()
 
 # Configures the KSP plugins
 kt_configure_ksp()
-
-release_archive(
-    name = "pkg",
-    srcs = glob(["*.bzl"]),
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
-)
 
 kapt_compiler_plugin(
     name = "kapt",

@@ -684,14 +684,17 @@ kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a h
                     <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>, <a href="#kotlin_repositories-btapi_impl_releases">btapi_impl_releases</a>)
 </pre>
 
-Call this in the WORKSPACE file to setup the Kotlin rules.
+Internal repository setup for the rules_kotlin Bzlmod extension.
+
+Source-only releases require Bzlmod; WORKSPACE callers must migrate to MODULE.bazel.
+
 
 **PARAMETERS**
 
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  whether the repositories are being set up under bzlmod.   |  `False` |
+| <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  Whether this is called by the Bzlmod extension. Must be True.   |  `False` |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  for the KSP compiler plugin repository.   |  `"com_github_google_ksp"` |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "59e9ca74c7904ef2c122b12114937673ccce68de820a663f0ed66ccf8799e0b7", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.4.20")` |

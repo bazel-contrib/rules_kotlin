@@ -3,8 +3,12 @@
   "__INPUT_ARTIFACTS_HASH": {
     "com.google.auto.service:auto-service": -1729498094,
     "com.google.auto.service:auto-service-annotations": -843120535,
+    "com.google.auto.value:auto-value": 1146221104,
+    "com.google.auto.value:auto-value-annotations": -1101276935,
+    "com.google.code.findbugs:jsr305": 495355163,
     "com.google.dagger:dagger": 1304516772,
     "com.google.dagger:dagger-compiler": 1028126946,
+    "com.google.guava:guava": -704445974,
     "com.google.truth:truth": -157380267,
     "com.squareup.moshi:moshi": 623265116,
     "com.squareup.moshi:moshi-kotlin": -1806344484,
@@ -12,6 +16,7 @@
     "dev.zacsweers.autoservice:auto-service-ksp": 34153974,
     "javax.inject:javax.inject": -297932879,
     "junit:junit": 373369075,
+    "org.apache.commons:commons-compress": -1310119682,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core": 1254427323,
     "repositories": 582576641
   },
@@ -20,8 +25,10 @@
     "com.google.auto.service:auto-service-annotations": 262983930,
     "com.google.auto.service:auto-service-annotations:jar:sources": -1392999316,
     "com.google.auto.service:auto-service:jar:sources": -1296332334,
-    "com.google.auto.value:auto-value-annotations": 413037104,
-    "com.google.auto.value:auto-value-annotations:jar:sources": -70357982,
+    "com.google.auto.value:auto-value": 1110951021,
+    "com.google.auto.value:auto-value-annotations": 641018093,
+    "com.google.auto.value:auto-value-annotations:jar:sources": -315473772,
+    "com.google.auto.value:auto-value:jar:sources": 1982175049,
     "com.google.auto:auto-common": -1425245725,
     "com.google.auto:auto-common:jar:sources": -542679945,
     "com.google.code.findbugs:jsr305": 870839855,
@@ -47,7 +54,7 @@
     "com.google.guava:listenablefuture": 1079558157,
     "com.google.j2objc:j2objc-annotations": -404209759,
     "com.google.j2objc:j2objc-annotations:jar:sources": 1852793670,
-    "com.google.truth:truth": -429774537,
+    "com.google.truth:truth": -905038776,
     "com.google.truth:truth:jar:sources": 1518815563,
     "com.googlecode.java-diff-utils:diffutils": -799723261,
     "com.googlecode.java-diff-utils:diffutils:jar:sources": -1898874389,
@@ -67,6 +74,10 @@
     "com.squareup:kotlinpoet-ksp": -766502475,
     "com.squareup:kotlinpoet-ksp:jar:sources": -1001181557,
     "com.squareup:kotlinpoet:jar:sources": -826803759,
+    "commons-codec:commons-codec": -1161719307,
+    "commons-codec:commons-codec:jar:sources": 963281664,
+    "commons-io:commons-io": -807333807,
+    "commons-io:commons-io:jar:sources": -1339271077,
     "dev.zacsweers.autoservice:auto-service-ksp": 897604064,
     "dev.zacsweers.autoservice:auto-service-ksp:jar:sources": 537498971,
     "jakarta.inject:jakarta.inject-api": 188991469,
@@ -77,6 +88,10 @@
     "junit:junit:jar:sources": 396420606,
     "net.ltgt.gradle.incap:incap": 641640589,
     "net.ltgt.gradle.incap:incap:jar:sources": 280948559,
+    "org.apache.commons:commons-compress": 1858477011,
+    "org.apache.commons:commons-compress:jar:sources": 577133147,
+    "org.apache.commons:commons-lang3": 2013343748,
+    "org.apache.commons:commons-lang3:jar:sources": -1567774740,
     "org.checkerframework:checker-compat-qual": -1467856161,
     "org.checkerframework:checker-compat-qual:jar:sources": 896082574,
     "org.checkerframework:checker-qual": -778702181,
@@ -104,6 +119,9 @@
     "org.ow2.asm:asm": 2054068535,
     "org.ow2.asm:asm:jar:sources": 1244418831
   },
+  "conflict_resolution": {
+    "com.google.guava:guava:33.0.0-jre": "com.google.guava:guava:33.2.1-jre"
+  },
   "artifacts": {
     "com.google.auto.service:auto-service": {
       "shasums": {
@@ -119,12 +137,19 @@
       },
       "version": "1.1.1"
     },
+    "com.google.auto.value:auto-value": {
+      "shasums": {
+        "jar": "aaf8d637bfed3c420436b9facf1b7a88d12c8785374e4202382783005319c2c3",
+        "sources": "4bff06fe077d68f964bd5e05f020ed78fd7870730441e403a2eb306360c4890a"
+      },
+      "version": "1.11.0"
+    },
     "com.google.auto.value:auto-value-annotations": {
       "shasums": {
-        "jar": "0e951fee8c31f60270bc46553a8586001b7b93dbb12aec06373aa99a150392c0",
-        "sources": "254d55ea959608a833fa07056710488c1f4978875f86f6a106b8d937b29b1170"
+        "jar": "5a055ce4255333b3346e1a8703da5bf8ff049532286fdcd31712d624abe111dd",
+        "sources": "d7941e5f19bb38afcfa85350d57e5245856c23c98c2bbe32f6d31b5577f2bc33"
       },
-      "version": "1.6.3"
+      "version": "1.11.0"
     },
     "com.google.auto:auto-common": {
       "shasums": {
@@ -286,6 +311,20 @@
       },
       "version": "1.13.2"
     },
+    "commons-codec:commons-codec": {
+      "shasums": {
+        "jar": "f700de80ac270d0344fdea7468201d8b9c805e5c648331c3619f2ee067ccfc59",
+        "sources": "9869277d653510f670039b77945befe71c1ca34ef2e281855bd86e6605aab4a6"
+      },
+      "version": "1.17.0"
+    },
+    "commons-io:commons-io": {
+      "shasums": {
+        "jar": "f41f7baacd716896447ace9758621f62c1c6b0a91d89acee488da26fc477c84f",
+        "sources": "fcfe84e39fb44e38a0ea0ab0815b53adea6fff89c7b72535bc42495f400cb9a1"
+      },
+      "version": "2.16.1"
+    },
     "dev.zacsweers.autoservice:auto-service-ksp": {
       "shasums": {
         "jar": "a04288925f424eb3b9542bb0b5c81c2f49dc8859894aef83749a7e75968c2b8e",
@@ -320,6 +359,20 @@
         "sources": "15c3cd213a214c94ef7ed262e00ab10c75d1680b0b9203b47801e7068de1cf5c"
       },
       "version": "0.2"
+    },
+    "org.apache.commons:commons-compress": {
+      "shasums": {
+        "jar": "9168a03141d8fc7eda21a2360d83cc0412bcbb1d6204d992bd48c2573cb3c6b8",
+        "sources": "89f2ac13872e1ac0024dc77573a0da8e8e0da2dda58973f19244f6e60f08d138"
+      },
+      "version": "1.26.2"
+    },
+    "org.apache.commons:commons-lang3": {
+      "shasums": {
+        "jar": "7b96bf3ee68949abb5bc465559ac270e0551596fa34523fddf890ec418dde13c",
+        "sources": "ab3b86afb898f1026dbe43aaf71e9c1d719ec52d6e41887b362d86777c299b6f"
+      },
+      "version": "3.14.0"
     },
     "org.checkerframework:checker-compat-qual": {
       "shasums": {
@@ -518,6 +571,11 @@
     "junit:junit": [
       "org.hamcrest:hamcrest-core"
     ],
+    "org.apache.commons:commons-compress": [
+      "commons-codec:commons-codec",
+      "commons-io:commons-io",
+      "org.apache.commons:commons-lang3"
+    ],
     "org.jetbrains.kotlin:kotlin-metadata-jvm": [
       "org.jetbrains.kotlin:kotlin-stdlib"
     ],
@@ -546,9 +604,41 @@
     "com.google.auto.service:auto-service-annotations": [
       "com.google.auto.service"
     ],
+    "com.google.auto.value:auto-value": [
+      "autovalue.shaded.com.google.auto.common",
+      "autovalue.shaded.com.google.auto.service",
+      "autovalue.shaded.com.google.common.annotations",
+      "autovalue.shaded.com.google.common.base",
+      "autovalue.shaded.com.google.common.collect",
+      "autovalue.shaded.com.google.common.hash",
+      "autovalue.shaded.com.google.common.io",
+      "autovalue.shaded.com.google.common.math",
+      "autovalue.shaded.com.google.common.primitives",
+      "autovalue.shaded.com.google.common.reflect",
+      "autovalue.shaded.com.google.errorprone.annotations",
+      "autovalue.shaded.com.google.errorprone.annotations.concurrent",
+      "autovalue.shaded.com.google.escapevelocity",
+      "autovalue.shaded.com.google.j2objc.annotations",
+      "autovalue.shaded.com.squareup.javapoet",
+      "autovalue.shaded.net.ltgt.gradle.incap",
+      "autovalue.shaded.org.checkerframework.checker.nullness.qual",
+      "autovalue.shaded.org.checkerframework.framework.qual",
+      "autovalue.shaded.org.objectweb.asm",
+      "com.google.auto.value.extension",
+      "com.google.auto.value.extension.memoized.processor",
+      "com.google.auto.value.extension.serializable.processor",
+      "com.google.auto.value.extension.serializable.serializer",
+      "com.google.auto.value.extension.serializable.serializer.impl",
+      "com.google.auto.value.extension.serializable.serializer.interfaces",
+      "com.google.auto.value.extension.serializable.serializer.runtime",
+      "com.google.auto.value.extension.toprettystring.processor",
+      "com.google.auto.value.processor"
+    ],
     "com.google.auto.value:auto-value-annotations": [
       "com.google.auto.value",
-      "com.google.auto.value.extension.memoized"
+      "com.google.auto.value.extension.memoized",
+      "com.google.auto.value.extension.serializable",
+      "com.google.auto.value.extension.toprettystring"
     ],
     "com.google.auto:auto-common": [
       "com.google.auto.common"
@@ -735,6 +825,32 @@
     "com.squareup:kotlinpoet-ksp": [
       "com.squareup.kotlinpoet.ksp"
     ],
+    "commons-codec:commons-codec": [
+      "org.apache.commons.codec",
+      "org.apache.commons.codec.binary",
+      "org.apache.commons.codec.cli",
+      "org.apache.commons.codec.digest",
+      "org.apache.commons.codec.language",
+      "org.apache.commons.codec.language.bm",
+      "org.apache.commons.codec.net"
+    ],
+    "commons-io:commons-io": [
+      "org.apache.commons.io",
+      "org.apache.commons.io.build",
+      "org.apache.commons.io.channels",
+      "org.apache.commons.io.charset",
+      "org.apache.commons.io.comparator",
+      "org.apache.commons.io.file",
+      "org.apache.commons.io.file.attribute",
+      "org.apache.commons.io.file.spi",
+      "org.apache.commons.io.filefilter",
+      "org.apache.commons.io.function",
+      "org.apache.commons.io.input",
+      "org.apache.commons.io.input.buffer",
+      "org.apache.commons.io.monitor",
+      "org.apache.commons.io.output",
+      "org.apache.commons.io.serialization"
+    ],
     "dev.zacsweers.autoservice:auto-service-ksp": [
       "dev.zacsweers.autoservice.ksp"
     ],
@@ -780,6 +896,63 @@
     ],
     "net.ltgt.gradle.incap:incap": [
       "net.ltgt.gradle.incap"
+    ],
+    "org.apache.commons:commons-compress": [
+      "org.apache.commons.compress",
+      "org.apache.commons.compress.archivers",
+      "org.apache.commons.compress.archivers.ar",
+      "org.apache.commons.compress.archivers.arj",
+      "org.apache.commons.compress.archivers.cpio",
+      "org.apache.commons.compress.archivers.dump",
+      "org.apache.commons.compress.archivers.examples",
+      "org.apache.commons.compress.archivers.jar",
+      "org.apache.commons.compress.archivers.sevenz",
+      "org.apache.commons.compress.archivers.tar",
+      "org.apache.commons.compress.archivers.zip",
+      "org.apache.commons.compress.changes",
+      "org.apache.commons.compress.compressors",
+      "org.apache.commons.compress.compressors.brotli",
+      "org.apache.commons.compress.compressors.bzip2",
+      "org.apache.commons.compress.compressors.deflate",
+      "org.apache.commons.compress.compressors.deflate64",
+      "org.apache.commons.compress.compressors.gzip",
+      "org.apache.commons.compress.compressors.lz4",
+      "org.apache.commons.compress.compressors.lz77support",
+      "org.apache.commons.compress.compressors.lzma",
+      "org.apache.commons.compress.compressors.lzw",
+      "org.apache.commons.compress.compressors.pack200",
+      "org.apache.commons.compress.compressors.snappy",
+      "org.apache.commons.compress.compressors.xz",
+      "org.apache.commons.compress.compressors.z",
+      "org.apache.commons.compress.compressors.zstandard",
+      "org.apache.commons.compress.harmony.archive.internal.nls",
+      "org.apache.commons.compress.harmony.pack200",
+      "org.apache.commons.compress.harmony.unpack200",
+      "org.apache.commons.compress.harmony.unpack200.bytecode",
+      "org.apache.commons.compress.harmony.unpack200.bytecode.forms",
+      "org.apache.commons.compress.java.util.jar",
+      "org.apache.commons.compress.parallel",
+      "org.apache.commons.compress.utils"
+    ],
+    "org.apache.commons:commons-lang3": [
+      "org.apache.commons.lang3",
+      "org.apache.commons.lang3.arch",
+      "org.apache.commons.lang3.builder",
+      "org.apache.commons.lang3.compare",
+      "org.apache.commons.lang3.concurrent",
+      "org.apache.commons.lang3.concurrent.locks",
+      "org.apache.commons.lang3.event",
+      "org.apache.commons.lang3.exception",
+      "org.apache.commons.lang3.function",
+      "org.apache.commons.lang3.math",
+      "org.apache.commons.lang3.mutable",
+      "org.apache.commons.lang3.reflect",
+      "org.apache.commons.lang3.stream",
+      "org.apache.commons.lang3.text",
+      "org.apache.commons.lang3.text.translate",
+      "org.apache.commons.lang3.time",
+      "org.apache.commons.lang3.tuple",
+      "org.apache.commons.lang3.util"
     ],
     "org.checkerframework:checker-compat-qual": [
       "org.checkerframework.checker.nullness.compatqual"
@@ -982,8 +1155,10 @@
       "com.google.auto.service:auto-service-annotations",
       "com.google.auto.service:auto-service-annotations:jar:sources",
       "com.google.auto.service:auto-service:jar:sources",
+      "com.google.auto.value:auto-value",
       "com.google.auto.value:auto-value-annotations",
       "com.google.auto.value:auto-value-annotations:jar:sources",
+      "com.google.auto.value:auto-value:jar:sources",
       "com.google.auto:auto-common",
       "com.google.auto:auto-common:jar:sources",
       "com.google.code.findbugs:jsr305",
@@ -1029,6 +1204,10 @@
       "com.squareup:kotlinpoet-ksp",
       "com.squareup:kotlinpoet-ksp:jar:sources",
       "com.squareup:kotlinpoet:jar:sources",
+      "commons-codec:commons-codec",
+      "commons-codec:commons-codec:jar:sources",
+      "commons-io:commons-io",
+      "commons-io:commons-io:jar:sources",
       "dev.zacsweers.autoservice:auto-service-ksp",
       "dev.zacsweers.autoservice:auto-service-ksp:jar:sources",
       "jakarta.inject:jakarta.inject-api",
@@ -1039,6 +1218,10 @@
       "junit:junit:jar:sources",
       "net.ltgt.gradle.incap:incap",
       "net.ltgt.gradle.incap:incap:jar:sources",
+      "org.apache.commons:commons-compress",
+      "org.apache.commons:commons-compress:jar:sources",
+      "org.apache.commons:commons-lang3",
+      "org.apache.commons:commons-lang3:jar:sources",
       "org.checkerframework:checker-compat-qual",
       "org.checkerframework:checker-compat-qual:jar:sources",
       "org.checkerframework:checker-qual",
@@ -1071,8 +1254,10 @@
       "com.google.auto.service:auto-service-annotations",
       "com.google.auto.service:auto-service-annotations:jar:sources",
       "com.google.auto.service:auto-service:jar:sources",
+      "com.google.auto.value:auto-value",
       "com.google.auto.value:auto-value-annotations",
       "com.google.auto.value:auto-value-annotations:jar:sources",
+      "com.google.auto.value:auto-value:jar:sources",
       "com.google.auto:auto-common",
       "com.google.auto:auto-common:jar:sources",
       "com.google.code.findbugs:jsr305",
@@ -1118,6 +1303,10 @@
       "com.squareup:kotlinpoet-ksp",
       "com.squareup:kotlinpoet-ksp:jar:sources",
       "com.squareup:kotlinpoet:jar:sources",
+      "commons-codec:commons-codec",
+      "commons-codec:commons-codec:jar:sources",
+      "commons-io:commons-io",
+      "commons-io:commons-io:jar:sources",
       "dev.zacsweers.autoservice:auto-service-ksp",
       "dev.zacsweers.autoservice:auto-service-ksp:jar:sources",
       "jakarta.inject:jakarta.inject-api",
@@ -1128,6 +1317,10 @@
       "junit:junit:jar:sources",
       "net.ltgt.gradle.incap:incap",
       "net.ltgt.gradle.incap:incap:jar:sources",
+      "org.apache.commons:commons-compress",
+      "org.apache.commons:commons-compress:jar:sources",
+      "org.apache.commons:commons-lang3",
+      "org.apache.commons:commons-lang3:jar:sources",
       "org.checkerframework:checker-compat-qual",
       "org.checkerframework:checker-compat-qual:jar:sources",
       "org.checkerframework:checker-qual",
@@ -1160,8 +1353,10 @@
       "com.google.auto.service:auto-service-annotations",
       "com.google.auto.service:auto-service-annotations:jar:sources",
       "com.google.auto.service:auto-service:jar:sources",
+      "com.google.auto.value:auto-value",
       "com.google.auto.value:auto-value-annotations",
       "com.google.auto.value:auto-value-annotations:jar:sources",
+      "com.google.auto.value:auto-value:jar:sources",
       "com.google.auto:auto-common",
       "com.google.auto:auto-common:jar:sources",
       "com.google.code.findbugs:jsr305",
@@ -1207,6 +1402,10 @@
       "com.squareup:kotlinpoet-ksp",
       "com.squareup:kotlinpoet-ksp:jar:sources",
       "com.squareup:kotlinpoet:jar:sources",
+      "commons-codec:commons-codec",
+      "commons-codec:commons-codec:jar:sources",
+      "commons-io:commons-io",
+      "commons-io:commons-io:jar:sources",
       "dev.zacsweers.autoservice:auto-service-ksp",
       "dev.zacsweers.autoservice:auto-service-ksp:jar:sources",
       "jakarta.inject:jakarta.inject-api",
@@ -1217,6 +1416,10 @@
       "junit:junit:jar:sources",
       "net.ltgt.gradle.incap:incap",
       "net.ltgt.gradle.incap:incap:jar:sources",
+      "org.apache.commons:commons-compress",
+      "org.apache.commons:commons-compress:jar:sources",
+      "org.apache.commons:commons-lang3",
+      "org.apache.commons:commons-lang3:jar:sources",
       "org.checkerframework:checker-compat-qual",
       "org.checkerframework:checker-compat-qual:jar:sources",
       "org.checkerframework:checker-qual",
@@ -1254,6 +1457,27 @@
     "com.google.auto.service:auto-service:jar:sources": {
       "javax.annotation.processing.Processor": [
         "com.google.auto.service.processor.AutoServiceProcessor"
+      ]
+    },
+    "com.google.auto.value:auto-value": {
+      "com.google.auto.value.extension.AutoValueExtension": [
+        "com.google.auto.value.extension.memoized.processor.MemoizeExtension",
+        "com.google.auto.value.extension.serializable.processor.SerializableAutoValueExtension",
+        "com.google.auto.value.extension.toprettystring.processor.ToPrettyStringExtension"
+      ],
+      "com.google.auto.value.extension.serializable.serializer.interfaces.SerializerExtension": [
+        "com.google.auto.value.extension.serializable.serializer.impl.ImmutableListSerializerExtension",
+        "com.google.auto.value.extension.serializable.serializer.impl.ImmutableMapSerializerExtension",
+        "com.google.auto.value.extension.serializable.serializer.impl.OptionalSerializerExtension"
+      ],
+      "javax.annotation.processing.Processor": [
+        "com.google.auto.value.extension.memoized.processor.MemoizedValidator",
+        "com.google.auto.value.extension.toprettystring.processor.ToPrettyStringValidator",
+        "com.google.auto.value.processor.AutoAnnotationProcessor",
+        "com.google.auto.value.processor.AutoBuilderProcessor",
+        "com.google.auto.value.processor.AutoOneOfProcessor",
+        "com.google.auto.value.processor.AutoValueBuilderProcessor",
+        "com.google.auto.value.processor.AutoValueProcessor"
       ]
     },
     "com.google.dagger:dagger-compiler": {
