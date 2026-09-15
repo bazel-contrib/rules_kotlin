@@ -1,4 +1,4 @@
-multiplex_sandboxing/.bazelrccommon --java_runtime_version=remotejdk_21
+common --java_runtime_version=remotejdk_21
 common --tool_java_runtime_version=remotejdk_21
 build --worker_verbose
 build --worker_max_instances=1
