@@ -1,4 +1,5 @@
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_integration_test")
 load("@rules_multirun//:defs.bzl", "multirun")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
@@ -24,6 +25,17 @@ sh_test(
         ":rules_kotlin_release",
         "//:MODULE.bazel",
     ],
+)
+
+# A minimal consumer catches dependencies accidentally marked dev-only.
+bazel_integration_test(
+    name = "release_consumer_test",
+    timeout = "eternal",
+    bazel_binary = "@build_bazel_bazel_.bazelversion//:bazel_binary",
+    env = {"RULES_KOTLIN_BUILD_TARGET": "@rules_kotlin//..."},
+    test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",
+    workspace_files = glob(["release_consumer/**"]),
+    workspace_path = "release_consumer",
 )
 
 multirun(

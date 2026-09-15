@@ -10,6 +10,7 @@
   test_targets:
     - "//src/..."
     - "//tools:release_archive_test"
+    - "//tools:release_consumer_test"
   build_targets:
     - "//src/..."
 

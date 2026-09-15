@@ -103,16 +103,16 @@ object BazelIntegrationTestRunner {
         bazel.run(
           workspace,
           *systemFlags,
-          "build",
+          "query",
           *commandFlags,
-          "//...",
+          "@rules_kotlin//...",
         ).onFailThrow()
         bazel.run(
           workspace,
           *systemFlags,
-          "query",
+          "build",
           *commandFlags,
-          "@rules_kotlin//...",
+          System.getenv("RULES_KOTLIN_BUILD_TARGET") ?: "//...",
         ).onFailThrow()
         bazel.run(
           workspace,
