@@ -17,23 +17,25 @@
 
 package io.bazel.kotlin.builder.utils
 
-import java.io.File
-import java.io.OutputStream
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.security.DigestInputStream
 import java.security.MessageDigest
 
-/** Fingerprints jar paths and contents in classpath order, without buffering whole jars. */
-fun fingerprintOf(classpath: List<String>): String {
+/** Fingerprints jar paths using Bazel-computed input digests in classpath order */
+fun fingerprintOf(
+  classpath: List<String>,
+  inputDigests: Map<String, String>,
+): String {
+  if (inputDigests.isEmpty()) {
+    return ""
+  }
   val digest = MessageDigest.getInstance("SHA-256")
   for (path in classpath) {
-    val file = File(path)
+    val entry = inputDigests[path]
+    check(!entry.isNullOrEmpty()) { "no request digest for the classpath entry $path" }
     digest.update(path.toByteArray(StandardCharsets.UTF_8))
-    digest.update(file.length().toString().toByteArray(StandardCharsets.UTF_8))
-    DigestInputStream(Files.newInputStream(file.toPath()), digest).use {
-      it.transferTo(OutputStream.nullOutputStream())
-    }
+    digest.update(0.toByte())
+    digest.update(entry.toByteArray(StandardCharsets.UTF_8))
+    digest.update(0.toByte())
   }
   return digest.digest().joinToString("") { "%02x".format(it) }
 }

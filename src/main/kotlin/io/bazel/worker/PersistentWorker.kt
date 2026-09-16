@@ -46,6 +46,7 @@ class PersistentWorker : Worker {
                 return@WorkRequestCallback doTask(
                   name = "request ${request.requestId}",
                   sandboxDir = request.sandboxDir.takeIf { it.isNotEmpty() }?.let { Path.of(it) },
+                  inputDigests = request.inputDigests(),
                   task = request.workTo(execute),
                 ).asResponse(pw)
               },
@@ -69,6 +70,10 @@ class PersistentWorker : Worker {
     { ctx ->
       execute(ctx, argumentsList.toList())
     }
+
+  /** The request input digests by execroot-relative path; Bazel sends each digest as hex text. */
+  private fun WorkerProtocol.WorkRequest.inputDigests(): Map<String, String> =
+    inputsList.associate { input -> input.path to input.digest.toStringUtf8() }
 
   private fun TaskResult.asResponse(pw: PrintWriter): Int {
     pw.print(log.out.toString())

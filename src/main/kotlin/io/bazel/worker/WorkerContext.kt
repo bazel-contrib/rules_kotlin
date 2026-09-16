@@ -109,6 +109,11 @@ class WorkerContext private constructor(
   class TaskContext internal constructor(
     val directory: Path,
     logging: ScopeLogging,
+    /**
+     * The digests Bazel sent with the work request, as hex strings by execroot-relative input
+     * path. Empty outside the persistent worker protocol.
+     */
+    val inputDigests: Map<String, String> = emptyMap(),
   ) : ScopeLogging by logging {
     /** resultOf a status supplier that includes information collected in the Context. */
     fun resultOf(executeTaskIn: (TaskContext) -> Status): TaskResult {
@@ -139,15 +144,16 @@ class WorkerContext private constructor(
   fun doTask(
     name: String,
     sandboxDir: Path? = null,
+    inputDigests: Map<String, String> = emptyMap(),
     task: (sub: TaskContext) -> Status,
   ): TaskResult {
     info { "start task $name" }
     return if (sandboxDir != null) {
-      TaskContext(sandboxDir, logging = narrowTo(name)).resultOf(task)
+      TaskContext(sandboxDir, logging = narrowTo(name), inputDigests = inputDigests).resultOf(task)
     } else {
       WorkingDirectoryContext
         .use {
-          TaskContext(dir, logging = narrowTo(name)).resultOf(task)
+          TaskContext(dir, logging = narrowTo(name), inputDigests = inputDigests).resultOf(task)
         }
     }.also {
       info { "end task $name: ${it.status}" }

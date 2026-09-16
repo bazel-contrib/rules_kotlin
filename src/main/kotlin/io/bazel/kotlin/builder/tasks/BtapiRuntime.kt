@@ -25,6 +25,7 @@ import io.bazel.kotlin.model.KotlinToolchainInfo
  */
 data class BtapiRuntime(
   val apiImplClasspath: List<String>,
+  val classpathFingerprint: String,
   val jvmAbiGenClasspath: List<String>,
   val skipCodeGenClasspath: List<String>,
   val kaptClasspath: List<String>,
@@ -35,6 +36,7 @@ data class BtapiRuntime(
 fun KotlinToolchainInfo.BtapiRuntime.toRuntime(): BtapiRuntime =
   BtapiRuntime(
     apiImplClasspath = apiImplClasspathList,
+    classpathFingerprint = classpathFingerprint,
     jvmAbiGenClasspath = jvmAbiGenClasspathList,
     skipCodeGenClasspath = skipCodeGenClasspathList,
     kaptClasspath = kaptClasspathList,

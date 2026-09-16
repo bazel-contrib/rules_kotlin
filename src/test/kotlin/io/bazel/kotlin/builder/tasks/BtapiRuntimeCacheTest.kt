@@ -31,18 +31,28 @@ class BtapiRuntimeCacheTest {
   private val executor = BtapiTaskExecutor(javaClass.classLoader)
 
   @Test
-  fun testReusesUnchangedRuntimeAndInvalidatesChangedContents() {
+  fun testRuntimeDigestDecidesReuse() {
     val jar = tmp.newFile("compiler.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
     val classpath = listOf(jar.absolutePath)
-    val first = executor.getCompilerInvoker(classpath)
-    assertThat(executor.getCompilerInvoker(classpath)).isSameInstanceAs(first)
+    val first = executor.getCompilerInvoker(classpath, "v1")
 
-    val timestamp = jar.lastModified()
+    // The digest says "unchanged", so the changed content is not read.
     jar.writeBytes(byteArrayOf(4, 5, 6))
-    check(jar.setLastModified(timestamp))
-    val replacement = executor.getCompilerInvoker(classpath)
+    assertThat(executor.getCompilerInvoker(classpath, "v1")).isSameInstanceAs(first)
+
+    val replacement = executor.getCompilerInvoker(classpath, "v2")
     assertThat(replacement).isNotSameInstanceAs(first)
-    assertThat(executor.getCompilerInvoker(classpath)).isSameInstanceAs(replacement)
+    assertThat(executor.getCompilerInvoker(classpath, "v2")).isSameInstanceAs(replacement)
+  }
+
+  @Test
+  fun testEmptyDigestReusesTheCompiler() {
+    // The single-invocation mode carries no request digests; its process ends after the request.
+    val jar = tmp.newFile("compiler.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+    val classpath = listOf(jar.absolutePath)
+    val first = executor.getCompilerInvoker(classpath, "")
+    jar.writeBytes(byteArrayOf(4, 5, 6))
+    assertThat(executor.getCompilerInvoker(classpath, "")).isSameInstanceAs(first)
   }
 
   @Test
@@ -50,7 +60,7 @@ class BtapiRuntimeCacheTest {
     val first = tmp.newFile("first.jar").apply { writeBytes(byteArrayOf(1)) }
     val second = tmp.newFile("second.jar").apply { writeBytes(byteArrayOf(2)) }
     val classpath = listOf(first.absolutePath, second.absolutePath)
-    assertThat(executor.getCompilerInvoker(classpath.reversed()))
-      .isNotSameInstanceAs(executor.getCompilerInvoker(classpath))
+    assertThat(executor.getCompilerInvoker(classpath.reversed(), "v1"))
+      .isNotSameInstanceAs(executor.getCompilerInvoker(classpath, "v1"))
   }
 }

@@ -42,6 +42,19 @@ class WorkerContextTest {
   }
 
   @Test
+  fun inputDigestsReachTheTask() {
+    val digests = mapOf("a.jar" to "0a")
+    var observed: Map<String, String>? = null
+    WorkerContext.run {
+      doTask("digests", inputDigests = digests) { ctx ->
+        observed = ctx.inputDigests
+        SUCCESS
+      }
+    }
+    assertThat(observed).isEqualTo(digests)
+  }
+
+  @Test
   fun tempDirIsUsedWhenSandboxDirAbsent() {
     var observedDir: java.nio.file.Path? = null
     WorkerContext.run {

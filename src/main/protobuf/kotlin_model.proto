@@ -53,6 +53,10 @@ message KotlinToolchainInfo {
         repeated string skip_code_gen_classpath = 3;
         repeated string kapt_classpath = 4;
         repeated string jdeps_gen_classpath = 5;
+        // One hex digest over the (path, digest) pairs of api_impl_classpath, in order, from the
+        // digests Bazel sent with the work request. Empty when the request carried no input
+        // digests.
+        string classpath_fingerprint = 6;
     }
 
     Common common = 1;
