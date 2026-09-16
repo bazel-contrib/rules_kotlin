@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
-import java.nio.file.Paths
 
 @OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 class JdepsGenComponentRegistrar : CompilerPluginRegistrar() {
@@ -36,8 +35,7 @@ class JdepsGenComponentRegistrar : CompilerPluginRegistrar() {
   }
 
   private fun ExtensionStorage.registerForK2(configuration: CompilerConfiguration) {
-    val projectRoot = Paths.get("").toAbsolutePath().toString() + "/"
-    val classUsageRecorder = ClassUsageRecorder(rootPath = projectRoot)
+    val classUsageRecorder = ClassUsageRecorder()
     JdepsGenExtension2(classUsageRecorder, configuration).run {
       FirExtensionRegistrarAdapter.registerExtension(JdepsFirExtensions(classUsageRecorder))
       ClassFileFactoryFinalizerExtension.registerExtension(this)

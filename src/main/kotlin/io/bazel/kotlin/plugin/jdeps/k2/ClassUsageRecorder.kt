@@ -11,21 +11,13 @@ import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.forEachType
 import org.jetbrains.kotlin.name.ClassId
-import java.nio.file.Paths
-import java.util.SortedSet
 
-private const val JAR_FILE_SEPARATOR = "!/"
 private const val ANONYMOUS = "<anonymous>"
 
 class ClassUsageRecorder(
   internal val explicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
   internal val implicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
-  private val seen: MutableSet<ClassId> = mutableSetOf(),
-  private val results: MutableMap<String, SortedSet<String>> = sortedMapOf(),
-  private val rootPath: String = Paths.get("").toAbsolutePath().toString() + "/",
 ) {
-  private val javaHome: String by lazy { System.getenv()["JAVA_HOME"] ?: "<not set>" }
-
   internal fun recordTypeRef(
     typeRef: FirTypeRef,
     context: CheckerContext,
@@ -107,20 +99,6 @@ class ClassUsageRecorder(
       explicitClassesCanonicalPaths.add(path)
     } else {
       implicitClassesCanonicalPaths.add(path)
-    }
-
-    if (path.contains(JAR_FILE_SEPARATOR) && !path.contains(javaHome)) {
-      val (jarPath, classPath) = path.split(JAR_FILE_SEPARATOR)
-      // Convert jar files in current directory to relative paths. Remaining absolute are outside
-      // of project and should be ignored
-      val relativizedJarPath = Paths.get(jarPath.replace(rootPath, ""))
-      if (!relativizedJarPath.isAbsolute) {
-        val occurrences =
-          results.computeIfAbsent(relativizedJarPath.toString()) { sortedSetOf<String>() }
-        if (!isJvmClass(classPath)) {
-          occurrences.add(classPath)
-        }
-      }
     }
   }
 }
