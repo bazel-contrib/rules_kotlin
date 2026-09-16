@@ -54,6 +54,49 @@ class JdepsMergerTest {
   }
 
   @Test
+  fun `large unicode dependency output preserves ordering and strongest kinds`() {
+    val dependencies = (0 until 5000).map { index ->
+      Dependency.newBuilder()
+        .setPath("/classpath/κotlin/模块/dependency-$index.jar")
+        .setKind(Dependency.Kind.UNUSED)
+        .build()
+    }
+    val explicit = dependencies.filterIndexed { index, _ -> index % 3 == 0 }
+      .map { it.toBuilder().setKind(Dependency.Kind.EXPLICIT).build() }
+    val first = jdeps("large-first.jdeps") { addAllDependency(dependencies) }
+    val second = jdeps("large-second.jdeps") { addAllDependency(explicit) }
+    val output = out("large-merged.jdeps")
+    val result = WorkerContext.run {
+      doTask("large merge") { taskCtx ->
+        MergeJdeps(merger).invoke(
+          taskCtx,
+          args {
+            flag(JdepsMergerFlags.TARGET_LABEL, "//large:unicode")
+            input(first)
+            input(second)
+            flag(JdepsMergerFlags.OUTPUT, output)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
+          },
+        )
+      }
+    }
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel("//large:unicode")
+      .setSuccess(true)
+      .addAllDependency(
+        dependencies.mapIndexed { index, dependency ->
+          if (index % 3 == 0) dependency.toBuilder().setKind(Dependency.Kind.EXPLICIT).build()
+          else dependency
+        }.sortedBy { it.path },
+      )
+      .build()
+      .toByteArray()
+    assertThat(result.status).isEqualTo(SUCCESS)
+    assertThat(expected.size).isGreaterThan(8192)
+    assertThat(Files.readAllBytes(output)).isEqualTo(expected)
+  }
+
+  @Test
   fun `merge all deps`() {
 
     val kotlinJdeps = jdeps("kt.jdeps") {

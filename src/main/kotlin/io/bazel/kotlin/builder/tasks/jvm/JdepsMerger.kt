@@ -85,7 +85,6 @@ class JdepsMerger {
       rootBuilder.addAllDependency(dependencyMap.values)
 
       rootBuilder.success = true
-      rootBuilder.build().toByteArray()
 
       BufferedOutputStream(File(output).outputStream()).use {
         it.write(rootBuilder.build().toByteArray())
