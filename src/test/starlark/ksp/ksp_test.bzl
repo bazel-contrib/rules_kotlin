@@ -16,6 +16,9 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+
+# buildifier: disable=bzl-visibility
+load("//kotlin/internal:defs.bzl", "KtJvmInfo")
 load("//src/main/starlark/core/plugin:providers.bzl", "KspPluginInfo")
 
 def _ksp_outputs_test_impl(ctx):
@@ -38,6 +41,15 @@ def _ksp_outputs_test_impl(ctx):
         len(java_info.runtime_output_jars) > 0,
         "Target should have runtime output jars",
     )
+
+    # IDE annotation-processing metadata must keep referring to the Kotlin
+    # output, including when KSP/KAPT also causes a Java compilation.
+    kotlin_info = target[KtJvmInfo]
+    processing = kotlin_info.annotation_processing
+    asserts.true(env, processing.enabled)
+    asserts.equals(env, target.label.name + "-kt.jar", processing.class_jar.basename)
+    asserts.equals(env, target.label.name + "-ksp-gensrc.jar", processing.source_jar.basename)
+    asserts.equals(env, java_info.outputs.jdeps, kotlin_info.outputs.jdeps)
 
     return analysistest.end(env)
 

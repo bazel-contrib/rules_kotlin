@@ -345,6 +345,48 @@ def _remove_private_only_friends_test(name):
 def _fat_abi_test(name):
     _abi_test(name, _fat_abi_test_impl)
 
+def _classpath_order_test_impl(env, target):
+    arrangement = _setup(env, target)
+    shared = arrangement.associate_deps_java_info
+    direct = JavaInfo(
+        compile_jar = _file(env.ctx.attr.direct_dep_abi_jar),
+        output_jar = _file(env.ctx.attr.direct_dep_jar),
+        deps = [shared],
+    )
+    exported = JavaInfo(
+        compile_jar = _file(env.ctx.attr.jvm_jar),
+        output_jar = _file(env.ctx.attr.jvm_jar),
+        exports = [shared],
+    )
+
+    # Overlapping direct, exported and transitive jars must retain exactly the
+    # classpath order of the original flatten/filter/rebuild implementation.
+    for prune in [False, True]:
+        for with_associates in [False, True]:
+            toolchains = struct(kt = struct(
+                experimental_remove_private_classes_in_abi_jars = False,
+                experimental_treat_internal_as_private_in_abi_jars = False,
+                experimental_prune_transitive_deps = prune,
+                experimental_prune_transitive_deps_keep_transitive_repositories = [],
+                experimental_strict_associate_dependencies = False,
+                jvm_stdlibs = exported,
+            ))
+            result = _jvm_deps_utils.jvm_deps(
+                ctx = arrangement.fake_ctx,
+                toolchains = toolchains,
+                associate_deps = arrangement.associate_deps if with_associates else [],
+                deps_java_infos = [direct, exported, shared],
+            )
+            transitive = [info.compile_jars for info in result.deps]
+            if not prune:
+                transitive.extend([info.transitive_compile_time_jars for info in result.deps])
+            expected = depset(transitive = transitive + [result.associate_jars]).to_list()
+            env.expect.that_bool(result.compile_jars.to_list() == expected).equals(True)
+            env.expect.that_int(len(expected)).equals(len({jar: None for jar in expected}))
+
+def _classpath_order_test(name):
+    _abi_test(name, _classpath_order_test_impl)
+
 def _transitive_from_exports_test(name):
     _abi_test(name, _transitive_from_exports_test_impl)
 
@@ -722,6 +764,7 @@ def jvm_deps_test_suite(name):
             _strict_abi_test,
             _remove_private_only_friends_test,
             _fat_abi_test,
+            _classpath_order_test,
             _transitive_from_exports_test,
             _transitive_from_associates_test,
             _dep_infos_ordering_test,

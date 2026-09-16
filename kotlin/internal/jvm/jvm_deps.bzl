@@ -71,17 +71,25 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
             for d in dep_infos
         ]
 
-    compile_depset_list = depset(
+    compile_jars = depset(
         direct = transitive_jars,
         transitive = transitive + [associates.jars],
-    ).to_list()
-    compile_depset_list_filtered = [jar for jar in compile_depset_list if not _sets.contains(associates.abi_jar_set, jar)]
+    )
+
+    # Keep shared transitive classpaths nested unless an associate's ABI jar
+    # actually needs replacing with its full jar.
+    if _sets.length(associates.abi_jar_set):
+        compile_jars = depset([
+            jar
+            for jar in compile_jars.to_list()
+            if not _sets.contains(associates.abi_jar_set, jar)
+        ])
 
     # The deps the Java half compiles against
     if prune_transitive_deps:
         java_deps = [
             JavaInfo(output_jar = jar, compile_jar = jar, deps = [], neverlink = True)
-            for jar in compile_depset_list_filtered
+            for jar in compile_jars.to_list()
         ]
     else:
         java_deps = dep_infos
@@ -92,7 +100,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         java_deps = java_deps,
         exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
-        compile_jars = depset(direct = compile_depset_list_filtered),
+        compile_jars = compile_jars,
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 

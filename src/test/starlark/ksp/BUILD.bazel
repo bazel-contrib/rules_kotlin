@@ -229,6 +229,16 @@ ksp_processor_classpath_isolation_test(
     target_under_test = ":ksp_test_lib_with_kapt",
 )
 
+ksp_outputs_test(
+    name = "ksp_kapt_outputs_test",
+    target_under_test = ":ksp_test_lib_with_kapt",
+)
+
+ksp_outputs_test(
+    name = "ksp_mixed_outputs_test",
+    target_under_test = ":ksp_mixed_with_java_gen",
+)
+
 test_suite(
     name = "ksp_tests",
     tests = [
@@ -236,6 +246,8 @@ test_suite(
         ":ksp_conflicting_options_test",
         ":ksp_javac_excludes_srcjars_test",
         ":ksp_javac_includes_srcjars_test",
+        ":ksp_kapt_outputs_test",
+        ":ksp_mixed_outputs_test",
         ":ksp_options_action_test",
         ":ksp_outputs_test",
         ":ksp_plugin_empty_options_provider_test",
