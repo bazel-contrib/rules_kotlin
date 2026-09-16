@@ -18,13 +18,11 @@ package io.bazel.kotlin.builder.utils.jars
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
-import java.io.FileInputStream
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths.get
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.TreeMap
@@ -36,7 +34,6 @@ import java.util.jar.Manifest
  * A class for creating Jar files. Allows normalization of Jar entries by setting their timestamp to
  * the DOS epoch. All Jar entries are sorted alphabetically.
  */
-@Suppress("unused")
 class JarCreator(
   path: Path,
   normalize: Boolean = true,
@@ -46,50 +43,8 @@ class JarCreator(
   // Map from Jar entry names to files. Use TreeMap so we can establish a canonical order for the
   // entries regardless in what order they get added.
   private val jarEntries = TreeMap<String, Path>()
-  private var manifestFile: String? = null
-  private var mainClass: String? = null
   private var targetLabel: String? = null
   private var injectingRuleKind: String? = null
-
-  /**
-   * Adds an entry to the Jar file, normalizing the name.
-   *
-   * @param entryName the name of the entry in the Jar file
-   * @param path the path of the input for the entry
-   * @return true iff a new entry was added
-   */
-  private fun addEntry(
-    entryName: String,
-    path: Path,
-  ): Boolean {
-    var normalizedEntryName = entryName
-    if (normalizedEntryName.startsWith("/")) {
-      normalizedEntryName = normalizedEntryName.substring(1)
-    } else if (normalizedEntryName.length >= 3 &&
-      Character.isLetter(normalizedEntryName[0]) &&
-      normalizedEntryName[1] == ':' &&
-      (normalizedEntryName[2] == '\\' || normalizedEntryName[2] == '/')
-    ) {
-      // Windows absolute path, e.g. "D:\foo" or "e:/blah".
-      // Windows paths are case-insensitive, and support both backslashes and forward slashes.
-      normalizedEntryName = normalizedEntryName.substring(3)
-    } else if (normalizedEntryName.startsWith("./")) {
-      normalizedEntryName = normalizedEntryName.substring(2)
-    }
-    return jarEntries.put(normalizedEntryName, path) == null
-  }
-
-  /**
-   * Adds an entry to the Jar file, normalizing the name.
-   *
-   * @param entryName the name of the entry in the Jar file
-   * @param fileName the name of the input file for the entry
-   * @return true iff a new entry was added
-   */
-  fun addEntry(
-    entryName: String,
-    fileName: String,
-  ): Boolean = addEntry(entryName, get(fileName))
 
   /**
    * Adds the contents of a directory to the Jar file. All files below this directory will be added
@@ -153,31 +108,6 @@ class JarCreator(
     }
   }
 
-  /**
-   * Adds a collection of entries to the jar, each with a given source path, and with the resulting
-   * file in the root of the jar.
-   *
-   * <pre>
-   * some/long/path.foo => (path.foo, some/long/path.foo)
-   </pre> *
-   */
-  fun addRootEntries(entries: Collection<String>) {
-    for (entry in entries) {
-      val path = get(entry)
-      jarEntries[path.fileName.toString()] = path
-    }
-  }
-
-  /**
-   * Sets the main.class entry for the manifest. A value of `null` (the default) will
-   * omit the entry.
-   *
-   * @param mainClass the fully qualified name of the main class
-   */
-  fun setMainClass(mainClass: String) {
-    this.mainClass = mainClass
-  }
-
   fun setJarOwner(
     targetLabel: String,
     injectingRuleKind: String,
@@ -186,36 +116,13 @@ class JarCreator(
     this.injectingRuleKind = injectingRuleKind
   }
 
-  /**
-   * Sets filename for the manifest content. If this is set the manifest will be read from this file
-   * otherwise the manifest content will get generated on the fly.
-   *
-   * @param manifestFile the filename of the manifest file.
-   */
-  fun setManifestFile(manifestFile: String) {
-    this.manifestFile = manifestFile
-  }
-
   @Throws(IOException::class)
   private fun manifestContent(): ByteArray {
-    if (manifestFile != null) {
-      FileInputStream(manifestFile!!).use { `in` -> return manifestContentImpl(Manifest(`in`)) }
-    } else {
-      return manifestContentImpl(Manifest())
-    }
-  }
-
-  @Throws(IOException::class)
-  private fun manifestContentImpl(manifest: Manifest): ByteArray {
+    val manifest = Manifest()
     val attributes = manifest.mainAttributes
     attributes[Attributes.Name.MANIFEST_VERSION] = "1.0"
     val createdBy = Attributes.Name("Created-By")
-    if (attributes.getValue(createdBy) == null) {
-      attributes[createdBy] = "io.bazel.rules.kotlin"
-    }
-    if (mainClass != null) {
-      attributes[Attributes.Name.MAIN_CLASS] = mainClass
-    }
+    attributes[createdBy] = "io.bazel.rules.kotlin"
     if (targetLabel != null) {
       attributes[TARGET_LABEL] = targetLabel
     }

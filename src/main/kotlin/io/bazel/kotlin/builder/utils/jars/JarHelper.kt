@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copied from bazel core and there is some code in other branches which will use the some of the unused elements. Fix
-// this later on.
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+@file:Suppress("MemberVisibilityCanBePrivate")
 
 package io.bazel.kotlin.builder.utils.jars
 
@@ -212,52 +210,9 @@ open class JarHelper internal constructor(
     }
   }
 
-  /**
-   * Copies a a single entry into the jar. This variant differs from the other [copyEntry] in two ways. Firstly the
-   * jar contents are already loaded in memory and Secondly the [name] and [path] entries don't necessarily have a
-   * correspondence.
-   *
-   * @param path the path used to retrieve the timestamp in case normalize is disabled.
-   * @param data if this is empty array then the entry is a directory.
-   */
-  protected fun JarOutputStream.copyEntry(
-    name: String,
-    path: Path? = null,
-    data: ByteArray = EMPTY_BYTEARRAY,
-  ) {
-    val outEntry = JarEntry(name)
-    outEntry.time =
-      when {
-        normalize -> normalizedTimestamp(name)
-        else -> Files.getLastModifiedTime(checkNotNull(path)).toMillis()
-      }
-    outEntry.size = data.size.toLong()
-
-    if (data.isEmpty()) {
-      outEntry.method = JarEntry.STORED
-      outEntry.crc = 0
-      putNextEntry(outEntry)
-    } else {
-      outEntry.method = storageMethod
-      if (storageMethod == JarEntry.STORED) {
-        val crc = CRC32()
-        crc.update(data)
-        outEntry.crc = crc.value
-        putNextEntry(outEntry)
-        write(data)
-      } else {
-        putNextEntry(outEntry)
-        write(data)
-      }
-    }
-    closeEntry()
-  }
-
   companion object {
     const val MANIFEST_DIR = "META-INF/"
     const val MANIFEST_NAME = JarFile.MANIFEST_NAME
-    const val SERVICES_DIR = "META-INF/services/"
-    internal val EMPTY_BYTEARRAY = ByteArray(0)
 
     // Normalized timestamp for zip entries
     // We do not include the system's default timezone and locale and additionally avoid the unix epoch
