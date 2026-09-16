@@ -110,11 +110,6 @@ class WorkerContext private constructor(
     val directory: Path,
     logging: ScopeLogging,
   ) : ScopeLogging by logging {
-    fun <T> subTask(
-      name: String = javaClass.canonicalName,
-      task: (sub: TaskContext) -> T,
-    ): T = task(TaskContext(directory, logging = narrowTo(name)))
-
     /** resultOf a status supplier that includes information collected in the Context. */
     fun resultOf(executeTaskIn: (TaskContext) -> Status): TaskResult {
       try {

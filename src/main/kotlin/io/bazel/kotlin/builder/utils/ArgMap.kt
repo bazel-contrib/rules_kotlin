@@ -28,14 +28,6 @@ class ArgMap(
   private fun mandatorySingle(key: String): String =
     optionalSingle(key) ?: throw IllegalArgumentException("$key is not optional")
 
-  private fun labelDepMap(key: String) =
-    optional(key)
-      ?.asSequence()
-      ?.windowed(2, 2)
-      ?.map { it[0] to it[1] }
-      ?.toMap()
-      ?: emptyMap()
-
   private fun optionalSingle(key: String): String? =
     optional(key)?.let {
       when (it.size) {
@@ -58,9 +50,6 @@ class ArgMap(
   private fun hasAll(keys: Array<String>): Boolean =
     keys.all { optional(it)?.isNotEmpty() ?: false }
 
-  private fun hasAny(keys: Array<String>): Boolean =
-    keys.any { optional(it)?.isNotEmpty() ?: false }
-
   private fun mandatory(key: String): List<String> =
     optional(key)
       ?: throw IllegalArgumentException(
@@ -80,13 +69,9 @@ class ArgMap(
 
   fun hasAll(vararg keys: Flag) = hasAll(keys.map(Flag::flag).toTypedArray())
 
-  fun hasAny(vararg keys: Flag) = hasAny(keys.map(Flag::flag).toTypedArray())
-
   fun mandatory(key: Flag) = mandatory(key.flag)
 
   fun optional(key: Flag) = optional(key.flag)
-
-  fun labelDepMap(key: Flag) = labelDepMap(key.flag)
 }
 
 interface Flag {

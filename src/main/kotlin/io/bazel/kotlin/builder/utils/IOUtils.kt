@@ -21,24 +21,13 @@ package io.bazel.kotlin.builder.utils
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.Arrays
 
 fun Path.resolveNewDirectories(vararg parts: String) =
   Files.createDirectories(
     parts.fold(this, Path::resolve),
   )
 
-fun Path.resolveVerified(vararg parts: String): File =
-  resolve(Paths.get(parts[0], *Arrays.copyOfRange(parts, 1, parts.size))).verified()
-
 fun Path.verified(): File =
   this
     .toFile()
     .also { check(it.exists()) { "file did not exist: $this" } }
-
-fun Path.verifiedPath(): Path =
-  this
-    .toFile()
-    .also { check(it.exists()) { "file did not exist: $this" } }
-    .toPath()
