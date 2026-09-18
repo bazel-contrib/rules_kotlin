@@ -1039,7 +1039,7 @@ def _run_kt_java_builder_actions(
         ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
         generated_ksp_src_jars.append(ksp_generated_src_jar)
 
-    java_infos = []
+    compilation_outputs = []
     ap_generated_src_jar = None
 
     # Build Kotlin
@@ -1080,26 +1080,24 @@ def _run_kt_java_builder_actions(
 
         compile_jars.append(kt_compile_jar)
         output_jars.append(kt_runtime_jar)
-        if not annotation_processors or not srcs.kt:
-            # Compile the java half of this target against the FULL Kotlin output, not the ABI;
-            kt_stubs_for_java.append(JavaInfo(compile_jar = kt_runtime_jar, output_jar = kt_runtime_jar, neverlink = True))
 
-        kt_java_info = JavaInfo(
-            output_jar = kt_runtime_jar,
-            compile_jar = kt_compile_jar,
+        # Only output metadata is consumed below. The public JavaInfo, including
+        # all transitive dependencies, is assembled around the final merged jar.
+        compilation_outputs.append(struct(
             jdeps = kt_jdeps,
-            deps = compile_deps.deps,
-            runtime_deps = compile_deps.runtime_deps,
-            exports = compile_deps.exports,
-            neverlink = getattr(ctx.attr, "neverlink", False),
-        )
-        java_infos.append(kt_java_info)
+            jars = [struct(class_jar = kt_runtime_jar)],
+        ))
 
     # Build Java
     # If there is Java source or KAPT/KSP generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
     ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(ctx.attr.plugins)
     if srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars:
+        if has_kt_sources and (not annotation_processors or not srcs.kt):
+            # The Java half needs the full Kotlin output. Kotlin-only targets
+            # have no consumer for this JavaInfo.
+            kt_stubs_for_java.append(JavaInfo(compile_jar = kt_runtime_jar, output_jar = kt_runtime_jar, neverlink = True))
+
         javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
         javac_opts = []
 
@@ -1170,7 +1168,7 @@ def _run_kt_java_builder_actions(
             jars.class_jar
             for jars in java_outputs
         ]
-        java_infos.append(java_info)
+        compilation_outputs.append(java_info.outputs)
 
     # Merge ABI jars into final compile jar.
     _fold_jars_action(
@@ -1184,9 +1182,9 @@ def _run_kt_java_builder_actions(
 
     if toolchains.kt.jvm_emit_jdeps:
         jdeps = []
-        for java_info in java_infos:
-            if java_info.outputs.jdeps:
-                jdeps.append(java_info.outputs.jdeps)
+        for outputs in compilation_outputs:
+            if outputs.jdeps:
+                jdeps.append(outputs.jdeps)
 
         if jdeps:
             _run_merge_jdeps_action(
@@ -1209,10 +1207,9 @@ def _run_kt_java_builder_actions(
         is_ksp = (ksp_annotation_processors != None)
         processor = ksp_annotation_processors if is_ksp else annotation_processors
         gen_jar = ksp_generated_src_jar if is_ksp else ap_generated_src_jar
-        outputs_list = [java_info.outputs for java_info in java_infos]
         annotation_processing = _create_annotation_processing(
             annotation_processors = processor,
-            ap_class_jar = [jars.class_jar for outputs in outputs_list for jars in outputs.jars][0],
+            ap_class_jar = [jars.class_jar for outputs in compilation_outputs for jars in outputs.jars][0],
             ap_source_jar = gen_jar,
         )
 
