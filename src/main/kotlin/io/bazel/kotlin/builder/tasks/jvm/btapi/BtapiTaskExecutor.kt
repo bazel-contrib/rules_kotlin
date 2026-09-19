@@ -37,7 +37,6 @@ import io.bazel.kotlin.builder.tasks.jvm.stubs
 import io.bazel.kotlin.builder.tasks.toRuntime
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.utils.fingerprintOf
 import io.bazel.kotlin.compiler.CompilationUnit
 import io.bazel.kotlin.compiler.CompilerConfiguration
 import io.bazel.kotlin.compiler.CompilerPluginSpec
@@ -105,7 +104,8 @@ class BtapiTaskExecutor(
     val btapiRuntime =
       task.info.toolchainInfo.btapi
         .toRuntime()
-    val compiler = getCompilerInvoker(btapiRuntime.apiImplClasspath)
+    val compiler =
+      getCompilerInvoker(btapiRuntime.apiImplClasspath, btapiRuntime.classpathFingerprint)
     val preprocessedTask =
       task
         .preProcessingSteps(context)
@@ -161,9 +161,11 @@ class BtapiTaskExecutor(
     }
   }
 
-  fun getCompilerInvoker(classpath: List<String>): KotlinBtapiCompiler {
-    val fingerprint = fingerprintOf(classpath)
-    return invokers
+  fun getCompilerInvoker(
+    classpath: List<String>,
+    fingerprint: String,
+  ): KotlinBtapiCompiler =
+    invokers
       .compute(classpath) { _, existing ->
         if (existing != null && existing.fingerprint == fingerprint) {
           existing
@@ -172,7 +174,6 @@ class BtapiTaskExecutor(
         }
       }!!
       .compiler
-  }
 
   private fun loadCompilerInvoker(classpath: List<String>): KotlinBtapiCompiler {
     classpath.forEach { jar ->

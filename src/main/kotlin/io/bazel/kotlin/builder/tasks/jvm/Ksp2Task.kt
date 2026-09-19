@@ -88,9 +88,13 @@ class Ksp2Task : Work {
         if (eqIdx >= 0) entry.substring(0, eqIdx) to entry.substring(eqIdx + 1) else entry to ""
       }
 
-    fun getKspClassLoader(processorClasspath: List<String>): URLClassLoader {
-      val cacheKey = processorClasspath.sorted().joinToString(File.pathSeparator)
-      val fingerprint = fingerprintOf(processorClasspath.sorted())
+    fun getKspClassLoader(
+      processorClasspath: List<String>,
+      inputDigests: Map<String, String> = emptyMap(),
+    ): URLClassLoader {
+      val sortedClasspath = processorClasspath.sorted()
+      val cacheKey = sortedClasspath.joinToString(File.pathSeparator)
+      val fingerprint = fingerprintOf(sortedClasspath, inputDigests)
       return classLoaderCache
         .compute(cacheKey) { _, existing ->
           if (existing != null && existing.fingerprint == fingerprint) {
@@ -223,7 +227,7 @@ class Ksp2Task : Work {
 
       // Create classloader with KSP2 jars and processor jars
       val processorClasspath = argMap.optional(Ksp2Flags.PROCESSOR_CLASSPATH) ?: emptyList()
-      val kspClassLoader = getKspClassLoader(processorClasspath)
+      val kspClassLoader = getKspClassLoader(processorClasspath, taskContext.inputDigests)
 
       val processorOptions = parseKspOptions(argMap.optional(Ksp2Flags.KSP_OPTIONS) ?: emptyList())
       val experimentalPsiResolution =

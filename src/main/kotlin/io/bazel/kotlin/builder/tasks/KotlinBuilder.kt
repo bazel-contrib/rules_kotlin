@@ -21,6 +21,7 @@ import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
+import io.bazel.kotlin.builder.utils.fingerprintOf
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.model.CompilationTaskInfo
@@ -133,13 +134,16 @@ class KotlinBuilder(
       } ?: args
 
     val argMap = ArgMaps.from(lines)
-    val info = buildTaskInfo(argMap).build()
+    val info = buildTaskInfo(argMap, ctx.inputDigests).build()
     val context =
       CompilationTaskContext(info, ctx.asPrintStream())
     return Pair(argMap, context)
   }
 
-  private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
+  private fun buildTaskInfo(
+    argMap: ArgMap,
+    inputDigests: Map<String, String>,
+  ): CompilationTaskInfo.Builder =
     with(CompilationTaskInfo.newBuilder()) {
       addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
 
@@ -161,7 +165,7 @@ class KotlinBuilder(
         argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
       toolchainInfoBuilder.commonBuilder.languageVersion =
         argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
-      buildBtapiRuntime(argMap, toolchainInfoBuilder)
+      buildBtapiRuntime(argMap, toolchainInfoBuilder, inputDigests)
       strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
       reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE)?.let {
@@ -213,10 +217,15 @@ class KotlinBuilder(
    * all flags absent means a legacy request and the btapi message stays absent -- its
    * presence is the worker's signal to compile through the Build Tools API. A partial flag
    * set can only come from a malformed direct worker invocation and is rejected.
+   *
+   * The classpath fingerprint identifies the jars of the implementation classpath, the data the
+   * cached compiler depends on; it is built from the request input digests ([fingerprintOf]) and
+   * stays empty when the request carried none.
    */
   private fun buildBtapiRuntime(
     argMap: ArgMap,
     toolchainInfo: KotlinToolchainInfo.Builder,
+    inputDigests: Map<String, String>,
   ) {
     val missing = btapiRuntimeFlags.filter { argMap.optional(it) == null }
     if (missing.size == btapiRuntimeFlags.size) {
@@ -235,6 +244,7 @@ class KotlinBuilder(
       )
       addAllKaptClasspath(argMap.mandatory(KotlinBuilderFlags.INTERNAL_KAPT_CLASSPATH))
       addAllJdepsGenClasspath(argMap.mandatory(KotlinBuilderFlags.INTERNAL_JDEPS_GEN_CLASSPATH))
+      classpathFingerprint = fingerprintOf(apiImplClasspathList, inputDigests)
     }
   }
 

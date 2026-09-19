@@ -238,52 +238,57 @@ class Ksp2TaskTest {
   }
 
   @Test
-  fun testKspClassLoaderCacheInvalidatesOnContentChange() {
+  fun testKspClassLoaderCacheWithoutRequestDigestsReusesTheLoader() {
+    // The single-invocation mode carries no request digests; its process ends after the request.
     val jar = tmp.newFile("processor.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
     val classpath = listOf(jar.absolutePath)
 
     val firstClassLoader = getKspClassLoader(classpath)
-    val timestamp = jar.lastModified()
     jar.writeBytes(byteArrayOf(4, 5, 6))
-    check(jar.setLastModified(timestamp))
-    val secondClassLoader = getKspClassLoader(classpath)
 
-    assertThat(secondClassLoader).isNotSameInstanceAs(firstClassLoader)
+    assertThat(getKspClassLoader(classpath)).isSameInstanceAs(firstClassLoader)
+  }
+
+  @Test
+  fun testKspClassLoaderCacheUsesTheRequestDigests() {
+    val jar = tmp.newFile("processor.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+    val classpath = listOf(jar.absolutePath)
+    val digests = mapOf(jar.absolutePath to "v1")
+
+    val firstClassLoader = getKspClassLoader(classpath, digests)
+    // The request digest says "unchanged", so the changed content is not read.
+    jar.writeBytes(byteArrayOf(4, 5, 6))
+    assertThat(getKspClassLoader(classpath, digests)).isSameInstanceAs(firstClassLoader)
+
+    val renewed = mapOf(jar.absolutePath to "v2")
+    assertThat(getKspClassLoader(classpath, renewed)).isNotSameInstanceAs(firstClassLoader)
   }
 
   @Test
   fun testFingerprintIsDeterministic() {
-    val jar = tmp.newFile("a.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
-    val classpath = listOf(jar.absolutePath)
-    assertThat(fingerprintOf(classpath)).isEqualTo(fingerprintOf(classpath))
+    val classpath = listOf("a.jar")
+    val digests = mapOf("a.jar" to "d1")
+    assertThat(fingerprintOf(classpath, digests)).isEqualTo(fingerprintOf(classpath, digests))
   }
 
   @Test
-  fun testFingerprintChangesWhenContentChanges() {
-    val jar = tmp.newFile("a.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
-    val classpath = listOf(jar.absolutePath)
-    val before = fingerprintOf(classpath)
-
-    val timestamp = jar.lastModified()
-    jar.writeBytes(byteArrayOf(4, 5, 6))
-    check(jar.setLastModified(timestamp))
-    val after = fingerprintOf(classpath)
-
+  fun testFingerprintChangesWhenTheRequestDigestChanges() {
+    // The request digest stands for the jar content; the jar itself is not read.
+    val classpath = listOf("a.jar")
+    val before = fingerprintOf(classpath, mapOf("a.jar" to "d1"))
+    val after = fingerprintOf(classpath, mapOf("a.jar" to "d2"))
     assertThat(after).isNotEqualTo(before)
   }
 
   @Test
   fun testFingerprintDiffersForDifferentPaths() {
-    val jar1 = tmp.newFile("a.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
-    val jar2 = tmp.newFile("b.jar").apply { writeBytes(byteArrayOf(1, 2, 3)) }
-    assertThat(fingerprintOf(listOf(jar1.absolutePath)))
-      .isNotEqualTo(fingerprintOf(listOf(jar2.absolutePath)))
+    assertThat(fingerprintOf(listOf("a.jar"), mapOf("a.jar" to "d1")))
+      .isNotEqualTo(fingerprintOf(listOf("b.jar"), mapOf("b.jar" to "d1")))
   }
 
   @Test
   fun testFingerprintIsHexEncoded() {
-    val jar = tmp.newFile("a.jar").apply { writeBytes(byteArrayOf(1)) }
-    val fp = fingerprintOf(listOf(jar.absolutePath))
+    val fp = fingerprintOf(listOf("a.jar"), mapOf("a.jar" to "d1"))
     assertThat(fp).hasLength(64)
     assertThat(fp).matches("[0-9a-f]{64}")
   }
