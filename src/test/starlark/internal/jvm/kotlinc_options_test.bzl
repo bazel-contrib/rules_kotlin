@@ -12,6 +12,7 @@ _EXPECTED_PASSTHROUGH_FLAGS = [
     "-progressive",
     "-Xallow-kotlin-package",
     "-Xallow-unstable-dependencies",
+    "-Xcompiler-plugin-order=first.plugin>second.plugin",
     "-Xrender-internal-diagnostic-names",
     "-Xreport-all-warnings",
     "-Xwhen-guards",
@@ -76,6 +77,16 @@ def _toolchain_versions_by_default_test_impl(ctx):
 
 _toolchain_versions_by_default_test = analysistest.make(_toolchain_versions_by_default_test_impl)
 
+def _rejects_a_malformed_plugin_order_constraint_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    asserts.expect_failure(env, "must have the form <pluginId1>><pluginId2>")
+    return analysistest.end(env)
+
+_rejects_a_malformed_plugin_order_constraint_test = analysistest.make(
+    _rejects_a_malformed_plugin_order_constraint_test_impl,
+    expect_failure = True,
+)
+
 def _kotlinc_options_contents():
     write_file(
         name = "language_options_kt_source",
@@ -91,6 +102,7 @@ def _kotlinc_options_contents():
         tags = ["manual"],
         x_allow_kotlin_package = True,
         x_allow_unstable_dependencies = True,
+        x_compiler_plugin_order = ["first.plugin>second.plugin"],
         x_render_internal_diagnostic_names = True,
         x_report_all_warnings = True,
         x_when_guards = True,
@@ -110,6 +122,19 @@ def _kotlinc_options_contents():
         tags = ["manual"],
     )
 
+    kt_kotlinc_options(
+        name = "malformed_plugin_order_options",
+        tags = ["manual"],
+        x_compiler_plugin_order = ["first.plugin"],
+    )
+
+    kt_jvm_library(
+        name = "malformed_plugin_order_library",
+        srcs = ["language_options_kt_source"],
+        kotlinc_opts = ":malformed_plugin_order_options",
+        tags = ["manual"],
+    )
+
     _language_options_test(
         name = "language_options_reach_the_compiler_test",
         target_under_test = ":language_options_library",
@@ -120,6 +145,11 @@ def _kotlinc_options_contents():
         target_under_test = ":default_options_library",
     )
 
+    _rejects_a_malformed_plugin_order_constraint_test(
+        name = "rejects_a_malformed_plugin_order_constraint_test",
+        target_under_test = ":malformed_plugin_order_library",
+    )
+
 def kotlinc_options_test_suite(name):
     _kotlinc_options_contents()
 
@@ -128,5 +158,6 @@ def kotlinc_options_test_suite(name):
         tests = [
             ":language_options_reach_the_compiler_test",
             ":toolchain_versions_by_default_test",
+            ":rejects_a_malformed_plugin_order_constraint_test",
         ],
     )

@@ -150,6 +150,39 @@ public class KotlinBuilderJvmBtaTest {
     }
 
     @Test
+    public void testPluginOrderConstraintsReachThePluginLoader() {
+        // -Xcompiler-plugin-order travels on the pass-through channel to the compiler's plugin loader.
+        // The loader parses every constraint: a malformed one fails the compilation with its diagnostic.
+        ctx.runFailingCompileTaskAndValidateOutput(
+                () -> ctx.runCompileTask(
+                        c -> {
+                            c.useBuildToolsApi();
+                            c.compileKotlin();
+                            c.addPassthroughFlags("-Xcompiler-plugin-order=first.plugin");
+                            c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                            c.outputJar();
+                            c.outputJdeps();
+                        }),
+                lines -> assertThat(String.join("\n", lines))
+                        .containsMatch("(?i)could not parse plugin order constraint: first\\.plugin"));
+    }
+
+    @Test
+    public void testPluginOrderConstraintsOnUnregisteredPluginsAreIgnored() {
+        // The plugin loader ignores a constraint that names a plugin the compilation does not register.
+        ctx.runCompileTask(
+                c -> {
+                    c.useBuildToolsApi();
+                    c.compileKotlin();
+                    c.addPassthroughFlags("-Xcompiler-plugin-order=first.plugin>second.plugin");
+                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                    c.outputJar();
+                    c.outputJdeps();
+                });
+        ctx.assertFilesExist(DirectoryType.CLASSES, "something/AClass.class");
+    }
+
+    @Test
     public void testKaptRunsThroughTypedPluginConfig() {
         // On the Build Tools API path the KAPT stubs-and-apt pre-pass is configured as a typed
         // plugin descriptor (no base64 -P configuration blob); the annotation processor must

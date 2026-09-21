@@ -58,6 +58,18 @@ def _map_nullability_annotations(values):
 def _map_optin_class_to_flag(values):
     return ["-opt-in=%s" % v for v in values]
 
+def _map_compiler_plugin_order_to_flag(values):
+    if not values:
+        return None
+
+    args = []
+    for constraint in values:
+        ids = constraint.split(">")
+        if len(ids) != 2 or not ids[0] or not ids[1]:
+            fail("Error: Compiler plugin order constraint '{}' must have the form <pluginId1>><pluginId2>".format(constraint))
+        args.append("-Xcompiler-plugin-order=%s" % constraint)
+    return args
+
 def _map_backend_threads_to_flag(n):
     if n == 1:
         return None
@@ -259,6 +271,17 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
         type = attr.int,
         value_to_flag = None,
         map_value_to_flag = _map_backend_threads_to_flag,
+    ),
+    "x_compiler_plugin_order": struct(
+        # 2.3
+        flag = "-Xcompiler-plugin-order",
+        args = dict(
+            default = [],
+            doc = "Execution order constraints for compiler plugins. Each constraint has the form `<pluginId1>><pluginId2>`: the first plugin runs before the second.",
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_compiler_plugin_order_to_flag,
     ),
     "x_consistent_data_class_copy_visibility": struct(
         args = dict(

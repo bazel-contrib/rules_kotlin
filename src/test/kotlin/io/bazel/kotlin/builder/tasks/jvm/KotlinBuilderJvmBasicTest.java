@@ -97,6 +97,37 @@ public class KotlinBuilderJvmBasicTest {
     }
 
     @Test
+    public void testPluginOrderConstraintsReachThePluginLoader() {
+        // -Xcompiler-plugin-order travels on the pass-through channel to the compiler's plugin loader.
+        // The loader parses every constraint: a malformed one fails the compilation with its diagnostic.
+        ctx.runFailingCompileTaskAndValidateOutput(
+                () -> ctx.runCompileTask(
+                        c -> {
+                            c.compileKotlin();
+                            c.addPassthroughFlags("-Xcompiler-plugin-order=first.plugin");
+                            c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                            c.outputJar();
+                            c.outputJdeps();
+                        }),
+                lines -> assertThat(String.join("\n", lines))
+                        .containsMatch("(?i)could not parse plugin order constraint: first\\.plugin"));
+    }
+
+    @Test
+    public void testPluginOrderConstraintsOnUnregisteredPluginsAreIgnored() {
+        // The plugin loader ignores a constraint that names a plugin the compilation does not register.
+        ctx.runCompileTask(
+                c -> {
+                    c.compileKotlin();
+                    c.addPassthroughFlags("-Xcompiler-plugin-order=first.plugin>second.plugin");
+                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                    c.outputJar();
+                    c.outputJdeps();
+                });
+        ctx.assertFilesExist(DirectoryType.CLASSES, "something/AClass.class");
+    }
+
+    @Test
     public void testCompiledJarIsNormalized() {
         Deps.Dep previous = ctx.runCompileTask(SETUP_NORMALIZATION_TEST_SOURCES);
         Deps.Dep recompiled =
