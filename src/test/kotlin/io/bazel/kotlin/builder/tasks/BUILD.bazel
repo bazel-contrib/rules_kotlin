@@ -102,12 +102,12 @@ kt_rules_test(
 # Trick to get default files produced by jvm_import into data
 filegroup(
     name = "auto_value",
-    srcs = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
+    srcs = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value"],
 )
 
 filegroup(
     name = "auto_value_annotations",
-    srcs = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
+    srcs = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations"],
 )
 
 kt_rules_test(

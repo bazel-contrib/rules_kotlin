@@ -54,23 +54,13 @@ object BazelIntegrationTestRunner {
 
     val version = bazel.run(workspace, "--version").parseVersion()
 
-    val workspaceEnabled = System.getenv("WORKSPACE_ENABLED") != null
-
     val workspaceFlags = FlagSets(
       listOf(
-        if (workspaceEnabled) {
-          listOf(
-            Flag("--override_repository=rules_kotlin=$unpack"),
-            Flag("--enable_bzlmod=false"),
-            Flag("--enable_workspace=true") { it.isBzlmodEnabledByDefault },
-          )
-        } else {
-          listOf(
-            Flag("--enable_bzlmod=true"),
-            Flag("--override_module=rules_kotlin=$unpack"),
-            Flag("--enable_workspace=false") { it.isBzlmodEnabledByDefault },
-          )
-        },
+        listOf(
+          Flag("--enable_bzlmod=true"),
+          Flag("--override_module=rules_kotlin=$unpack"),
+          Flag("--enable_workspace=false") { it.isBzlmodEnabledByDefault },
+        ),
       ),
     )
 

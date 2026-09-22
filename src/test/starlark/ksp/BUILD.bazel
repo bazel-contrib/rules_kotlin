@@ -164,7 +164,7 @@ java_plugin(
     name = "autovalue_plugin",
     generates_api = 1,
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
+    deps = ["@kotlin_rules_maven_test//:com_google_auto_value_auto_value"],
 )
 
 # Mixed Java+Kotlin with KSP (generates_java=False) — KSP srcjars must NOT go to javac
@@ -205,7 +205,7 @@ kt_jvm_library(
         ":moshi_plugin",
     ],
     deps = [
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven_test//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
     ],

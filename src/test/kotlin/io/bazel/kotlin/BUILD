@@ -23,13 +23,13 @@ kt_jvm_library(
     visibility = ["//visibility:public"],
     exports = [
         "//kotlin/compiler:kotlin-test",
-        "@kotlin_rules_maven//:com_google_guava_guava",
+        "@kotlin_rules_maven_test//:com_google_guava_guava",
         "@kotlin_rules_maven_test//:com_google_truth_truth",
         "@kotlin_rules_maven_test//:junit_junit",
     ],
     deps = [
         "//kotlin/compiler:kotlin-test",
-        "@kotlin_rules_maven//:com_google_guava_guava",
+        "@kotlin_rules_maven_test//:com_google_guava_guava",
     ],
 )
 
