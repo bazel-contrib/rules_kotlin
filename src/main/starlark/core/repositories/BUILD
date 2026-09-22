@@ -21,13 +21,14 @@ release_archive(
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "BUILD.kotlin_capabilities.bazel",
         "btapi_impl.bzl",
-        "bzlmod_impl.bzl",
         "bzlmod_setup.bzl",
         "compiler.bzl",
         "ksp.bzl",
+        "multi_file_repository.bzl",
         "versions.bzl",
     ],
     src_map = {
+        "bzlmod_impl.release.bzl": "bzlmod_impl.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [

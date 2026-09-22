@@ -1,4 +1,4 @@
-package io.bazel.generate
+package io.bazel.kotlin.generate
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.generate.WriteKotlincCapabilities
