@@ -2,6 +2,7 @@
 
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
+load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "util")
 load("//kotlin:jvm.bzl", "kt_jvm_binary")
 
@@ -105,6 +106,41 @@ def _kt_jvm_binary_env_expansion_test(name):
         target = name + "_subject",
     )
 
+def _kt_jvm_binary_launcher_test_impl(env, target):
+    """Guard the launcher phase: one DefaultInfo with a runnable exe + RunEnvironmentInfo.
+
+    Emitted directly by the runner's launcher/finalize phases, with NO reliance on
+    kt_jvm_library_impl being called and no DefaultInfo post-filter. The launcher
+    produces the runnable executable and the compiled jar rides in the runfiles.
+    """
+    env.expect.that_target(target).has_provider(DefaultInfo)
+    env.expect.that_target(target).has_provider(RunEnvironmentInfo)
+
+    # The launcher phase produced the runnable executable for this target.
+    env.expect.that_target(target).executable().short_path_equals(
+        "src/test/starlark/internal/jvm/" + target.label.name,
+    )
+
+    # Launcher runfiles carry the binary's own compiled runtime jar.
+    env.expect.that_target(target).runfiles().contains_predicate(
+        matching.str_endswith("/" + target.label.name + ".jar"),
+    )
+
+def _kt_jvm_binary_launcher_test(name):
+    """Creates a test that verifies the launcher-phase providers/runfiles."""
+    kt_jvm_binary(
+        name = name + "_subject",
+        srcs = [util.empty_file(name + "_Main.kt")],
+        main_class = "test.Main",
+        tags = ["manual"],
+    )
+
+    analysis_test(
+        name = name,
+        impl = _kt_jvm_binary_launcher_test_impl,
+        target = name + "_subject",
+    )
+
 def kt_jvm_binary_env_test_suite(name):
     """Test suite for kt_jvm_binary env support."""
     test_suite(
@@ -113,5 +149,6 @@ def kt_jvm_binary_env_test_suite(name):
             _kt_jvm_binary_env_test,
             _kt_jvm_binary_env_expansion_test,
             _kt_jvm_binary_empty_env_test,
+            _kt_jvm_binary_launcher_test,
         ],
     )

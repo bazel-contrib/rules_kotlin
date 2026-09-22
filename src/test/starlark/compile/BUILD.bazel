@@ -1,5 +1,47 @@
+load("@rules_java//java:defs.bzl", "java_plugin")
+load("//kotlin:core.bzl", "kt_ksp_plugin")
+load(":phase_aggregation_test.bzl", phase_aggregation_test_suite = "test_suite")
+load(":phase_compile_test.bzl", phase_compile_test_suite = "test_suite")
+load(":phase_composition_test.bzl", phase_composition_test_suite = "test_suite")
+load(":phase_preprocessors_test.bzl", phase_preprocessors_test_suite = "test_suite")
 load(":rule_tests.bzl", "test_suite")
 
 test_suite(
     name = "rules_tests",
+)
+
+# Annotation-processor plugins driving the KAPT/KSP pre-pass phases under test.
+# No @AutoValue / @JsonClass symbol exists in the trivial fixture sources, so
+# processing is a no-op, but the KAPT/KSP action paths are still exercised.
+java_plugin(
+    name = "phase_autovalue_plugin",
+    generates_api = 1,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
+)
+
+kt_ksp_plugin(
+    name = "phase_moshi_plugin",
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+phase_preprocessors_test_suite(
+    name = "phase_preprocessors_tests",
+)
+
+phase_compile_test_suite(
+    name = "phase_compile_tests",
+)
+
+phase_aggregation_test_suite(
+    name = "phase_aggregation_tests",
+)
+
+phase_composition_test_suite(
+    name = "phase_composition_tests",
 )

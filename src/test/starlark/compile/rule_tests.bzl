@@ -1,7 +1,9 @@
 """Analysis tests for the core Kotlin compile rules."""
 
+load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
+load("//kotlin/internal/jvm:impl.bzl", "base_binary_pipeline", "base_library_pipeline", "base_test_pipeline")
 load("//src/main/starlark/core/compile:common.bzl", "KtJvmInfo")
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_binary", "core_kt_jvm_library")
 load("//src/main/starlark/core/compile/cli:toolchain.bzl", "COMPILE_MNEMONIC")
@@ -453,7 +455,89 @@ def test_jvm():
         test_runfiles = _test_runfiles(**library),
     )
 
+def _base_library_pipeline_on_runner_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # kt_jvm_library must assemble its providers by running the vendored pipeline
+    # runner. base_library_pipeline() is built in impl.bzl via
+    # processing_pipeline.make_processing_pipeline, which forces impl.bzl to load
+    # //src/main/starlark/core/pipeline:pipeline (runner on the load path). The
+    # base processor chain threads jvm deps -> compile -> finalize(providers).
+    pipeline = base_library_pipeline()
+    asserts.equals(
+        env,
+        ["DepsProcessor", "JvmCompileProcessor"],
+        pipeline.processors.keys(),
+    )
+    asserts.true(
+        env,
+        pipeline.finalize != None,
+        "base library pipeline must define a finalize step assembling the provider golden",
+    )
+
+    return unittest.end(env)
+
+base_library_pipeline_on_runner_test = unittest.make(_base_library_pipeline_on_runner_test_impl)
+
+def _base_binary_pipeline_on_runner_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # kt_jvm_binary must assemble its providers by running the vendored pipeline
+    # runner too: it EXTENDS the base library chain (jvm deps -> compile) by
+    # appending a launcher phase, so the binary is not built by reusing
+    # kt_jvm_library_impl wholesale. The launcher phase encapsulates the
+    # exe-vs-shell choice and emits DefaultInfo + RunEnvironmentInfo via finalize.
+    pipeline = base_binary_pipeline()
+    asserts.equals(
+        env,
+        ["DepsProcessor", "JvmCompileProcessor", "LauncherProcessor"],
+        pipeline.processors.keys(),
+    )
+    asserts.true(
+        env,
+        pipeline.finalize != None,
+        "base binary pipeline must define a finalize step emitting DefaultInfo + RunEnvironmentInfo",
+    )
+
+    return unittest.end(env)
+
+base_binary_pipeline_on_runner_test = unittest.make(_base_binary_pipeline_on_runner_test_impl)
+
+def _base_test_pipeline_on_runner_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # kt_jvm_junit_test must assemble its providers by running the vendored pipeline
+    # runner too: it EXTENDS the base library chain (jvm deps -> compile) by swapping in
+    # the test rule-kind compile and APPENDING a test-launcher phase, so the test is not
+    # built off a bespoke non-runner path. The test-launcher phase owns the
+    # coverage-instrumented launcher + test_class inference and emits DefaultInfo +
+    # TestEnvironment via finalize.
+    pipeline = base_test_pipeline()
+    asserts.equals(
+        env,
+        ["DepsProcessor", "JvmCompileProcessor", "TestLauncherProcessor"],
+        pipeline.processors.keys(),
+    )
+    asserts.true(
+        env,
+        pipeline.finalize != None,
+        "base test pipeline must define a finalize step emitting DefaultInfo + TestEnvironment",
+    )
+
+    return unittest.end(env)
+
+base_test_pipeline_on_runner_test = unittest.make(_base_test_pipeline_on_runner_test_impl)
+
 def test_suite(name):
+    base_library_pipeline_on_runner_test(
+        name = "base_library_pipeline_on_runner_test",
+    )
+    base_binary_pipeline_on_runner_test(
+        name = "base_binary_pipeline_on_runner_test",
+    )
+    base_test_pipeline_on_runner_test(
+        name = "base_test_pipeline_on_runner_test",
+    )
     suite(
         name,
         **{
