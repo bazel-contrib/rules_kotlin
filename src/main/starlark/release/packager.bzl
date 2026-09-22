@@ -70,7 +70,6 @@ def release_archive(name, srcs = None, src_map = {}, package_dir = None, extensi
             target = target,
         )
         srcs.append(rename_name)
-
     pkg_tar(
         name = name,
         srcs = srcs if srcs != None else [],

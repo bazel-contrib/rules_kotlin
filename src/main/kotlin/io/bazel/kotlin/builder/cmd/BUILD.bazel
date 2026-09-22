@@ -4,7 +4,7 @@ load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_lib
 kt_bootstrap_library(
     name = "build_lib",
     srcs = ["Build.kt"],
-    visibility = ["//src:__subpackages__"],
+    visibility = ["//src/main/kotlin:internal_jars"],
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
@@ -41,7 +41,7 @@ kt_bootstrap_binary(
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     shade_rules = "//src/main/kotlin:shade.jarjar",
-    visibility = ["//src:__subpackages__"],
+    visibility = ["//src/main/kotlin:internal_jars"],
     runtime_deps = [
         ":build_lib",
         "@bazel_tools//tools/jdk:JacocoCoverage",
@@ -64,7 +64,7 @@ kt_bootstrap_binary(
     final_runtime_deps = _KOTLIN_STDLIBS,
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdepsMain",
     shade_rules = "//src/main/kotlin:shade.jarjar",
-    visibility = ["//src:__subpackages__"],
+    visibility = ["//src/main/kotlin:internal_jars"],
     runtime_deps = [":merge_jdeps_lib"],
 )
 
@@ -84,6 +84,6 @@ kt_bootstrap_binary(
     final_runtime_deps = _KOTLIN_STDLIBS,
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     shade_rules = "//src/main/kotlin:shade.jarjar",
-    visibility = ["//src:__subpackages__"],
+    visibility = ["//src/main/kotlin:internal_jars"],
     runtime_deps = [":ksp2_lib"],
 )
