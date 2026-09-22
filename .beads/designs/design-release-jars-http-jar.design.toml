@@ -1,0 +1,101 @@
+slug = "design-release-jars-http-jar"
+kind = "design"
+title = "Ship release worker/plugin jars as separate GitHub assets fetched via http_jar"
+status = "approved"
+created = "2026-09-22"
+at_commit = "4c3ea40"
+
+rationale = """
+Today the released rules_kotlin tarball (rules_kotlin_release.tgz) bundles 8 jars that
+src/main/kotlin/BUILD.release.bazel java_imports from local files:
+  worker->kotlin_worker.jar, jdeps_merger_worker->jdeps_merger_worker.jar,
+  ksp2_worker->ksp2_worker.jar, ksp2_invoker->ksp2_invoker.jar (public),
+  skip-code-gen->skip-code-gen.jar (public), jdeps-gen->jdeps-gen.jar (public),
+  skip-code-gen-embeddable->skip-code-gen-embeddable.jar (public),
+  jdeps-gen-embeddable->jdeps-gen-embeddable.jar (public).
+These 8 java_import targets feed the build/jdeps_merger/ksp2 java_binary runtime_deps/data
+and toolchain attrs. Bundling them makes the tarball large.
+
+Goal: publish each jar as its own GitHub release asset (a "separate git artifact") and have
+consumers download it via http_jar, instead of vendoring the bytes in the tarball.
+
+Chosen mechanism (per maintainer direction): DO NOT declare http_jar directly in
+MODULE.release.bazel via use_repo_rule. Instead create the jar repositories inside the RELEASED
+module extension bzlmod_setup.release.bzl (the real dev/release split point: dev builds these
+jars locally from //src/main/kotlin, so they must never be downloaded in dev builds; only the
+released extension, present in consumer builds, creates the http_jar repos). This mirrors the
+existing idiom in initialize.release.bzl / versions.bzl where kotlinc, ksp, ktlint, and the
+build-tools-api jar are each fetched by a version() record (url_templates with a {version}
+placeholder + a per-artifact sha256), resolved during repository/toolchain creation. The
+rules_kotlin release version threads through that same {version} machinery ("version handled at
+toolchain creation") rather than via a separate module-version stamp.
+
+End-to-end shape:
+1. versions.bzl 'version' provider records (or a small release-only records module loaded by
+   bzlmod_setup.release.bzl) describe the 8 jars: url_templates =
+   ["https://github.com/bazel-contrib/rules_kotlin/releases/download/v{version}/<jar-name>.jar"],
+   one shared {version} = the rules_kotlin release train, per-jar sha256. Stable asset filenames
+   (GitHub scopes assets per release/tag, so no cross-prerelease collision).
+2. bzlmod_setup.release.bzl _rules_kotlin_extensions_impl creates one http_jar repo per jar
+   (e.g. via a use_repository-style helper), then modules.use_all_repos(mctx, reproducible=True)
+   exports them. This file is only active in released consumers (dev uses bzlmod_setup.bzl).
+3. src/main/kotlin/BUILD.release.bazel replaces each of the 8 java_import(jars=[<local>.jar])
+   with an alias to the http_jar repo's //jar target (http_jar exposes a JavaInfo java_import at
+   @<repo>//jar, which cannot be nested inside another java_import.jars, so alias is required).
+   Target names and //visibility:public settings are preserved so the build/jdeps_merger/ksp2
+   java_binary and toolchain consumers need zero changes.
+4. src/main/kotlin/BUILD release_archive(name="pkg") drops the 8 jars from its srcs/src_map so
+   they are no longer vendored in the tarball. The deploy/shaded jar targets are still built (now
+   for upload as standalone assets, not for bundling).
+5. release_prep.sh builds the 8 jar targets, renames them to their stable asset filenames,
+   computes each sha256, and stamps TAG (the release {version}) + the 8 sha256 values into the
+   release-only source that bzlmod_setup.release.bzl reads, all BEFORE building
+   //:rules_kotlin_release (the tarball must embed the stamped MODULE/extension). Ordering is
+   sound: jars build and hash before the tarball build begins.
+6. release.yml uploads the 8 jars as release assets alongside the tarball (extend the
+   softprops/action-gh-release files glob beyond rules_kotlin-*.tar.gz).
+
+Validation: the examples/ integration tests (rules_bazel_integration_test) that consume the
+built release exercise the rendered/stamped release end-to-end, catching a malformed extension,
+bad URL, or sha mismatch. This is the agreed validation surface (no separate buildifier
+render-check gate).
+"""
+
+constraints = [
+  "Jar repositories are created ONLY in the released path (bzlmod_setup.release.bzl); dev builds (bzlmod_setup.bzl) must keep sourcing these jars from //src/main/kotlin, never downloading them.",
+  "Follow the existing versions.bzl version() idiom (url_templates + {version} + per-artifact sha256, resolved in the repository-creation flow) rather than use_repo_rule/http_jar in MODULE.release.bazel.",
+  "BUILD.release.bazel must preserve all 8 target names and their public visibility so java_binary/toolchain consumers are untouched (use alias -> @repo//jar, not java_import).",
+  "Release asset filenames stay stable (kotlin_worker.jar, ksp2_worker.jar, jdeps_merger_worker.jar, ksp2_invoker.jar, skip-code-gen.jar, jdeps-gen.jar, skip-code-gen-embeddable.jar, jdeps-gen-embeddable.jar).",
+  "The rules_kotlin release version drives both the module version and the jar-download {version}; keep them in lockstep, stamped from the git TAG.",
+  "sha256 pinning must be preserved for every downloaded jar (determinism / repo-cache correctness).",
+  "release_prep.sh must build+hash the jars and stamp TAG+sha256 into the release-only source BEFORE building //:rules_kotlin_release.",
+  "http_jar exposes @<repo>//jar (a java_import/JavaInfo); confirm the exact download target label and whether urls/downloaded_file_name kwargs are needed when wiring the use_repository helper.",
+]
+
+rejected = [
+  { option = "http_jar via use_repo_rule directly in MODULE.release.bazel", reason = "Maintainer directed the repos be created in bzlmod_setup.release.bzl through the existing version()/kotlin_repositories machinery; puts all release-download logic in one idiomatic place and keeps MODULE.release.bazel declarative." },
+  { option = "Bazel-stamped module via a custom hash rule", reason = "Adds a repository rule that reads sha files at execution to template the module; heavier, cache-volatile, and TAG is still external — pays two mechanisms for a once-per-release stamp." },
+  { option = "Committed lockfile / stable URLs with in-tree shas", reason = "Chicken-and-egg: a jar's sha depends on freshly built bytes that change per commit, so an in-tree lock is stale until after the build; needs an extra automated tag-time commit. Prerelease bzlmod already carries the sha in the extension." },
+  { option = "Keep java_import in BUILD.release.bazel pointing cross-repo", reason = "java_import.jars wants file labels; an http_jar repo yields a JavaInfo target, not a file, so it cannot be nested — alias is the correct reference." },
+]
+
+success_criteria = [
+  "The released rules_kotlin_release.tgz no longer contains the 8 worker/plugin jars (verified by inspecting the tarball / //src/main/kotlin:pkg contents).",
+  "Each of the 8 jars is published as its own GitHub release asset with a stable filename by release.yml.",
+  "In a released consumer, bzlmod_setup.release.bzl creates one http_jar repo per jar (sha256-pinned, URL keyed to the release {version}); no jar bytes are vendored.",
+  "src/main/kotlin/BUILD.release.bazel exposes the same 8 target names with unchanged visibility via alias -> @repo//jar; build/jdeps_merger/ksp2 java_binary and toolchain targets build unchanged.",
+  "Dev builds (bzlmod_setup.bzl path) still build the jars locally and create no download repos for them.",
+  "release_prep.sh builds+hashes the jars and stamps TAG+sha256 before the tarball build; a rebuild with the same inputs is deterministic.",
+  "examples/ integration tests pass against the built release, exercising the http_jar downloads end-to-end.",
+]
+
+designs_components = [
+  "rules_kotlin/src/main/starlark/core/repositories/bzlmod_setup.release.bzl",
+  "rules_kotlin/src/main/starlark/core/repositories/initialize.release.bzl",
+  "rules_kotlin/src/main/starlark/core/repositories/versions.bzl",
+  "rules_kotlin/src/main/kotlin/BUILD.release.bazel",
+  "rules_kotlin/src/main/kotlin/BUILD",
+  "rules_kotlin/MODULE.release.bazel",
+  "rules_kotlin/.github/workflows/release_prep.sh",
+  "rules_kotlin/.github/workflows/release.yml",
+]
