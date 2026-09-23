@@ -6,6 +6,7 @@ load(":javac_warn_test.bzl", "javac_warn_test_suite")
 load(":jvm_deps_tests.bzl", "jvm_deps_test_suite")
 load(":kotlinc_options_test.bzl", "kotlinc_options_test_suite")
 load(":kt_jvm_binary_env_test.bzl", "kt_jvm_binary_env_test_suite")
+load(":manifest_lines_test.bzl", "manifest_lines_test_suite")
 load(":plugin_payload_test.bzl", "plugin_payload_test_suite")
 load(":sourceless_library_test.bzl", "sourceless_library_test_suite")
 
@@ -24,6 +25,8 @@ jvm_deps_test_suite(name = "jvm_tests")
 kotlinc_options_test_suite(name = "kotlinc_options_tests")
 
 kt_jvm_binary_env_test_suite(name = "kt_jvm_binary_env_tests")
+
+manifest_lines_test_suite(name = "manifest_lines_tests")
 
 plugin_payload_test_suite(name = "plugin_payload_tests")
 

@@ -241,6 +241,15 @@ _common_attr = utils.add_dicts(
             providers = [_KotlincOptions],
             mandatory = False,
         ),
+        "manifest_lines": attr.string_list(
+            doc = """Lines to add to the main section of the manifest of the output jar, each in the form `Name: value`.
+        They follow the `Target-Label` and `Injecting-Rule-Kind` attributes the rules write. A line that repeats them,
+        `Manifest-Version` or `Created-By` is rejected. As in the `deploy_manifest_lines` attribute of `java_binary`,
+        `Multi-Release`, `Add-Exports` and `Add-Opens` lines are not copied as they are: singlejar merges them and writes
+        them in its normalized form, and `Multi-Release` takes `true` or `false`. A target without `srcs` and `resources`
+        has no jar of its own and rejects the attribute.""",
+            default = [],
+        ),
         "module_name": attr.string(
             doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
         `//some/package/path:label_name` is translated to

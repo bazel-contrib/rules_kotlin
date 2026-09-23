@@ -108,4 +108,17 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
       assertContainsEntries("META-INF/hello-module.kotlin_module")
     }
   }
+
+  @Test
+  fun testManifestLines() {
+    jarTestCase(
+      "test_manifest_lines_lib.jar",
+      description = "The manifest_lines attribute should reach the manifest of the output jar next to the rule attributes"
+    ) {
+      assertManifestStamped()
+      val attributes = manifest.mainAttributes
+      check(attributes.getValue("Main-Class") == "helloworld.Main") { "unexpected Main-Class: ${attributes.getValue("Main-Class")}" }
+      check(attributes.getValue("Premain-Class") == "helloworld.Main") { "unexpected Premain-Class: ${attributes.getValue("Premain-Class")}" }
+    }
+  }
 }

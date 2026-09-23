@@ -33,6 +33,15 @@ kt_jvm_library(
     module_name = "hello-module",
 )
 
+kt_jvm_library(
+    name = "test_manifest_lines_lib",
+    srcs = ["helloworld/Main.kt"],
+    manifest_lines = [
+        "Main-Class: helloworld.Main",
+        "Premain-Class: helloworld.Main",
+    ],
+)
+
 # a test resource library.
 java_library(
     name = "resourcejar",
@@ -120,6 +129,7 @@ filegroup(
         ":propagation_rt_via_runtime_deps_consumer",
         ":test_embed_resources.jar",
         ":test_embed_resources_strip_prefix.jar",
+        ":test_manifest_lines_lib.jar",
         ":test_merge_resourcesjar.jar",
         ":test_module_name_attr_lib",
         ":test_module_name_bin",

@@ -256,6 +256,35 @@ def _new_plugins_from(targets):
     )
 
 # INTERNAL ACTIONS #####################################################################################################
+
+# The manifest attributes singlejar writes itself (src/tools/singlejar/output_jar.cc). The JAR File Specification
+# also requires Manifest-Version as the first attribute.
+_JAR_TOOL_MANIFEST_ATTRIBUTES = ["Manifest-Version", "Created-By"]
+
+def _rule_manifest_attributes(ctx, rule_kind):
+    """The manifest attributes the rules write into every jar they fold, as (name, value) pairs in writing order."""
+    return [
+        ("Target-Label", str(ctx.label)),
+        ("Injecting-Rule-Kind", rule_kind),
+    ]
+
+def _manifest_lines(ctx, rule_attributes):
+    """The manifest_lines of the target, each checked to be one `Name: value` line the rules and singlejar do not write.
+
+    A `Multi-Release` value is `true` or `false`, the two values singlejar reads; it drops any other value silently.
+    """
+    reserved = rule_attributes + _JAR_TOOL_MANIFEST_ATTRIBUTES
+    lines = getattr(ctx.attr, "manifest_lines", [])
+    for line in lines:
+        name, separator, value = line.partition(": ")
+        if not name or not separator or not value or "\n" in line or "\r" in line:
+            fail("manifest_lines entry %r is not one `Name: value` line" % line, attr = "manifest_lines")
+        if name in reserved:
+            fail("manifest_lines entry %r repeats the attribute %s, which the rules or the jar tool write" % (line, name), attr = "manifest_lines")
+        if name == "Multi-Release" and value not in ["true", "false"]:
+            fail("manifest_lines entry %r: Multi-Release takes `true` or `false`; singlejar drops any other value" % line, attr = "manifest_lines")
+    return lines
+
 def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action_type = ""):
     """Set up an action to Fold the input jars into a normalized output jar."""
     args = ctx.actions.args()
@@ -265,11 +294,14 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
         "--exclude_build_data",
         "--add_missing_directories",
     ])
-    args.add_all([
-        "--deploy_manifest_lines",
-        "Target-Label: %s" % str(ctx.label),
-        "Injecting-Rule-Kind: %s" % rule_kind,
-    ])
+
+    # singlejar ignores the manifest of every input jar and writes one from these lines. The runtime jar takes the
+    # lines of the target after the two attributes the rules write; the compile jar takes the two attributes only.
+    rule_attributes = _rule_manifest_attributes(ctx, rule_kind)
+    manifest_lines = ["%s: %s" % (name, value) for name, value in rule_attributes]
+    if action_type == "Runtime":
+        manifest_lines = manifest_lines + _manifest_lines(ctx, [name for name, _ in rule_attributes])
+    args.add_all(["--deploy_manifest_lines"] + manifest_lines)
     args.add("--output", output_jar)
     args.add_all(input_jars, before_each = "--sources")
     ctx.actions.run(
