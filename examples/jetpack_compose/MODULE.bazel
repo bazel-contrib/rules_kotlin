@@ -18,7 +18,7 @@ register_toolchains(
     "@rules_android//toolchains/android_sdk:android_sdk_tools",
 )
 
-bazel_dep(name = "hermetic_android_toolchains", version = "0.4.0", dev_dependency = True)
+bazel_dep(name = "hermetic_android_toolchains", version = "0.5.0", dev_dependency = True)
 
 android = use_extension("@hermetic_android_toolchains//:extensions.bzl", "android", dev_dependency = True)
 android.sdk(
