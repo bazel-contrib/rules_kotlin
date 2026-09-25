@@ -13,6 +13,18 @@
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
+# Keep registration separate from the implementation's compiler-dependent loads.
+toolchain_type(
+    name = "kt_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+toolchain(
+    name = "default_toolchain",
+    toolchain = "//kotlin/internal:default_toolchain_impl",
+    toolchain_type = ":kt_toolchain_type",
+)
+
 exports_files([
     "jvm.bzl",
     "lint.bzl",

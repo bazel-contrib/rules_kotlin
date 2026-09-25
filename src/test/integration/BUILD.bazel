@@ -1,0 +1,18 @@
+load("@bazel_binaries//:defs.bzl", "bazel_binaries")
+load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "script_test")
+
+script_test(
+    name = "toolchain_loading_test",
+    srcs = ["toolchain_loading_test.sh"],
+    bazel_binaries = bazel_binaries,
+    bazel_version = bazel_binaries.versions.current,
+    data = ["//:rules_kotlin_release"],
+    env = {
+        "RULES_KOTLIN_RELEASE": "$(rlocationpath //:rules_kotlin_release)",
+    },
+    tags = [
+        "no-remote",
+        "requires-network",
+    ],
+    deps = [],
+)
