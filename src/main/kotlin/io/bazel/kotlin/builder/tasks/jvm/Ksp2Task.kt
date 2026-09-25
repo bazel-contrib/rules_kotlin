@@ -326,16 +326,17 @@ class Ksp2Task : Work {
       for (dir in directories) {
         if (!Files.exists(dir)) continue
 
-        // Natural Path order also places a parent directory ahead of its children.
-        val paths =
-          Files.walk(dir).use { stream ->
-            stream.sorted().collect(Collectors.toList())
-          }
+        // Sorted by entry name, not Path: Path.compareTo is case-insensitive on Windows.
+        // A directory's name is a prefix of its descendants', so it sorts ahead of them.
+        val entries =
+          Files
+            .walk(dir)
+            .use { stream -> stream.collect(Collectors.toList()) }
+            .map { path -> dir.relativize(path).toString().replace('\\', '/') to path }
+            .filter { (relativePath, _) -> relativePath.isNotEmpty() }
+            .sortedBy { (relativePath, _) -> relativePath }
 
-        for (path in paths) {
-          val relativePath = dir.relativize(path).toString().replace('\\', '/')
-          if (relativePath.isEmpty()) continue
-
+        for ((relativePath, path) in entries) {
           if (Files.isDirectory(path)) {
             // Add directory entry (must end with /)
             val dirEntry = "$relativePath/"

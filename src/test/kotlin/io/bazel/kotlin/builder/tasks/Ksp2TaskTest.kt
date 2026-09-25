@@ -336,17 +336,19 @@ class Ksp2TaskTest {
   }
 
   @Test
-  fun packagedJarEntriesAreSorted() {
+  fun packagedJarEntriesAreSortedCaseSensitively() {
     val src = tmp.newFolder("gen")
-    java.io.File(src, "b/Second.class").apply { parentFile.mkdirs() }.writeText("second")
     java.io.File(src, "a/First.class").apply { parentFile.mkdirs() }.writeText("first")
+    java.io.File(src, "B/Second.class").apply { parentFile.mkdirs() }.writeText("second")
 
     val jar = tmp.newFile("out.jar")
     Ksp2Task().packageDirectoriesToJar(jar.absolutePath, listOf(src.toPath()))
 
     JarFile(jar).use { jf ->
       val names = jf.entries().toList().map { it.name }.filterNot { it.startsWith("META-INF") }
-      assertThat(names).isInOrder()
+      assertThat(names)
+        .containsExactly("B/", "B/Second.class", "a/", "a/First.class")
+        .inOrder()
     }
   }
 }
