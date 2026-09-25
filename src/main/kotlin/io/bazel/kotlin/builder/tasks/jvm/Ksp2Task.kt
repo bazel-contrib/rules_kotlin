@@ -37,6 +37,7 @@ import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 import java.util.regex.Pattern
+import java.util.stream.Collectors
 import java.util.zip.ZipFile
 
 /**
@@ -297,8 +298,14 @@ class Ksp2Task : Work {
   /**
    * Package files from directories into a JAR file.
    * Includes directory entries for compatibility with tools that expect them.
+   *
+   * Entries are emitted in sorted order. [Files.walk] yields filesystem iteration order, which is
+   * not guaranteed to be stable between runs, so without this the jar's bytes can differ even when
+   * its contents are identical -- and a jar's bytes are its action's output digest, so every
+   * consumer of the generated code is invalidated on the next build even though nothing it depends
+   * on changed.
    */
-  private fun packageDirectoriesToJar(
+  fun packageDirectoriesToJar(
     outputPath: String,
     directories: List<Path>,
   ) {
@@ -323,39 +330,44 @@ class Ksp2Task : Work {
       for (dir in directories) {
         if (!Files.exists(dir)) continue
 
-        Files.walk(dir).use { stream ->
-          stream.forEach { path ->
-            val relativePath = dir.relativize(path).toString().replace('\\', '/')
-            if (relativePath.isEmpty()) return@forEach
+        // Sorted by entry name, not Path: Path.compareTo is case-insensitive on Windows.
+        // A directory's name is a prefix of its descendants', so it sorts ahead of them.
+        val entries =
+          Files
+            .walk(dir)
+            .use { stream -> stream.collect(Collectors.toList()) }
+            .map { path -> dir.relativize(path).toString().replace('\\', '/') to path }
+            .filter { (relativePath, _) -> relativePath.isNotEmpty() }
+            .sortedBy { (relativePath, _) -> relativePath }
 
-            if (Files.isDirectory(path)) {
-              // Add directory entry (must end with /)
-              val dirEntry = "$relativePath/"
-              if (dirEntry !in addedEntries) {
-                addedEntries.add(dirEntry)
-                jar.putNextEntry(jarEntry(dirEntry))
+        for ((relativePath, path) in entries) {
+          if (Files.isDirectory(path)) {
+            // Add directory entry (must end with /)
+            val dirEntry = "$relativePath/"
+            if (dirEntry !in addedEntries) {
+              addedEntries.add(dirEntry)
+              jar.putNextEntry(jarEntry(dirEntry))
+              jar.closeEntry()
+            }
+          } else if (Files.isRegularFile(path)) {
+            // Ensure parent directories are added first
+            val parts = relativePath.split("/")
+            var parentPath = ""
+            for (i in 0 until parts.size - 1) {
+              parentPath += parts[i] + "/"
+              if (parentPath !in addedEntries) {
+                addedEntries.add(parentPath)
+                jar.putNextEntry(jarEntry(parentPath))
                 jar.closeEntry()
               }
-            } else if (Files.isRegularFile(path)) {
-              // Ensure parent directories are added first
-              val parts = relativePath.split("/")
-              var parentPath = ""
-              for (i in 0 until parts.size - 1) {
-                parentPath += parts[i] + "/"
-                if (parentPath !in addedEntries) {
-                  addedEntries.add(parentPath)
-                  jar.putNextEntry(jarEntry(parentPath))
-                  jar.closeEntry()
-                }
-              }
+            }
 
-              // Add file entry
-              if (relativePath !in addedEntries) {
-                addedEntries.add(relativePath)
-                jar.putNextEntry(jarEntry(relativePath))
-                Files.copy(path, jar)
-                jar.closeEntry()
-              }
+            // Add file entry
+            if (relativePath !in addedEntries) {
+              addedEntries.add(relativePath)
+              jar.putNextEntry(jarEntry(relativePath))
+              Files.copy(path, jar)
+              jar.closeEntry()
             }
           }
         }
