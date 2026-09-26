@@ -31,7 +31,7 @@ import java.util.logging.Logger
 import java.util.logging.SimpleFormatter
 import java.util.logging.StreamHandler
 
-/** WorkerContext encapsulates logging, filesystem, and profiling for a task invocation. */
+/** WorkerContext encapsulates logging and filesystem access for a task invocation. */
 class WorkerContext private constructor(
   private val name: String = Companion::class.java.canonicalName,
   private val verbose: Granularity = INFO,
@@ -56,8 +56,6 @@ class WorkerContext private constructor(
     val level: Level,
     val propagateTo: ContextLogger? = null,
   ) : ScopeLogging {
-    private val profiles = mutableListOf<String>()
-
     private val out by lazy {
       ByteArrayOutputStream()
     }
@@ -101,7 +99,7 @@ class WorkerContext private constructor(
 
     override fun narrowTo(name: String): ScopeLogging = ContextLogger(name, level, this)
 
-    override fun contents() = handler.flush().run { ContextLog(out.toByteArray(), profiles) }
+    override fun contents() = handler.flush().run { ContextLog(out.toByteArray()) }
 
     override fun asPrintStream(): PrintStream = PrintStream(out, true)
   }

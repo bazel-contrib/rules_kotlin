@@ -24,12 +24,8 @@ import java.util.logging.Level
 /** Log encapsulates standard out and error of execution. */
 data class ContextLog(
   val out: CharSequence,
-  val profiles: List<String> = emptyList(),
 ) : CharSequence by out {
-  constructor(
-    bytes: ByteArray,
-    profiles: List<String>,
-  ) : this(String(bytes, UTF_8), profiles)
+  constructor(bytes: ByteArray) : this(String(bytes, UTF_8))
 
   enum class Granularity(
     val level: Level,
