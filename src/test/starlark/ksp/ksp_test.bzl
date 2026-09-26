@@ -310,27 +310,3 @@ def _ksp_processor_classpath_isolation_test_impl(ctx):
     return analysistest.end(env)
 
 ksp_processor_classpath_isolation_test = analysistest.make(_ksp_processor_classpath_isolation_test_impl)
-
-def ksp_test_suite(name):
-    """Create test suite for KSP2 integration tests.
-
-    Args:
-        name: Name of the test suite
-    """
-
-    # We can't create actual kt_jvm_library targets in .bzl files,
-    # so the tests are defined in BUILD.bazel and this just creates the suite
-    native.test_suite(
-        name = name,
-        tests = [
-            ":ksp_outputs_test",
-            ":ksp_action_test",
-            ":ksp_single_action_test",
-            ":ksp_plugin_options_provider_test",
-            ":ksp_plugin_empty_options_provider_test",
-            ":ksp_options_action_test",
-            ":ksp_javac_excludes_srcjars_test",
-            ":ksp_javac_includes_srcjars_test",
-            ":ksp_processor_classpath_isolation_test",
-        ],
-    )
