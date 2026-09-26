@@ -44,8 +44,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             KOTLIN_ANNOTATIONS = Dep.fromLabel("//kotlin/compiler:annotations"),
             KOTLIN_STDLIB = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib"),
             KOTLIN_STDLIB_JDK7 = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-jdk7"),
-            KOTLIN_STDLIB_JDK8 = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-jdk8"),
-            JVM_ABI_GEN = Dep.fromLabel("//kotlin/compiler:jvm-abi-gen");
+            KOTLIN_STDLIB_JDK8 = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-jdk8");
 
     private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
     private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
@@ -205,10 +204,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                 });
     }
 
-    public void tearDown() {
-        jvmTaskExecutor = null;
-    }
-
     public class TaskBuilder {
         TaskBuilder() {
         }
@@ -226,10 +221,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             } else {
                 throw new RuntimeException("unhandled file type: " + pathAsString);
             }
-        }
-
-        public TaskBuilder compileJava() {
-            return this;
         }
 
         public TaskBuilder compileKotlin() {

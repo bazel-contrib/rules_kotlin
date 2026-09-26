@@ -26,7 +26,6 @@ import io.bazel.kotlin.model.Platform;
 import io.bazel.kotlin.model.RuleKind;
 
 import java.io.*;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +36,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -55,12 +53,10 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
     private String label = null;
     private List<String> outLines = null;
 
-    private static void assertFileExistence(Stream<Path> pathStream, boolean shouldExist) {
+    private static void assertFileExistence(Stream<Path> pathStream) {
         pathStream.forEach(
                 path -> {
-                    if (shouldExist)
-                        assertWithMessage("file did not exist: %s", path).that(path.toFile().exists()).isTrue();
-                    else assertWithMessage("file existed: " + path).that(path.toFile().exists()).isFalse();
+                    assertWithMessage("file did not exist: %s", path).that(path.toFile().exists()).isTrue();
                 });
     }
 
@@ -123,11 +119,6 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
         return type.resolve(instanceRoot);
     }
 
-    @SuppressWarnings("unused")
-    public final void setDebugTags(String... tags) {
-        infoBuilder.addAllDebug(Arrays.asList(tags));
-    }
-
     final Path writeFile(DirectoryType dirType, String filename, String[] lines) {
         Path path = directory(dirType).resolve(filename).toAbsolutePath();
         try {
@@ -170,16 +161,11 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
     }
 
     public final void assertFilesExist(DirectoryType dir, String... paths) {
-        assertFileExistence(resolved(dir, paths), true);
+        assertFileExistence(resolved(dir, paths));
     }
 
     final void assertFilesExist(String... paths) {
-        assertFileExistence(Stream.of(paths).map(Paths::get), true);
-    }
-
-    @SuppressWarnings("unused")
-    public final void assertFilesDoNotExist(DirectoryType dir, String... filePath) {
-        assertFileExistence(resolved(dir, filePath), false);
+        assertFileExistence(Stream.of(paths).map(Paths::get));
     }
 
     /**
@@ -206,23 +192,6 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
 
     public final String toPlatform(String path) {
         return KotlinAbstractTestBuilder.toPlatformPath(path).toString();
-    }
-
-    @SuppressWarnings("unused")
-    private Stream<Path> directoryContents(DirectoryType type) {
-        try {
-            return Files.walk(directory(type)).map(p -> directory(type).relativize(p));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public final void logDirectoryContents(DirectoryType type) {
-        System.out.println(
-                directoryContents(type)
-                        .map(Path::toString)
-                        .collect(Collectors.joining("\n", "directory " + type.name + " contents:\n", "")));
     }
 
     static KotlinToolchain toolchainForTest() {

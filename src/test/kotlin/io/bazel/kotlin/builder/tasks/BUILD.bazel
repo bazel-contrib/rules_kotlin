@@ -31,14 +31,6 @@ java_library(
 )
 
 kt_rules_test(
-    name = "JdepsParserTest",
-    srcs = ["jvm/JdepsParserTest.java"],
-    deps = [
-        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
-    ],
-)
-
-kt_rules_test(
     name = "KotlinBuilderBuildTest",
     srcs = ["jvm/KotlinBuilderBuildTest.kt"],
     deps = [
@@ -203,7 +195,6 @@ test_suite(
         ":BtapiRuntimeDigestTest",
         ":BtapiRuntimeFlagsValidationTest",
         ":JdepsMergerTest",
-        ":JdepsParserTest",
         ":KotlinBuilderBuildTest",
         ":KotlinBuilderJvmAbiTest",
         ":KotlinBuilderJvmBasicTest",
