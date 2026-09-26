@@ -1085,7 +1085,7 @@ def _run_kt_java_builder_actions(
         # all transitive dependencies, is assembled around the final merged jar.
         compilation_outputs.append(struct(
             jdeps = kt_jdeps,
-            jars = [struct(class_jar = kt_runtime_jar)],
+            class_jar = kt_runtime_jar,
         ))
 
     # Build Java
@@ -1168,7 +1168,10 @@ def _run_kt_java_builder_actions(
             jars.class_jar
             for jars in java_outputs
         ]
-        compilation_outputs.append(java_info.outputs)
+        compilation_outputs.extend([
+            struct(jdeps = output.jdeps, class_jar = output.class_jar)
+            for output in java_outputs
+        ])
 
     # Merge ABI jars into final compile jar.
     _fold_jars_action(
@@ -1209,7 +1212,7 @@ def _run_kt_java_builder_actions(
         gen_jar = ksp_generated_src_jar if is_ksp else ap_generated_src_jar
         annotation_processing = _create_annotation_processing(
             annotation_processors = processor,
-            ap_class_jar = [jars.class_jar for outputs in compilation_outputs for jars in outputs.jars][0],
+            ap_class_jar = compilation_outputs[0].class_jar,
             ap_source_jar = gen_jar,
         )
 
