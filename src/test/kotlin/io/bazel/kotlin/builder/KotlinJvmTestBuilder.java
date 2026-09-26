@@ -83,7 +83,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                 .setAbiClasses(directory(DirectoryType.ABI_CLASSES).toAbsolutePath().toString())
                 .setGeneratedSources(directory(DirectoryType.SOURCE_GEN).toAbsolutePath().toString())
                 .setGeneratedJavaSources(directory(DirectoryType.JAVA_SOURCE_GEN).toAbsolutePath().toString())
-                .setGeneratedStubClasses(directory(DirectoryType.GENERATED_STUBS).toAbsolutePath().toString())
                 .setTemp(directory(DirectoryType.TEMP).toAbsolutePath().toString())
                 .setGeneratedClasses(directory(DirectoryType.GENERATED_CLASSES).toAbsolutePath().toString())
                 .setCoverageMetadataClasses(directory(DirectoryType.COVERAGE_METADATA).toAbsolutePath().toString());
@@ -187,8 +186,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                             Stream.of(
                                             outputs.getAbijar(),
                                             outputs.getJar(),
-                                            outputs.getJdeps(),
-                                            outputs.getSrcjar())
+                                            outputs.getJdeps())
                                     .filter(p -> !p.isEmpty())
                                     .toArray(String[]::new)
                     );
@@ -200,7 +198,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                             ))
                             .jdeps(outputs.getJdeps())
                             .runtimeDeps(ImmutableList.copyOf(task.getInputs().getClasspathList()))
-                            .sourceJar(outputs.getSrcjar())
                             .build();
                 });
     }
@@ -269,12 +266,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             Dep.classpathOf(dependencies).forEach(dependency -> {
                 taskBuilder.getInputsBuilder().addClasspath(dependency);
             });
-        }
-
-        public TaskBuilder outputSrcJar() {
-            taskBuilder.getOutputsBuilder()
-                    .setSrcjar(instanceRoot().resolve("jar_file-sources.jar").toAbsolutePath().toString());
-            return this;
         }
 
         public TaskBuilder outputJar() {

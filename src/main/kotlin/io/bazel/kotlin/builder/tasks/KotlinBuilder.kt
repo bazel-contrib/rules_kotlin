@@ -63,7 +63,6 @@ class KotlinBuilder(
       API_VERSION("--kotlin_api_version"),
       LANGUAGE_VERSION("--kotlin_language_version"),
       JVM_TARGET("--kotlin_jvm_target"),
-      OUTPUT_SRCJAR("--kotlin_output_srcjar"),
       FRIEND_PATHS("--kotlin_friend_paths"),
       OUTPUT_JDEPS("--kotlin_output_jdeps"),
       DEBUG("--kotlin_debug_tags"),
@@ -263,7 +262,6 @@ class KotlinBuilder(
 
       with(root.outputsBuilder) {
         argMap.optionalSingle(KotlinBuilderFlags.OUTPUT)?.let { jar = it }
-        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
 
         argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
         argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
@@ -311,8 +309,6 @@ class KotlinBuilder(
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_java_sources"))
             .toString()
-        generatedStubClasses =
-          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
         coverageMetadataClasses =
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "coverage-metadata"))

@@ -93,9 +93,6 @@ public final class Deps {
         public abstract List<String> compileJars();
 
         @Nullable
-        public abstract String sourceJar();
-
-        @Nullable
         public abstract String jdeps();
 
         public final String singleCompileJar() {
@@ -119,8 +116,6 @@ public final class Deps {
             abstract Optional<String> moduleName();
 
             abstract Dep autoBuild();
-
-            public abstract Builder sourceJar(String sourceJar);
 
             public abstract Builder jdeps(String jdeps);
 
