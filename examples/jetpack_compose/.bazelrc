@@ -19,3 +19,7 @@ build --host_cxxopt=-std=c++17
 common --tool_java_language_version=17
 
 common --repo_env=ACCEPTED_ANDROID_SDK_LICENSE_VERSION=35
+
+# Use the prebuilt compiler instead of compiling protoc and its C++ dependencies.
+common --incompatible_enable_proto_toolchain_resolution
+common --@com_google_protobuf//bazel/toolchains:prefer_prebuilt_protoc=true

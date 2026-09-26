@@ -1,5 +1,7 @@
 module(name = "path-mapping-example")
 
+# Expose the prebuilt protoc flag and toolchains to this example.
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_kotlin", version = "1.9.5")
 local_path_override(

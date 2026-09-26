@@ -1,5 +1,7 @@
 module(name = "deps-example")
 
+# Expose the prebuilt protoc flag and toolchains to this example.
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_android", version = "0.7.3")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_java", version = "8.9.0")

@@ -93,7 +93,16 @@ object BazelIntegrationTestRunner {
       ),
     )
 
-    val startupFlagSets = version.resolveBazelRc(workspace)
+    // Prebuilt protoc is Bzlmod-only. Legacy builds use the shared settings without
+    // loading the default .bazelrc, which enables the prebuilt toolchain.
+    val startupFlagSets = if (workspaceEnabled) {
+      FlagSets(listOf(listOf(
+        Flag("--noworkspace_rc"),
+        Flag("--bazelrc=${workspace.resolve(".bazelrc.common")}"),
+      )))
+    } else {
+      version.resolveBazelRc(workspace)
+    }
     val commandFlagSets = workspaceFlags * deprecationFlags * experimentFlags
 
     startupFlagSets.asStringsFor(version).forEach { systemFlags ->
