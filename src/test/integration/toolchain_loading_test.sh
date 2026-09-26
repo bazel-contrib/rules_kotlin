@@ -5,7 +5,8 @@ set -euo pipefail
 # has already loaded Kotlin to produce the release, so test a separate consumer.
 export BAZELISK_HOME="${TEST_TMPDIR}/bazelisk"
 mkdir -p "${TEST_TMPDIR}/rules_kotlin" "${TEST_TMPDIR}/consumer"
-tar -xzf "${TEST_SRCDIR}/${RULES_KOTLIN_RELEASE}" -C "${TEST_TMPDIR}/rules_kotlin"
+# Read stdin so GNU tar does not treat a Windows drive letter as a remote host.
+tar -xzf - -C "${TEST_TMPDIR}/rules_kotlin" < "${TEST_SRCDIR}/${RULES_KOTLIN_RELEASE}"
 cd "${TEST_TMPDIR}/consumer"
 
 cat > MODULE.bazel <<'EOF'
@@ -20,6 +21,8 @@ EOF
 
 bazel=(
     "${BIT_BAZEL_BINARY}" --batch --ignore_all_rc_files
+    # Honor the host's address ordering, including IPv6-only CI networks.
+    --host_jvm_args=-Djava.net.preferIPv6Addresses=system
     "--output_user_root=${TEST_TMPDIR}/bazel"
     "--output_base=${TEST_TMPDIR}/output"
     build --repo_contents_cache= --jobs=2 --noshow_progress --color=no
