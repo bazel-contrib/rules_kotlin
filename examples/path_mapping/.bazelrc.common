@@ -1,0 +1,22 @@
+common --java_runtime_version=remotejdk_21
+common --tool_java_runtime_version=remotejdk_21
+build --worker_verbose
+build --worker_max_instances=1
+build --worker_quit_after_build
+build --profile=/tmp/profile.gz
+build --experimental_worker_max_multiplex_instances=KotlinCompile=5
+
+# Engage path mapping: //:kotlin_toolchain declares support for it (supports_path_mapping),
+# these flags actually activate it for the build. Workers run singleplex and sandboxed:
+# the multiplex worker does not resolve request paths against the request sandbox_dir yet,
+# so multiplex sandboxing fails to read its own flagfile under path mapping.
+# Linux/macOS only: path mapping requires a sandboxing-capable strategy, and Windows has
+# none - a mapped spawn there fails with "cannot be executed with any of the available
+# strategies", so on Windows the example builds unmapped.
+common --enable_platform_specific_config
+build:linux --experimental_output_paths=strip
+build:linux --worker_sandboxing
+build:linux --noworker_multiplex
+build:macos --experimental_output_paths=strip
+build:macos --worker_sandboxing
+build:macos --noworker_multiplex

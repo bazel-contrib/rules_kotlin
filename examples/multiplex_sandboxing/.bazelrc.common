@@ -1,0 +1,7 @@
+common --java_runtime_version=remotejdk_21
+common --tool_java_runtime_version=remotejdk_21
+build --worker_verbose
+build --worker_max_instances=1
+build --worker_quit_after_build
+build --profile=/tmp/profile.gz
+build --experimental_worker_max_multiplex_instances=KotlinCompile=5

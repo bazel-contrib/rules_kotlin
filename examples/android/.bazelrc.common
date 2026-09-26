@@ -1,0 +1,34 @@
+common --java_runtime_version=remotejdk_21
+common --tool_java_runtime_version=remotejdk_21
+common --lockfile_mode=off
+test --test_output=all
+build --config=android_worker
+
+# Required for abseil-cpp which requires C++17
+build --cxxopt=-std=c++17
+build --host_cxxopt=-std=c++17
+
+# Worker configuration
+build:android_worker \
+  --worker_max_instances=auto \
+  --worker_multiplex \
+  --worker_max_multiplex_instances=auto \
+  --persistent_multiplex_android_tools \
+  --persistent_android_dex_desugar \
+  --persistent_multiplex_android_dex_desugar \
+  --persistent_android_resource_processor \
+  --internal_persistent_busybox_tools \
+  --experimental_persistent_aar_extractor \
+  --remote_default_exec_properties=preserve-workspace=true \
+  --strategy=Desugar=remote,worker \
+  --strategy=Javac=remote,worker \
+  --strategy=JavaIjar=remote,local \
+  --strategy=JavaDeployJar=remote,local \
+  --strategy=JavaSourceJar=remote,local \
+  --strategy=Turbine=remote,local \
+  --strategy=PackageAndroidResources=local
+
+# Android build tools use Java 17 language features.
+common --tool_java_language_version=17
+
+common --repo_env=ACCEPTED_ANDROID_SDK_LICENSE_VERSION=35

@@ -1,7 +1,6 @@
-common --java_runtime_version=remotejdk_21
-common --tool_java_runtime_version=remotejdk_21
-build --worker_verbose
-build --worker_max_instances=1
-build --worker_quit_after_build
-build --profile=/tmp/profile.gz
-build --experimental_worker_max_multiplex_instances=KotlinCompile=5
+# Settings shared with legacy WORKSPACE builds.
+import %workspace%/.bazelrc.common
+
+# Use the prebuilt compiler instead of compiling protoc and its C++ dependencies.
+common --incompatible_enable_proto_toolchain_resolution
+common --@com_google_protobuf//bazel/toolchains:prefer_prebuilt_protoc=true
