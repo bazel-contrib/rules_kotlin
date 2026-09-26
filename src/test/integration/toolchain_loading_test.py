@@ -37,7 +37,8 @@ class ToolchainLoadingTest(unittest.TestCase):
         print(f"{log.name}: expected download={expected}; {downloads}", flush=True)
 
     def test_loading(self):
-        files = runfiles.Create()
+        # On Windows, the Python ZIP has separate runfiles from the outer test.
+        files = runfiles.CreateDirectoryBased(os.environ["TEST_SRCDIR"])
         bazel = os.environ["BIT_BAZEL_BINARY"]
         print(f"Bazel launcher: {bazel}\nResolved path: {Path(bazel).resolve()}", flush=True)
         self.assertTrue(
@@ -77,7 +78,7 @@ cc_library(name = "empty")
                 "--repo_contents_cache=", "--repository_cache=",
                 f"--override_module=rules_kotlin={release}",
                 f"--build_event_json_file={log}", target,
-            ], cwd=consumer, check=True)
+            ], cwd=consumer, env={**os.environ, **files.EnvVars()}, check=True)
             return log
 
         def metadata_present():
