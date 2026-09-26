@@ -2,6 +2,9 @@ package io.bazel.kotlin.test
 
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
+import io.bazel.kotlin.generate.GenerateReleaseMetadata.JarEntry
+import io.bazel.kotlin.generate.GenerateReleaseMetadata.ReleaseManifest
+import io.bazel.kotlin.generate.GenerateReleaseMetadata.Companion.sha256Hex
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -11,6 +14,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -51,6 +55,29 @@ object BazelIntegrationTestRunner {
         }
       }
     }
+
+    val internalJarsDir =
+      Files.createDirectories(fs.getPath(System.getenv("TEST_TMPDIR")).resolve("internal_jars"))
+    val internalJars = BazelRunFiles.resolveVerifiedListFromProperty(
+      fs,
+      "@rules_kotlin...internal_jars",
+    )
+      .map { j -> Files.copy(j, internalJarsDir.resolve(j.fileName)) }
+      .map { j ->
+        j.fileName.toString() to JarEntry(
+          url = "file://${j}",
+          sha256 = sha256Hex(Files.readAllBytes(j)),
+        )
+      }
+      .toMap()
+
+    // Temporary until build-from-source toolchain is implemented.
+    // Patch internal jar version.bzl with file:// references -- download works w/local references
+    Files.writeString(
+      unpack.resolve("generated_release_metadata.bzl"),
+      ReleaseManifest("0.0.0-dev", internalJars).render(),
+      StandardOpenOption.TRUNCATE_EXISTING
+    )
 
     val version = bazel.run(workspace, "--version").parseVersion()
 

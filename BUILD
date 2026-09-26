@@ -1,8 +1,3 @@
-load("@buildifier_prebuilt//:rules.bzl", "buildifier")
-load("@rules_license//rules:license.bzl", "license")
-load("@rules_multirun//:defs.bzl", "multirun")
-load("//kotlin:lint.bzl", "ktlint_config")
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +11,11 @@ load("//kotlin:lint.bzl", "ktlint_config")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_multirun//:defs.bzl", "multirun")
+load("//kotlin:lint.bzl", "ktlint_config")
+load("//src/main/starlark/release:metadata.bzl", "release_metadata")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 package(default_applicable_licenses = [":license"])
@@ -72,6 +72,7 @@ release_archive(
         "LICENSE",
     ],
     src_map = {
+        "//:release_metadata": "generated_release_metadata.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
         "MODULE.release.bazel": "MODULE.bazel",
     },
@@ -81,6 +82,24 @@ release_archive(
         "//src/main/starlark:pkg",
         "//third_party:pkg",
     ],
+)
+
+release_metadata(
+    name = "release_metadata",
+    jars = {
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
+        "//src/main/kotlin:jdeps-gen-embeddable.jar": "jdeps-gen-embeddable.jar",
+        "//src/main/kotlin:jdeps-gen.jar": "jdeps-gen.jar",
+        "//src/main/kotlin:skip-code-gen-embeddable.jar": "skip-code-gen-embeddable.jar",
+        "//src/main/kotlin:skip-code-gen.jar": "skip-code-gen.jar",
+    },
+    urls = {
+        "*": "file://github.com/bazel-contrib/rules_kotlin/releases/download/{version}/{name}",
+    },
+    visibility = ["//:__subpackages__"],
 )
 
 # This target collects all of the parent workspace files needed by the child workspaces.
@@ -112,7 +131,6 @@ multirun(
     jobs = 0,
 )
 
-# TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Must be run with `--config=deprecated`
 buildifier(
     name = "buildifier.check",
     exclude_patterns = [

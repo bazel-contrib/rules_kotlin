@@ -1,0 +1,29 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(
+    [
+        "metadata.bzl",
+        "packager.bzl",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "metadata",
+    srcs = ["metadata.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/main/starlark/core/repositories",
+    ],
+)
+
+bzl_library(
+    name = "packager",
+    srcs = ["packager.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@rules_pkg//pkg:bzl_srcs",
+    ],
+)

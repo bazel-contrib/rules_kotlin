@@ -35,4 +35,8 @@ jobs:
           generate_release_notes: true
           body_path: release_notes.txt
           fail_on_unmatched_files: true
-          files: rules_kotlin-*.tar.gz
+          # Upload the release tgz plus every stamped per-jar blob by glob, so
+          # newly-added jars ship automatically without editing this list.
+          files: |
+            rules_kotlin-*.tar.gz
+            blobs/*.jar

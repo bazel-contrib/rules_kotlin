@@ -16,7 +16,8 @@ def _resolve_kapt_cfg(
         info,
         option_string_list_dict,
         deps,
-        expand_location):  # @unused Needed for lambda contract.
+        # buildifier: disable=unused-variable
+        expand_location):
     infos = []
     plugins = []
     for d in deps:

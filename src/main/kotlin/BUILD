@@ -6,6 +6,14 @@ exports_files(
     visibility = ["//src:__subpackages__"],
 )
 
+package_group(
+    name = "internal_jars",
+    packages = [
+        "//:__pkg__",
+        "//src:__subpackages__",
+    ],
+)
+
 jar_jar(
     name = "skip-code-gen",
     input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
@@ -62,18 +70,8 @@ alias(
 
 release_archive(
     name = "pkg",
-    srcs = [
-        ":jdeps-gen.jar",
-        ":jdeps-gen-embeddable.jar",
-        ":skip-code-gen.jar",
-        ":skip-code-gen-embeddable.jar",
-    ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
