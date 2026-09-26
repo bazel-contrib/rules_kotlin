@@ -1,0 +1,26 @@
+module(name = "lazy_default_toolchain")
+
+bazel_dep(name = "rules_kotlin", version = "2.2.0")
+local_path_override(
+    module_name = "rules_kotlin",
+    path = "../..",
+)
+
+local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "local_repository")
+
+local_repository(
+    name = "empty_kotlin_compiler",
+    path = "empty_kotlin_compiler",
+)
+
+rules_kotlin_extensions = use_extension(
+    "@rules_kotlin//src/main/starlark/core/repositories:bzlmod_setup.bzl",
+    "rules_kotlin_extensions",
+)
+
+override_repo(
+    rules_kotlin_extensions,
+    com_github_jetbrains_kotlin = "empty_kotlin_compiler",
+)
+
+register_toolchains("//:unrelated_toolchain")
