@@ -595,8 +595,10 @@ def kt_configure_toolchains():
         visibility = ["//visibility:public"],
     )
 
-    native.toolchain_type(
+    # Preserve the public toolchain-type label for existing consumers.
+    native.alias(
         name = "kt_toolchain_type",
+        actual = _TOOLCHAIN_TYPE,
         visibility = ["//visibility:public"],
     )
 

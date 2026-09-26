@@ -73,9 +73,9 @@ use_repo(
     "kotlinx_serialization_json_jvm",
 )
 
-register_toolchains("//src/main/starlark/core/compile/cli")
+register_toolchains("//src/main/starlark/core/compile:cli_toolchain")
 
-register_toolchains("//kotlin/internal:default_toolchain")
+register_toolchains("//kotlin:default_toolchain")
 
 # Development dependencies
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
@@ -84,6 +84,7 @@ register_toolchains("//kotlin/internal:default_toolchain")
 bazel_dep(name = "rules_jvm_external", version = "7.1")
 
 bazel_dep(name = "bazel_ci_rules", version = "2.1.1", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "1.7.0", dev_dependency = True)
 
 rbe = use_extension("@bazel_ci_rules//:rbe_config.bzl", "rbe_config_extension", dev_dependency = True)
 rbe.config(

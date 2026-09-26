@@ -12,6 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Keep registration separate from the implementation's compiler-dependent loads.
+toolchain_type(
+    name = "kt_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+toolchain(
+    name = "default_toolchain",
+    toolchain = "//kotlin/internal:default_toolchain_impl",
+    toolchain_type = ":kt_toolchain_type",
+)
+
 filegroup(
     name = "kotlin",
     srcs = glob(

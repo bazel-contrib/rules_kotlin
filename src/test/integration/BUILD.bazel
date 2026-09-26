@@ -1,0 +1,27 @@
+load("@bazel_binaries//:defs.bzl", "bazel_binaries")
+load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_integration_test")
+load("@rules_python//python:py_binary.bzl", "py_binary")
+
+py_binary(
+    name = "toolchain_loading_test_runner",
+    testonly = True,
+    srcs = ["toolchain_loading_test.py"],
+    main = "toolchain_loading_test.py",
+    deps = ["@rules_python//python/runfiles"],
+)
+
+bazel_integration_test(
+    name = "toolchain_loading_test",
+    bazel_binaries = bazel_binaries,
+    bazel_version = bazel_binaries.versions.current,
+    data = ["//:rules_kotlin_release"],
+    env = {
+        "BAZEL_BINARY_RUNFILE": "$(rlocationpath %s)" % bazel_binaries.label(bazel_binaries.versions.current),
+        "RULES_KOTLIN_RELEASE": "$(rlocationpath //:rules_kotlin_release)",
+    },
+    tags = [
+        "no-remote",
+        "requires-network",
+    ],
+    test_runner = ":toolchain_loading_test_runner",
+)

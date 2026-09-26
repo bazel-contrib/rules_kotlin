@@ -8,6 +8,13 @@ toolchain_type(
     ],
 )
 
+# Keep registration separate from the CLI implementation's compiler loads.
+toolchain(
+    name = "cli_toolchain",
+    toolchain = "//src/main/starlark/core/compile/cli:cli_toolchain",
+    toolchain_type = ":toolchain_type",
+)
+
 bzl_library(
     name = "compile",
     srcs = [
