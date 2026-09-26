@@ -4,20 +4,15 @@ import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
-import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.INJECTING_RULE_KIND
-import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.TARGET_LABEL
+import io.bazel.kotlin.builder.utils.jars.JarOwner.Companion.readJarOwnerFromManifest
 import io.bazel.worker.WorkerContext
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
-import java.io.IOException
-import java.io.UncheckedIOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.jar.JarFile
 
 /**
  * Persistent worker capable command line program for merging multiple Jdeps files into a single
@@ -38,23 +33,6 @@ class JdepsMerger {
       OUTPUT("--output"),
       TARGET_LABEL("--target_label"),
       REPORT_UNUSED_DEPS("--report_unused_deps"),
-    }
-
-    private fun readJarOwnerFromManifest(jarPath: Path): JarOwner {
-      try {
-        JarFile(jarPath.toFile()).use { jarFile ->
-          val manifest = jarFile.manifest ?: return JarOwner(jarPath)
-          val attributes = manifest.mainAttributes
-          val label =
-            attributes[TARGET_LABEL] as String?
-              ?: return JarOwner(jarPath)
-          val injectingRuleKind = attributes[INJECTING_RULE_KIND] as String?
-          return JarOwner(jarPath, label, injectingRuleKind)
-        }
-      } catch (e: IOException) {
-        // This jar file pretty much has to exist.
-        throw UncheckedIOException(e)
-      }
     }
 
     fun merge(
@@ -133,12 +111,6 @@ class JdepsMerger {
       return 0
     }
   }
-
-  private data class JarOwner(
-    val jar: Path,
-    val label: String? = null,
-    val aspect: String? = null,
-  )
 
   private fun getArgs(args: List<String>): ArgMap {
     check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
