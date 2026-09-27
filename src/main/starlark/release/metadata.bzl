@@ -33,6 +33,7 @@ def _release_metadata_impl(ctx):
     args.add("--version_key", version_key)
     args.add("--out_bzl", out_bzl)
     args.add("--out_notes", out_notes)
+    args.add("--notes_template", ctx.file.notes_template)
 
     default_url = ctx.attr.urls.get("*", "")
     symlinks = []
@@ -53,7 +54,7 @@ def _release_metadata_impl(ctx):
         mnemonic = "GenerateReleaseMetadata",
         executable = ctx.executable._tool,
         arguments = [args],
-        inputs = depset(ctx.files.jars + [version_file]),
+        inputs = depset(ctx.files.jars + [version_file, ctx.file.notes_template]),
         outputs = [out_bzl, out_notes],
     )
 
@@ -76,6 +77,11 @@ release_metadata = rule(
         "stamp": attr.int(doc = "special attribute that enables embedding build label", default = -1),
         "urls": attr.string_dict(
             doc = "logical name -> url template. '*' defines the default template",
+        ),
+        "notes_template": attr.label(
+            allow_single_file = True,
+            doc = "Release-notes template. '{version}' is replaced with the release version.",
+            default = "//docs/templates:release_notes.txt.template",
         ),
         "_tool": attr.label(
             default = "//src/main/kotlin/io/bazel/kotlin/generate:release_metadata",
