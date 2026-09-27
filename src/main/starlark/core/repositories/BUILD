@@ -42,6 +42,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
+        "//:generated_release_metadata",
         "//src/main/starlark/core/repositories/kotlin",
         "@bazel_skylib//lib:versions",
     ],

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@rules_license//rules:license.bzl", "license")
 load("@rules_multirun//:defs.bzl", "multirun")
@@ -99,6 +100,12 @@ release_metadata(
     urls = {
         "*": "file://github.com/bazel-contrib/rules_kotlin/releases/download/{version}/{name}",
     },
+    visibility = ["//:__subpackages__"],
+)
+
+bzl_library(
+    name = "generated_release_metadata",
+    srcs = ["generated_release_metadata.bzl"],
     visibility = ["//:__subpackages__"],
 )
 

@@ -65,7 +65,7 @@ object BazelIntegrationTestRunner {
       .map { j -> Files.copy(j, internalJarsDir.resolve(j.fileName)) }
       .map { j ->
         j.fileName.toString() to JarEntry(
-          url = "file://${j}",
+          url = j.toUri().toString(),
           sha256 = sha256Hex(Files.readAllBytes(j)),
         )
       }
