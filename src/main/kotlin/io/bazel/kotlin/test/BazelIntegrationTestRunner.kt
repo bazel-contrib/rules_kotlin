@@ -30,7 +30,7 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
       .map { j -> Files.copy(j, internalJarsDir.resolve(j.fileName)) }
       .associate { j ->
         j.fileName.toString() to JarEntry(
-          url = "file://${j}",
+          url = j.toUri().toString(),
           sha256 = sha256Hex(Files.readAllBytes(j)),
         )
       }
