@@ -23,6 +23,7 @@ kt_jvm_test(
         "BazelIntegrationTestRunner.kt",
     ],
     data = [
+        ":internal_jars",
         "//:rules_kotlin_release",
     ],
     jvm_flags = [

@@ -74,14 +74,14 @@ release_metadata = rule(
             allow_files = [".jar"],
             doc = "jar file -> logical name.",
         ),
-        "stamp": attr.int(doc = "special attribute that enables embedding build label", default = -1),
-        "urls": attr.string_dict(
-            doc = "logical name -> url template. '*' defines the default template",
-        ),
         "notes_template": attr.label(
             allow_single_file = True,
             doc = "Release-notes template. '{version}' is replaced with the release version.",
             default = "//docs/templates:release_notes.txt.template",
+        ),
+        "stamp": attr.int(doc = "special attribute that enables embedding build label", default = -1),
+        "urls": attr.string_dict(
+            doc = "logical name -> url template. '*' defines the default template",
         ),
         "_tool": attr.label(
             default = "//src/main/kotlin/io/bazel/kotlin/generate:release_metadata",
