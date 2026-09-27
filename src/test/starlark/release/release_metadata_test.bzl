@@ -23,7 +23,9 @@ def _release_metadata_assertions(env, target):
     action = env.expect.that_target(target).action_named("GenerateReleaseMetadata")
     action.argv().contains("--version_file")
     action.argv().contains("--out_notes")
+    action.argv().contains("--notes_template")
     action.inputs().contains_predicate(matching.file_basename_contains("_status.txt"))
+    action.inputs().contains_predicate(matching.file_basename_contains("release_notes.txt.template"))
 
 def _test_release_metadata_wires_stamp_and_outputs(test):
     a_jar = test.artifact("dummy_a.jar")

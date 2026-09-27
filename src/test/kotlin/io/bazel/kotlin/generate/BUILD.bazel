@@ -22,6 +22,10 @@ kt_jvm_test(
 kt_jvm_test(
     name = "GenerateReleaseMetadataTest",
     srcs = ["GenerateReleaseMetadataTest.kt"],
+    data = ["//docs/templates:release_notes.txt.template"],
+    jvm_flags = [
+        "-Dnotes.template=$(location //docs/templates:release_notes.txt.template)",
+    ],
     test_class = "io.bazel.kotlin.generate.GenerateReleaseMetadataTest",
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/generate",
