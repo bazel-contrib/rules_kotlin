@@ -19,6 +19,7 @@ load(
     "http_archive",
     "http_file",
 )
+load("//:generated_release_metadata.bzl", "JARS", "VERSION")
 load(
     ":btapi_impl.bzl",
     "BTAPI_IMPL_DEFAULT_REPOSITORY",
@@ -27,6 +28,7 @@ load(
 )
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
+load(":multi_file_repository.bzl", "multi_file_repository")
 load(
     ":versions.bzl",
     "version",
@@ -59,6 +61,19 @@ def kotlin_repositories(
          name to a record built with btapi_impl_version. The record of the current release is
          always created as @btapi_impl unless the dict replaces it.
     """
+
+    multi_file_repository(
+        name = "internal_jars",
+        version = VERSION,
+        urls = {
+            name: entry.url
+            for name, entry in JARS.items()
+        },
+        sha256 = {
+            name: entry.sha256
+            for name, entry in JARS.items()
+        },
+    )
 
     kotlin_compiler_repository(
         name = compiler_repository_name,

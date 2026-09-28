@@ -24,6 +24,7 @@ release_archive(
         "bzlmod_impl.bzl",
         "compiler.bzl",
         "ksp.bzl",
+        "multi_file_repository.bzl",
         "versions.bzl",
     ],
     src_map = {
@@ -41,6 +42,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
+        "//:generated_release_metadata",
         "//src/main/starlark/core/repositories/kotlin",
         "@bazel_skylib//lib:versions",
     ],

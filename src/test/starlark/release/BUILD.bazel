@@ -1,0 +1,3 @@
+load(":release_metadata_test.bzl", "release_metadata_test_suite")
+
+release_metadata_test_suite(name = "release_metadata_tests")

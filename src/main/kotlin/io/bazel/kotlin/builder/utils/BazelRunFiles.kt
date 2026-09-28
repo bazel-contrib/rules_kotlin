@@ -66,4 +66,27 @@ object BazelRunFiles {
       ?: let {
         throw FileNotFoundException("no reference for $key in ${System.getProperties()}")
       }
+
+  @JvmStatic
+  fun resolveVerifiedListFromProperty(
+    fileSystem: FileSystem,
+    key: String,
+  ) = System
+    .getProperty(key)
+    ?.let { value ->
+      value
+        .split(" ")
+        .map { path ->
+          fileSystem.getPath(runfiles.rlocation(path)).also {
+            if (!it.exists()) {
+              throw IllegalStateException(
+                "$it does not exist in the runfiles!",
+              )
+            }
+          }
+        }
+    }
+    ?: let {
+      throw FileNotFoundException("no reference for $key in ${System.getProperties()}")
+    }
 }
