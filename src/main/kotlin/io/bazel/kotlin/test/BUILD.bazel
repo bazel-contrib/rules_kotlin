@@ -1,4 +1,4 @@
-load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
+load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 
 kt_jvm_library(
     name = "test_base",
@@ -11,9 +11,8 @@ kt_jvm_library(
     ],
 )
 
-kt_jvm_binary(
+kt_jvm_test(
     name = "BazelIntegrationTestRunner",
-    testonly = True,
     srcs = [
         "BazelIntegrationTestRunner.kt",
     ],
@@ -23,9 +22,14 @@ kt_jvm_binary(
     jvm_flags = [
         "-D@rules_kotlin...rules_kotlin_release=$(rlocationpath //:rules_kotlin_release)",
     ],
-    main_class = "io.bazel.kotlin.test.BazelIntegrationTestRunner",
+    # Run through bazel_integration_test, which supplies Bazel and the workspace.
+    tags = ["manual"],
+    test_class = "io.bazel.kotlin.test.BazelIntegrationTestRunner",
     visibility = [
         "//visibility:public",
     ],
-    deps = [":test_base"],
+    deps = [
+        ":test_base",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
 )

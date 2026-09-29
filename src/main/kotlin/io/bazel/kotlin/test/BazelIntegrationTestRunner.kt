@@ -1,13 +1,17 @@
 package io.bazel.kotlin.test
 
+import org.junit.Test
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.util.function.Predicate
 import kotlin.io.path.exists
 
-object BazelIntegrationTestRunner : BazelIntegrationTestBase() {
-  @JvmStatic
-  fun main(args: Array<String>) {
+private fun nullBazelRcPath() =
+  if (System.getProperty("os.name").lowercase().contains("windows")) "NUL" else "/dev/null"
+
+class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
+  @Test
+  fun exampleBuildsAndTests() {
     val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     val workspace = Path.of(env("BIT_WORKSPACE_DIR"))
     val unpack = unpackRelease(
@@ -146,8 +150,6 @@ object BazelIntegrationTestRunner : BazelIntegrationTestBase() {
         set.filter { it.condition.test(v) }.map { flag -> flag.value }.toTypedArray()
       }
   }
-  private fun nullBazelRcPath() =
-    if (System.getProperty("os.name").lowercase().contains("windows")) "NUL" else "/dev/null"
 
   sealed class Version : Comparable<Version> {
     companion object {
@@ -215,7 +217,7 @@ object BazelIntegrationTestRunner : BazelIntegrationTestBase() {
     }
   }
 
-  private val VERSION_REGEX = Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)([^.]*)")
+  private val versionRegex = Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)([^.]*)")
 
   private fun Result<ProcessResult>.parseVersion(): Version {
     ok { result ->
@@ -225,7 +227,7 @@ object BazelIntegrationTestRunner : BazelIntegrationTestBase() {
           if ("no_version" in line) {
             return Version.Head()
           }
-          VERSION_REGEX.find(line.trim())?.let { result ->
+          versionRegex.find(line.trim())?.let { result ->
             return Version.Known(
               major = result.groups["major"]?.value?.toInt() ?: 0,
               minor = result.groups["minor"]?.value?.toInt() ?: 0,
