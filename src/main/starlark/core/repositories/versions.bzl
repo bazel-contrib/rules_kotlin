@@ -37,8 +37,8 @@ versions = struct(
     # 2. Download dependencies and Configure rules
     # --> 3. Configure dependencies <--
     BAZEL_SKYLIB = version(
-        version = "1.7.1",
-        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
+        version = "1.8.2",
+        sha256 = "6e78f0e57de26801f6f564fa7c4a48dc8b36873e416257a92bbb0937eeac8446",
         url_templates = [
             "https://github.com/bazelbuild/bazel-skylib/releases/download/{version}/bazel-skylib-{version}.tar.gz",
         ],
@@ -113,12 +113,12 @@ versions = struct(
         script_runtime_sha256 = "fc5a19df78be445d84e8352e0d01098a6a8181324aa50c6f7bf850338e81e1b4",
     ),
     RULES_ANDROID = version(
-        version = "0.7.0",
+        version = "0.7.3",
         url_templates = [
             "https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz",
         ],
         strip_prefix_template = "rules_android-{version}",
-        sha256 = "ef1a446260b7f620e2aae11d4c96389369eb865ade01fcdd389a8196168b8d9b",
+        sha256 = "c4cd258d3761eff08ee044c0252179bb6ee8af8ab24f7dafb73b280eeda98243",
     ),
     RULES_JAVA = version(
         version = "8.9.0",
