@@ -1,13 +1,19 @@
 load("@bazel_binaries//:defs.bzl", "bazel_binaries")
 load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_integration_test")
-load("@rules_python//python:py_binary.bzl", "py_binary")
+load("//kotlin:jvm.bzl", "kt_jvm_test")
 
-py_binary(
+kt_jvm_test(
     name = "toolchain_loading_test_runner",
-    testonly = True,
-    srcs = ["toolchain_loading_test.py"],
-    main = "toolchain_loading_test.py",
-    deps = ["@rules_python//python/runfiles"],
+    srcs = ["ToolchainLoadingTest.kt"],
+    # Run through bazel_integration_test, which supplies the Bazel launcher.
+    tags = ["manual"],
+    test_class = "io.bazel.kotlin.integration.ToolchainLoadingTest",
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/test:test_base",
+        "@com_google_protobuf//:protobuf_java",
+        "@com_google_protobuf//:protobuf_java_util",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
 )
 
 bazel_integration_test(
