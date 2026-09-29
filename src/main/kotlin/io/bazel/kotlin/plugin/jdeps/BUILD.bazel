@@ -42,6 +42,7 @@ kt_bootstrap_library(
 # services to integrate with the plugin.
 generate_jvm_service(
     name = "jdeps-gen-services",
+    visibility = ["//src:__subpackages__"],
     services = {
         "io.bazel.kotlin.plugin.jdeps.JdepsGenCommandLineProcessor": "org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor",
         "io.bazel.kotlin.plugin.jdeps.JdepsGenComponentRegistrar": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",

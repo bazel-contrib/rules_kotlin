@@ -31,6 +31,7 @@ kt_bootstrap_library(
 # services to integrate with the plugin.
 generate_jvm_service(
     name = "skip-code-gen-services",
+    visibility = ["//src:__subpackages__"],
     services = {
         "io.bazel.kotlin.plugin.SkipCodeGen": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",
     },
