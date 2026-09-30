@@ -130,8 +130,8 @@ message JvmCompilationTask {
     string generated_sources = 3;
     // A temp directory that the compiler may use. The source_jars are expanding into here.
     string temp = 4;
-    // The directory used by annotation processors containing generated stub classes.
-    string generated_stub_classes = 5;
+    reserved 5;
+    reserved "generated_stub_classes";
     string abi_classes = 6;
     string generated_java_sources = 7;
     // The destination directory the Java compiler should use for class files.
@@ -146,7 +146,8 @@ message JvmCompilationTask {
     string jar = 1;
     // The path to the jdeps file from Kotlin compilation.
     string jdeps = 2;
-    string srcjar = 3;
+    reserved 3;
+    reserved "srcjar";
     // The path to the abijar
     string abijar = 4;
     // The path to the jar containing source generated from KAPT annotation processors.
