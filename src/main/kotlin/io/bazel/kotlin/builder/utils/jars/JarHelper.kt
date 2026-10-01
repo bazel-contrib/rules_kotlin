@@ -188,22 +188,9 @@ open class JarHelper internal constructor(
           outEntry.crc = 0
           putNextEntry(outEntry)
         } else {
-          outEntry.method = storageMethod
-          if (storageMethod == JarEntry.STORED) {
-            // ZipFile requires us to calculate the CRC-32 for any STORED entry.
-            // It would be nicer to do this via DigestInputStream, but
-            // the architecture of ZipOutputStream requires us to know the CRC-32
-            // before we write the data to the stream.
-            val bytes = Files.readAllBytes(path)
-            val crc = CRC32()
-            crc.update(bytes)
-            outEntry.crc = crc.value
-            putNextEntry(outEntry)
-            write(bytes)
-          } else {
-            putNextEntry(outEntry)
-            Files.copy(path, this)
-          }
+          outEntry.method = JarEntry.DEFLATED
+          putNextEntry(outEntry)
+          Files.copy(path, this)
         }
         closeEntry()
       }
