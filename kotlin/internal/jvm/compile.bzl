@@ -824,63 +824,61 @@ def _run_kt_builder_action(
 
 # MAIN ACTIONS #########################################################################################################
 
-def _kt_jvm_produce_jar_actions(ctx, rule_kind, extra_resources = {}):
-    """Sets actions to compile a jar and merge in resources or resource jars.
-
-    Args:
-        ctx: rule context providing attrs, outputs, and toolchains.
-        rule_kind: rule kind creating jars
-        extra_resources: a dict of additional resource files to merge into the output jar.
-
-    Returns:
-        see `kt_jvm_compile_action`.
-    """
-    deps = getattr(ctx.attr, "deps", [])
-    associates = getattr(ctx.attr, "associates", [])
-    _fail_if_invalid_associate_deps(associates, deps)
-    compile_deps = _jvm_deps_utils.jvm_deps(
-        ctx,
-        toolchains = _compiler_toolchains(ctx),
-        associate_deps = associates,
-        deps = deps,
-        exports = getattr(ctx.attr, "exports", []),
-        runtime_deps = getattr(ctx.attr, "runtime_deps", []),
-    )
-
-    outputs = struct(
-        jar = ctx.outputs.jar,
-        srcjar = ctx.outputs.srcjar,
-    )
-
-    # Setup the compile action.
-    return _kt_jvm_produce_output_jar_actions(
-        ctx,
-        rule_kind = rule_kind,
-        compile_deps = compile_deps,
-        outputs = outputs,
-        extra_resources = extra_resources,
-    )
-
 def _kt_jvm_produce_output_jar_actions(
         ctx,
         rule_kind,
         compile_deps,
         outputs,
         extra_resources = {}):
-    """This macro sets up a compile action for a Kotlin jar.
+    """Runs the prepare->kapt->ksp->remaining-compile pipeline once; returns struct(java, kt) for the caller to transform."""
+    prep = _prepare_compile_inputs(
+        ctx,
+        rule_kind,
+        compile_deps = compile_deps,
+        outputs = outputs,
+        extra_resources = extra_resources,
+    )
+    kapt_result = _phase_kapt(prep)
+    ksp_result = _phase_ksp(prep)
+    return _run_remaining_compile(prep, kapt_result, ksp_result)
 
-    Args:
-        ctx: Invoking rule ctx, used for attr, actions, and label.
-        rule_kind: The rule kind --e.g., `kt_jvm_library`.
-        compile_deps: The rule kind --e.g., `kt_jvm_library`.
-        outputs: A struct of declared output files (e.g. `jar`, `srcjar`) to produce.
-        extra_resources: A dict of additional resource files to merge into the output jar.
-    Returns:
-        A struct containing the providers JavaInfo (`java`) and `kt` (KtJvmInfo). This struct is not intended to be
-        used as a legacy provider -- rather the caller should transform the result.
-    """
+def _is_active(srcs, ctx, extra_resources = {}):
+    """True iff the rule has any compile-worthy inputs (srcs, resources, resource_jars, extra_resources)."""
+    return bool(srcs.all_srcs or srcs.src_jars or ctx.files.resources or extra_resources or ctx.files.resource_jars)
+
+def _is_export_only_inactive(ctx):
+    """True iff an export-only rule_kind has no srcs/resources/resource_jars; shared by the prep and compile gates so they can't disagree."""
+    return not _is_active(_partitioned_srcs(ctx.files.srcs), ctx)
+
+def _export_only_empty_prep():
+    """Stub `prep` for an inactive export-only rule; sets every field phases read unconditionally."""
+    return struct(has_kt_sources = False, annotation_processors = [], ksp_annotation_processors = [])
+
+def _prepare_compile_inputs(
+        ctx,
+        rule_kind,
+        compile_deps = None,
+        outputs = None,
+        extra_resources = {}):
+    """Resolves shared compile inputs once into the immutable `prep` struct consumed by the KAPT/KSP/remaining-compile phases."""
     toolchains = _compiler_toolchains(ctx)
     srcs = _partitioned_srcs(ctx.files.srcs)
+
+    if compile_deps == None:
+        deps = getattr(ctx.attr, "deps", [])
+        associates = getattr(ctx.attr, "associates", [])
+        _fail_if_invalid_associate_deps(associates, deps)
+        compile_deps = _jvm_deps_utils.jvm_deps(
+            ctx,
+            toolchains = toolchains,
+            associate_deps = associates,
+            deps = deps,
+            exports = getattr(ctx.attr, "exports", []),
+            runtime_deps = getattr(ctx.attr, "runtime_deps", []),
+        )
+
+    if outputs == None:
+        outputs = struct(jar = ctx.outputs.jar, srcjar = ctx.outputs.srcjar)
 
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
@@ -891,20 +889,13 @@ def _kt_jvm_produce_output_jar_actions(
 
     deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + ctx.attr.associates)
 
-    generated_src_jars = []
-    annotation_processing = None
-    compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
-    output_jdeps = None
-    if toolchains.kt.jvm_emit_jdeps:
-        output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
+    has_kt_sources = bool(srcs.kt or srcs.src_jars)
 
-    outputs_struct = _run_kt_java_builder_actions(
+    return struct(
         ctx = ctx,
         rule_kind = rule_kind,
         toolchains = toolchains,
         srcs = srcs,
-        generated_kapt_src_jars = [],
-        generated_ksp_src_jars = [],
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
@@ -913,163 +904,91 @@ def _kt_jvm_produce_output_jar_actions(
         transitive_runtime_jars = transitive_runtime_jars,
         ksp_transitive_runtime_jars = ksp_transitive_runtime_jars,
         plugins = plugins,
-        compile_jar = compile_jar,
-        output_jdeps = output_jdeps,
-    )
-    output_jars = outputs_struct.output_jars
-    generated_src_jars = outputs_struct.generated_src_jars
-    annotation_processing = outputs_struct.annotation_processing
-
-    # If this rule has any resources declared setup a singlejar action to turn them into a jar.
-    if len(ctx.files.resources) + len(extra_resources) > 0:
-        output_jars.append(_build_resourcejar_action(ctx, toolchains, extra_resources))
-    output_jars.extend(ctx.files.resource_jars)
-
-    # Merge outputs into final runtime jar.
-    output_jar = outputs.jar
-    _fold_jars_action(
-        ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
-        output_jar = output_jar,
-        action_type = "Runtime",
-        input_jars = output_jars,
+        outputs = outputs,
+        extra_resources = extra_resources,
+        has_kt_sources = has_kt_sources,
     )
 
-    source_jar = java_common.pack_sources(
-        ctx.actions,
-        output_source_jar = outputs.srcjar,
-        sources = srcs.kt + srcs.java,
-        source_jars = srcs.src_jars + generated_src_jars,
-        java_toolchain = toolchains.java,
+def _phase_ksp(prep):
+    """Runs the KSP compile phase; returns struct(ksp_generated_src_jar, ksp_generated_class_jar), fields None (not omitted) when inactive."""
+    if not (prep.has_kt_sources and prep.ksp_annotation_processors):
+        return struct(
+            ksp_generated_src_jar = None,
+            ksp_generated_class_jar = None,
+        )
+    ksp_outputs = _run_ksp_builder_actions(
+        prep.ctx,
+        toolchains = prep.toolchains,
+        srcs = prep.srcs,
+        compile_deps = prep.compile_deps,
+        transitive_runtime_jars = prep.ksp_transitive_runtime_jars,
+        ksp_options = prep.ksp_options,
     )
-
-    generated_source_jar = java_common.pack_sources(
-        ctx.actions,
-        output_source_jar = ctx.actions.declare_file(ctx.label.name + "-gensrc.jar"),
-        source_jars = generated_src_jars,
-        java_toolchain = toolchains.java,
-    ) if generated_src_jars else None
-
-    generated_class_jar = None
-    if annotation_processing:
-        generated_class_jar = annotation_processing.class_jar
-
-    java_info = JavaInfo(
-        output_jar = output_jar,
-        compile_jar = compile_jar,
-        source_jar = source_jar,
-        jdeps = output_jdeps,
-        deps = compile_deps.deps,
-        runtime_deps = compile_deps.runtime_deps,
-        exports = compile_deps.exports,
-        neverlink = getattr(ctx.attr, "neverlink", False),
-        generated_source_jar = generated_source_jar,
-        generated_class_jar = generated_class_jar,
-    )
-
-    instrumented_files = coverage_common.instrumented_files_info(
-        ctx,
-        source_attributes = ["srcs"],
-        dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
-        extensions = ["kt", "java"],
-    )
-
     return struct(
-        java = java_info,
-        instrumented_files = instrumented_files,
-        kt = _KtJvmInfo(
-            srcs = ctx.files.srcs,
-            module_name = compile_deps.module_name,
-            module_jars = compile_deps.associate_jars,
-            language_version = toolchains.kt.api_version,
-            exported_compiler_plugins = _collect_plugins_for_export(
-                getattr(ctx.attr, "exported_compiler_plugins", []),
-                getattr(ctx.attr, "exports", []),
-            ),
-            # intellij aspect needs this.
-            outputs = struct(
-                jdeps = output_jdeps,
-                jars = [struct(
-                    class_jar = output_jar,
-                    ijar = compile_jar,
-                    source_jars = [source_jar],
-                )],
-            ),
-            transitive_compile_time_jars = java_info.transitive_compile_time_jars,
-            transitive_source_jars = java_info.transitive_source_jars,
-            annotation_processing = annotation_processing,
-            additional_generated_source_jars = generated_src_jars,
-            all_output_jars = output_jars,
-        ),
+        ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar,
+        ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar,
     )
 
-def _run_kt_java_builder_actions(
-        ctx,
-        rule_kind,
-        toolchains,
-        srcs,
-        generated_kapt_src_jars,
-        generated_ksp_src_jars,
-        compile_deps,
-        deps_artifacts,
-        annotation_processors,
-        ksp_annotation_processors,
-        ksp_options,
-        transitive_runtime_jars,
-        ksp_transitive_runtime_jars,
-        plugins,
-        compile_jar,
-        output_jdeps):
-    """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
+def _phase_kapt(prep):
+    """Runs the KAPT compile phase; returns struct(ap_generated_src_jar, kapt_generated_stub_jar, kapt_generated_class_jar), fields None when inactive."""
+    if not (prep.has_kt_sources and prep.annotation_processors):
+        return struct(
+            ap_generated_src_jar = None,
+            kapt_generated_stub_jar = None,
+            kapt_generated_class_jar = None,
+        )
+    kapt_outputs = _run_kapt_builder_actions(
+        prep.ctx,
+        rule_kind = prep.rule_kind,
+        toolchains = prep.toolchains,
+        srcs = prep.srcs,
+        compile_deps = prep.compile_deps,
+        deps_artifacts = prep.deps_artifacts,
+        annotation_processors = prep.annotation_processors,
+        transitive_runtime_jars = prep.transitive_runtime_jars,
+        plugins = prep.plugins,
+    )
+    return struct(
+        ap_generated_src_jar = kapt_outputs.ap_generated_src_jar,
+        kapt_generated_stub_jar = kapt_outputs.kapt_generated_stub_jar,
+        kapt_generated_class_jar = kapt_outputs.kapt_generated_class_jar,
+    )
 
-    Returns:
-        A struct containing the a list of output_jars and a struct annotation_processing jars
-    """
+def _run_remaining_compile(prep, kapt_result, ksp_result):
+    """Runs builder actions, jar folds, and provider assembly after KAPT/KSP (KAPT output ordered before KSP); returns struct(java, instrumented_files, kt)."""
+    ctx = prep.ctx
+    rule_kind = prep.rule_kind
+    toolchains = prep.toolchains
+    srcs = prep.srcs
+    compile_deps = prep.compile_deps
+    deps_artifacts = prep.deps_artifacts
+    annotation_processors = prep.annotation_processors
+    ksp_annotation_processors = prep.ksp_annotation_processors
+    transitive_runtime_jars = prep.transitive_runtime_jars
+    plugins = prep.plugins
+    compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
+    output_jdeps = None
+    if toolchains.kt.jvm_emit_jdeps:
+        output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
+    outputs = prep.outputs
+    extra_resources = prep.extra_resources
+    has_kt_sources = prep.has_kt_sources
+
+    # Fresh, stage-owned lists -- never append to a caller-owned list; kapt's class jar precedes ksp's.
+    generated_kapt_src_jars = [kapt_result.ap_generated_src_jar] if kapt_result.ap_generated_src_jar else []
+    kt_stubs_for_java = [JavaInfo(
+        compile_jar = kapt_result.kapt_generated_stub_jar,
+        output_jar = kapt_result.kapt_generated_stub_jar,
+        neverlink = True,
+    )] if kapt_result.kapt_generated_stub_jar else []
+    kapt_out = [kapt_result.kapt_generated_class_jar] if kapt_result.kapt_generated_class_jar else []
+
+    generated_ksp_src_jars = [ksp_result.ksp_generated_src_jar] if ksp_result.ksp_generated_src_jar else []
+    ksp_out = [ksp_result.ksp_generated_class_jar] if ksp_result.ksp_generated_class_jar else []
+    ksp_generated_src_jar = ksp_result.ksp_generated_src_jar
+
     compile_jars = []
-    output_jars = []
-    kt_stubs_for_java = []
-    has_kt_sources = srcs.kt or srcs.src_jars
-
-    # Run KAPT
-    if has_kt_sources and annotation_processors:
-        kapt_outputs = _run_kapt_builder_actions(
-            ctx,
-            rule_kind = rule_kind,
-            toolchains = toolchains,
-            srcs = srcs,
-            compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
-            annotation_processors = annotation_processors,
-            transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
-        )
-        generated_kapt_src_jars.append(kapt_outputs.ap_generated_src_jar)
-        output_jars.append(kapt_outputs.kapt_generated_class_jar)
-        kt_stubs_for_java.append(
-            JavaInfo(
-                compile_jar = kapt_outputs.kapt_generated_stub_jar,
-                output_jar = kapt_outputs.kapt_generated_stub_jar,
-                neverlink = True,
-            ),
-        )
-
-    # Run KSP
-    ksp_generated_class_jar = None
-    ksp_generated_src_jar = None
-    if has_kt_sources and ksp_annotation_processors:
-        ksp_outputs = _run_ksp_builder_actions(
-            ctx,
-            toolchains = toolchains,
-            srcs = srcs,
-            compile_deps = compile_deps,
-            transitive_runtime_jars = ksp_transitive_runtime_jars,
-            ksp_options = ksp_options,
-        )
-        ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
-        output_jars.append(ksp_generated_class_jar)
-        ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
-        generated_ksp_src_jars.append(ksp_generated_src_jar)
+    output_jars = kapt_out + ksp_out
 
     compilation_outputs = []
     ap_generated_src_jar = None
@@ -1079,20 +998,20 @@ def _run_kt_java_builder_actions(
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
-            outputs = {
+            kt_action_outputs = {
                 "abi_jar": kt_compile_jar,
                 "output": kt_runtime_jar,
             }
         else:
             kt_compile_jar = kt_runtime_jar
-            outputs = {
+            kt_action_outputs = {
                 "output": kt_runtime_jar,
             }
 
         kt_jdeps = None
         if toolchains.kt.jvm_emit_jdeps:
             kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
-            outputs["kotlin_output_jdeps"] = kt_jdeps
+            kt_action_outputs["kotlin_output_jdeps"] = kt_jdeps
 
         _run_kt_builder_action(
             ctx = ctx,
@@ -1105,7 +1024,7 @@ def _run_kt_java_builder_actions(
             annotation_processors = [],
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
-            outputs = outputs,
+            outputs = kt_action_outputs,
             build_kotlin = True,
             mnemonic = "KotlinCompile",
         )
@@ -1217,9 +1136,9 @@ def _run_kt_java_builder_actions(
 
     if toolchains.kt.jvm_emit_jdeps:
         jdeps = []
-        for outputs in compilation_outputs:
-            if outputs.jdeps:
-                jdeps.append(outputs.jdeps)
+        for output in compilation_outputs:
+            if output.jdeps:
+                jdeps.append(output.jdeps)
 
         if jdeps:
             _run_merge_jdeps_action(
@@ -1248,10 +1167,90 @@ def _run_kt_java_builder_actions(
             ap_source_jar = gen_jar,
         )
 
+    generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars
+
+    # If this rule has any resources declared setup a singlejar action to turn them into a jar.
+    if len(ctx.files.resources) + len(extra_resources) > 0:
+        output_jars.append(_build_resourcejar_action(ctx, toolchains, extra_resources))
+    output_jars.extend(ctx.files.resource_jars)
+
+    # Merge outputs into final runtime jar.
+    output_jar = outputs.jar
+    _fold_jars_action(
+        ctx,
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        output_jar = output_jar,
+        action_type = "Runtime",
+        input_jars = output_jars,
+    )
+
+    source_jar = java_common.pack_sources(
+        ctx.actions,
+        output_source_jar = outputs.srcjar,
+        sources = srcs.kt + srcs.java,
+        source_jars = srcs.src_jars + generated_src_jars,
+        java_toolchain = toolchains.java,
+    )
+
+    generated_source_jar = java_common.pack_sources(
+        ctx.actions,
+        output_source_jar = ctx.actions.declare_file(ctx.label.name + "-gensrc.jar"),
+        source_jars = generated_src_jars,
+        java_toolchain = toolchains.java,
+    ) if generated_src_jars else None
+
+    generated_class_jar = None
+    if annotation_processing:
+        generated_class_jar = annotation_processing.class_jar
+
+    java_info = JavaInfo(
+        output_jar = output_jar,
+        compile_jar = compile_jar,
+        source_jar = source_jar,
+        jdeps = output_jdeps,
+        deps = compile_deps.deps,
+        runtime_deps = compile_deps.runtime_deps,
+        exports = compile_deps.exports,
+        neverlink = getattr(ctx.attr, "neverlink", False),
+        generated_source_jar = generated_source_jar,
+        generated_class_jar = generated_class_jar,
+    )
+
+    instrumented_files = coverage_common.instrumented_files_info(
+        ctx,
+        source_attributes = ["srcs"],
+        dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
+        extensions = ["kt", "java"],
+    )
+
     return struct(
-        output_jars = output_jars,
-        generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
-        annotation_processing = annotation_processing,
+        java = java_info,
+        instrumented_files = instrumented_files,
+        kt = _KtJvmInfo(
+            srcs = ctx.files.srcs,
+            module_name = compile_deps.module_name,
+            module_jars = compile_deps.associate_jars,
+            language_version = toolchains.kt.api_version,
+            exported_compiler_plugins = _collect_plugins_for_export(
+                getattr(ctx.attr, "exported_compiler_plugins", []),
+                getattr(ctx.attr, "exports", []),
+            ),
+            # intellij aspect needs this.
+            outputs = struct(
+                jdeps = output_jdeps,
+                jars = [struct(
+                    class_jar = output_jar,
+                    ijar = compile_jar,
+                    source_jars = [source_jar],
+                )],
+            ),
+            transitive_compile_time_jars = java_info.transitive_compile_time_jars,
+            transitive_source_jars = java_info.transitive_source_jars,
+            annotation_processing = annotation_processing,
+            additional_generated_source_jars = generated_src_jars,
+            all_output_jars = output_jars,
+        ),
     )
 
 def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source_jar):
@@ -1343,5 +1342,10 @@ compile = struct(
     verify_associates_not_duplicated_in_deps = _fail_if_invalid_associate_deps,
     export_only_providers = _export_only_providers,
     kt_jvm_produce_output_jar_actions = _kt_jvm_produce_output_jar_actions,
-    kt_jvm_produce_jar_actions = _kt_jvm_produce_jar_actions,
+    prepare_compile_inputs = _prepare_compile_inputs,
+    is_export_only_inactive = _is_export_only_inactive,
+    export_only_empty_prep = _export_only_empty_prep,
+    phase_kapt = _phase_kapt,
+    phase_ksp = _phase_ksp,
+    run_remaining_compile = _run_remaining_compile,
 )

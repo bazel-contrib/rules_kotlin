@@ -12,49 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_java//java:defs.bzl", "java_plugin")
 load("//kotlin:core.bzl", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-load(":ksp_test.bzl", "ksp_action_test", "ksp_conflicting_options_test", "ksp_javac_excludes_srcjars_test", "ksp_javac_includes_srcjars_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_processor_classpath_isolation_test", "ksp_single_action_test")
+load(":ksp_test.bzl", "ksp_conflicting_options_test", ksp_test_suite = "test_suite")
 
-# Simple KSP plugin for testing (uses moshi which generates Kotlin code)
-kt_ksp_plugin(
-    name = "moshi_plugin",
-    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
-    deps = [
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
-    ],
-)
+ksp_test_suite(name = "ksp_tests")
 
-# KSP plugin with processor options for testing the options attribute
-kt_ksp_plugin(
-    name = "moshi_plugin_with_options",
-    options = {
-        "another_key": "another_value",
-        "test_key": "test_value",
-    },
-    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
-    deps = [
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
-    ],
-)
-
-# Target under test - a simple kt_jvm_library with KSP plugin
-kt_jvm_library(
-    name = "ksp_test_lib",
-    srcs = ["TestModel.kt"],
-    plugins = [":moshi_plugin"],
-    deps = [
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
-    ],
-)
-
-# Two KSP plugins that share the same option key — used to test conflict detection
+# Two KSP plugins that share the same option key -- used to test conflict detection. Kept on
+# @bazel_skylib//lib:unittest.bzl (see ksp_test.bzl's test_suite docstring): case.bzl's
+# case()/claim() API has no equivalent to analysistest.make(..., expect_failure=True).
 kt_ksp_plugin(
     name = "moshi_plugin_with_option_a",
     options = {"shared_key": "value_from_a"},
@@ -77,20 +43,8 @@ kt_ksp_plugin(
     ],
 )
 
-# Target under test - kt_jvm_library with KSP plugin that has options
-kt_jvm_library(
-    name = "ksp_test_lib_with_options",
-    srcs = ["TestModel.kt"],
-    plugins = [":moshi_plugin_with_options"],
-    deps = [
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
-    ],
-)
-
-# Target under test - library with two plugins that have the same option key.
-# Tagged manual so it is not analyzed by wildcard builds; the analysis test
-# below pulls it in via target_under_test.
+# Tagged manual so it is not analyzed by wildcard builds; the analysis test below pulls it in via
+# target_under_test.
 kt_jvm_library(
     name = "ksp_test_lib_with_conflicting_options",
     srcs = ["TestModel.kt"],
@@ -105,154 +59,7 @@ kt_jvm_library(
     ],
 )
 
-# Test that KSP produces expected outputs
-ksp_outputs_test(
-    name = "ksp_outputs_test",
-    target_under_test = ":ksp_test_lib",
-)
-
-# Test that KSP creates the right action
-ksp_action_test(
-    name = "ksp_action_test",
-    target_under_test = ":ksp_test_lib",
-)
-
-# Test that KSP uses a single action (no tree artifacts)
-ksp_single_action_test(
-    name = "ksp_single_action_test",
-    target_under_test = ":ksp_test_lib",
-)
-
-# Test that KspPluginInfo carries options correctly
-ksp_plugin_options_provider_test(
-    name = "ksp_plugin_options_provider_test",
-    target_under_test = ":moshi_plugin_with_options",
-)
-
-# Test that KspPluginInfo has empty options when none specified
-ksp_plugin_empty_options_provider_test(
-    name = "ksp_plugin_empty_options_provider_test",
-    target_under_test = ":moshi_plugin",
-)
-
-# Test that KSP2 action still works when plugin has options
-ksp_options_action_test(
-    name = "ksp_options_action_test",
-    target_under_test = ":ksp_test_lib_with_options",
-)
-
-# Test that conflicting KSP option keys across plugins fail analysis
 ksp_conflicting_options_test(
     name = "ksp_conflicting_options_test",
     target_under_test = ":ksp_test_lib_with_conflicting_options",
-)
-
-# KSP plugin with generates_java=True for testing javac srcjar inclusion
-kt_ksp_plugin(
-    name = "moshi_plugin_generates_java",
-    generates_java = True,
-    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
-    deps = [
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin_codegen",
-    ],
-)
-
-# KAPT processor plugin for testing classpath isolation
-java_plugin(
-    name = "autovalue_plugin",
-    generates_api = 1,
-    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
-    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
-)
-
-# Mixed Java+Kotlin with KSP (generates_java=False) — KSP srcjars must NOT go to javac
-kt_jvm_library(
-    name = "ksp_mixed_no_java_gen",
-    srcs = [
-        "TestHelper.java",
-        "TestModel.kt",
-    ],
-    plugins = [":moshi_plugin"],
-    deps = [
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
-    ],
-)
-
-# Mixed Java+Kotlin with KSP (generates_java=True) — KSP srcjars must go to javac
-kt_jvm_library(
-    name = "ksp_mixed_with_java_gen",
-    srcs = [
-        "TestHelper.java",
-        "TestModel.kt",
-    ],
-    plugins = [":moshi_plugin_generates_java"],
-    deps = [
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
-    ],
-)
-
-# Target with both KAPT (autovalue) and KSP (moshi) plugins — verifies
-# that KAPT processor JARs do not leak onto the KSP2 processor classpath
-kt_jvm_library(
-    name = "ksp_test_lib_with_kapt",
-    srcs = ["TestModel.kt"],
-    plugins = [
-        ":autovalue_plugin",
-        ":moshi_plugin",
-    ],
-    deps = [
-        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
-        "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
-    ],
-)
-
-# Test that KSP srcjars are excluded from javac when generates_java=False
-ksp_javac_excludes_srcjars_test(
-    name = "ksp_javac_excludes_srcjars_test",
-    target_under_test = ":ksp_mixed_no_java_gen",
-)
-
-# Test that KSP srcjars are included in javac when generates_java=True
-ksp_javac_includes_srcjars_test(
-    name = "ksp_javac_includes_srcjars_test",
-    target_under_test = ":ksp_mixed_with_java_gen",
-)
-
-# Test that KSP2 processor classpath only contains KSP processor JARs
-ksp_processor_classpath_isolation_test(
-    name = "ksp_processor_classpath_isolation_test",
-    target_under_test = ":ksp_test_lib_with_kapt",
-)
-
-ksp_outputs_test(
-    name = "ksp_kapt_outputs_test",
-    target_under_test = ":ksp_test_lib_with_kapt",
-)
-
-ksp_outputs_test(
-    name = "ksp_mixed_outputs_test",
-    target_under_test = ":ksp_mixed_with_java_gen",
-)
-
-test_suite(
-    name = "ksp_tests",
-    tests = [
-        ":ksp_action_test",
-        ":ksp_conflicting_options_test",
-        ":ksp_javac_excludes_srcjars_test",
-        ":ksp_javac_includes_srcjars_test",
-        ":ksp_kapt_outputs_test",
-        ":ksp_mixed_outputs_test",
-        ":ksp_options_action_test",
-        ":ksp_outputs_test",
-        ":ksp_plugin_empty_options_provider_test",
-        ":ksp_plugin_options_provider_test",
-        ":ksp_processor_classpath_isolation_test",
-        ":ksp_single_action_test",
-    ],
 )

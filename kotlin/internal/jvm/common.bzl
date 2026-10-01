@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Shared helpers for the Kotlin/JVM processing pipelines."""
+"""Shared helpers for the Kotlin/JVM processing pipelines.
+
+`make_`-prefixed factories take an `export_only` variant arg; plain-function stages don't."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//kotlin/internal:defs.bzl",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
+load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
 load(
     "//src/main/starlark/core/compile:common.bzl",
     "find_launcher_maker",
@@ -26,6 +29,65 @@ load(
     "is_windows",
 )
 load("//src/main/starlark/core/pipeline:pipeline.bzl", _ProviderInfo = "ProviderInfo")
+
+def make_prepare_processor(rule_kind, export_only = False):
+    """Builds the `CompilePreparationProcessor` stage; skips `prepare_compile_inputs` for an empty prep when `export_only` and the rule is export-only-inactive."""
+
+    def _process_prepare(context):
+        ctx = context.ctx
+        if export_only and _compile.is_export_only_inactive(ctx):
+            prep = _compile.export_only_empty_prep()
+        else:
+            prep = _compile.prepare_compile_inputs(ctx, rule_kind)
+        return _ProviderInfo(
+            name = "CompilePreparationProcessor",
+            value = prep,
+            runfiles = None,
+        )
+
+    return _process_prepare
+
+def kapt_processor(context):
+    """Runs the `KaptProcessor` stage off the shared `prep`; result fields are always present, None when ungated."""
+    prep = context.outputs["CompilePreparationProcessor"]
+    return _ProviderInfo(
+        name = "KaptProcessor",
+        value = _compile.phase_kapt(prep),
+        runfiles = None,
+    )
+
+def ksp_processor(context):
+    """Runs the `KspProcessor` stage off the shared `prep`; result fields are always present, None when ungated."""
+    prep = context.outputs["CompilePreparationProcessor"]
+    return _ProviderInfo(
+        name = "KspProcessor",
+        value = _compile.phase_ksp(prep),
+        runfiles = None,
+    )
+
+def make_compile_processor(export_only = False):
+    """Builds the `JvmCompileProcessor` stage; folds the prep/kapt/ksp results, or emits export-only providers when inactive."""
+
+    def _process_compile(context):
+        prep = context.outputs["CompilePreparationProcessor"]
+        if export_only and _compile.is_export_only_inactive(context.ctx):
+            providers = _compile.export_only_providers(
+                ctx = context.ctx,
+                actions = context.ctx.actions,
+                outputs = context.ctx.outputs,
+                attr = context.ctx.attr,
+            )
+        else:
+            kapt_result = context.outputs["KaptProcessor"]
+            ksp_result = context.outputs["KspProcessor"]
+            providers = _compile.run_remaining_compile(prep, kapt_result, ksp_result)
+        return _ProviderInfo(
+            name = "JvmCompileProcessor",
+            value = providers,
+            runfiles = None,
+        )
+
+    return _process_compile
 
 def process_deps(context):
     """Collect the deps, exports, runtime_deps and data targets that contribute runfiles."""
