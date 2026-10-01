@@ -2,10 +2,12 @@
 KotlinFoldJarsRuntime fold receives the Kotlin runtime, KAPT class, and resource jars, and
 JavaInfo transitive jars plus <name>.jdeps stay identical across library/binary/test/import."""
 
+load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("@rules_java//java:defs.bzl", "java_plugin")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import", "kt_jvm_library", "kt_jvm_test")
+load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
 load("//src/main/starlark/core/compile:common.bzl", "KtJvmInfo")
 load("//src/test/starlark:case.bzl", "Want", "suite")
 load(":subjects.bzl", "java_info_subject_factory")
@@ -176,6 +178,82 @@ def _test_import_provider_golden(test):
                 value = lib + ".jar",
             ),
         },
+    )
+
+def _compile_exports_shared_phase_helpers_test_impl(ctx):
+    """compile struct must export the shared prepare/kapt/ksp/remaining-compile helpers alongside existing entrypoints."""
+    env = unittest.begin(ctx)
+    for symbol in (
+        "prepare_compile_inputs",
+        "phase_kapt",
+        "phase_ksp",
+        "run_remaining_compile",
+        "kt_jvm_produce_output_jar_actions",
+        "export_only_providers",
+        "compiler_toolchains",
+        "verify_associates_not_duplicated_in_deps",
+    ):
+        asserts.true(env, hasattr(_compile, symbol), msg = "compile struct must export %s" % symbol)
+    return unittest.end(env)
+
+compile_exports_shared_phase_helpers_test = unittest.make(_compile_exports_shared_phase_helpers_test_impl)
+
+def _phase_kapt_stable_shape_when_gate_unmet_test_impl(ctx):
+    """_phase_kapt(prep) must return a stable-shape struct (every field explicitly None) when its gate is unmet."""
+    env = unittest.begin(ctx)
+
+    no_kt_sources = _compile.phase_kapt(struct(has_kt_sources = False, annotation_processors = ["placeholder"]))
+    asserts.equals(env, None, no_kt_sources.ap_generated_src_jar)
+    asserts.equals(env, None, no_kt_sources.kapt_generated_stub_jar)
+    asserts.equals(env, None, no_kt_sources.kapt_generated_class_jar)
+
+    no_annotation_processors = _compile.phase_kapt(struct(has_kt_sources = True, annotation_processors = []))
+    asserts.equals(env, None, no_annotation_processors.ap_generated_src_jar)
+    asserts.equals(env, None, no_annotation_processors.kapt_generated_stub_jar)
+    asserts.equals(env, None, no_annotation_processors.kapt_generated_class_jar)
+
+    return unittest.end(env)
+
+phase_kapt_stable_shape_when_gate_unmet_test = unittest.make(_phase_kapt_stable_shape_when_gate_unmet_test_impl)
+
+def _phase_ksp_stable_shape_when_gate_unmet_test_impl(ctx):
+    """_phase_ksp(prep) must return a stable-shape struct (every field explicitly None) when its gate is unmet."""
+    env = unittest.begin(ctx)
+
+    no_kt_sources = _compile.phase_ksp(struct(has_kt_sources = False, ksp_annotation_processors = ["placeholder"]))
+    asserts.equals(env, None, no_kt_sources.ksp_generated_src_jar)
+    asserts.equals(env, None, no_kt_sources.ksp_generated_class_jar)
+
+    no_ksp_annotation_processors = _compile.phase_ksp(struct(has_kt_sources = True, ksp_annotation_processors = []))
+    asserts.equals(env, None, no_ksp_annotation_processors.ksp_generated_src_jar)
+    asserts.equals(env, None, no_ksp_annotation_processors.ksp_generated_class_jar)
+
+    return unittest.end(env)
+
+phase_ksp_stable_shape_when_gate_unmet_test = unittest.make(_phase_ksp_stable_shape_when_gate_unmet_test_impl)
+
+def _export_only_empty_prep_shape_test_impl(ctx):
+    """`compile.export_only_empty_prep()` must carry every field downstream phases read unconditionally, and no stored `active` field."""
+    env = unittest.begin(ctx)
+
+    prep = _compile.export_only_empty_prep()
+    asserts.false(env, hasattr(prep, "active"), msg = "export_only_empty_prep() must not carry a stored `active` field")
+    asserts.equals(env, False, prep.has_kt_sources)
+    asserts.equals(env, [], prep.annotation_processors)
+    asserts.equals(env, [], prep.ksp_annotation_processors)
+
+    return unittest.end(env)
+
+export_only_empty_prep_shape_test = unittest.make(_export_only_empty_prep_shape_test_impl)
+
+def stable_shape_test_suite(name):
+    """Wires the shared-helper export + stable-shape-struct unit tests."""
+    unittest.suite(
+        name,
+        compile_exports_shared_phase_helpers_test,
+        phase_kapt_stable_shape_when_gate_unmet_test,
+        phase_ksp_stable_shape_when_gate_unmet_test,
+        export_only_empty_prep_shape_test,
     )
 
 def test_suite(name):
