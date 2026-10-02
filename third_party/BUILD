@@ -23,6 +23,29 @@ exports_files([
     "java_stub_template.txt",
 ])
 
+# Dependencies of the builder, the compiler plugins and the worker that a consumer building rules_kotlin from
+# source can substitute with `--@rules_kotlin//third_party:<name>=<label>`. Each flag is an alias for the
+# target it is set to; unset, it is an alias for the default below, the target the build uses today.
+label_flag(
+    name = "protobuf_java",
+    build_setting_default = "@com_google_protobuf//:protobuf_java",
+)
+
+label_flag(
+    name = "protobuf_java_util",
+    build_setting_default = "@com_google_protobuf//:protobuf_java_util",
+)
+
+label_flag(
+    name = "worker_protocol_java_proto",
+    build_setting_default = "@bazel_worker_java//:worker_protocol_java_proto",
+)
+
+label_flag(
+    name = "work_request_handlers",
+    build_setting_default = "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
+)
+
 copy_file(
     name = "empty",
     src = "empty-definately-not-binary-jar.txt",

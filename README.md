@@ -217,6 +217,26 @@ archive_override(
 )
 ```
 
+#### Substituting dependencies of the builder
+
+A build from source also builds the builder, its compiler plugins and the worker. They take `protobuf-java`,
+`protobuf-java-util` and the Bazel worker API from the `protobuf` and `bazel_worker_java` modules. A consumer that
+provides these libraries in another way, for example as prebuilt jars, points the build at its own targets:
+
+```
+common --@rules_kotlin//third_party:protobuf_java=@my_deps//:protobuf_java
+common --@rules_kotlin//third_party:protobuf_java_util=@my_deps//:protobuf_java_util
+common --@rules_kotlin//third_party:worker_protocol_java_proto=@my_deps//:worker_protocol_java_proto
+common --@rules_kotlin//third_party:work_request_handlers=@my_deps//:work_request_handlers
+```
+
+Each flag is a `label_flag` in `//third_party`. Unset, it names the module target the build uses by default. A
+substitute must provide the same classes: the protobuf runtime must be at least as new as the `protoc` that generates
+the builder's protos, and the worker API targets must be built from the `bazel_worker_api` version in the module
+graph. When `--incompatible_exclude_starlark_flags_from_exec_config` is enabled, add
+`--experimental_propagate_custom_flag=<flag label>` for each flag, so that the value reaches the exec configuration
+in which the builder is built.
+
 # Debugging native actions
 
 To attach debugger and step through native action code when using local checkout of rules_kotlin repo :

@@ -10,8 +10,8 @@ kt_bootstrap_library(
     deps = [
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
         "@bazel_tools//tools/java/runfiles",
-        "@com_google_protobuf//:protobuf_java",
-        "@com_google_protobuf//:protobuf_java_util",
     ],
 )
