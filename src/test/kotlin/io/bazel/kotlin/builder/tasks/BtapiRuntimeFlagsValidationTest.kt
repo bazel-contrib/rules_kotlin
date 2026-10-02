@@ -73,8 +73,6 @@ class BtapiRuntimeFlagsValidationTest {
       "off",
       "--instrument_coverage",
       "false",
-      "--plugins_payload",
-      """{"plugins":[]}""",
     )
 
   @Test

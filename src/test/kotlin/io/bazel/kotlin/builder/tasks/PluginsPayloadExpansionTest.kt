@@ -105,27 +105,27 @@ class PluginsPayloadExpansionTest {
   private companion object {
     val PAYLOAD =
       """
-      {
-        "plugins": [
-          {
-            "id": "p.stubs",
-            "classpath": ["s.jar"],
-            "options": [{"key": "a", "value": "1"}],
-            "phases": ["PLUGIN_PHASE_STUBS"]
-          },
-          {
-            "id": "p.compile",
-            "classpath": ["c.jar"],
-            "options": [{"key": "b", "value": "2"}, {"key": "b", "value": "3"}],
-            "phases": ["PLUGIN_PHASE_COMPILE"]
-          },
-          {
-            "id": "p.both",
-            "classpath": ["b1.jar", "b2.jar"],
-            "options": [{"key": "flagOnly", "value": ""}, {"key": "k", "value": "a=b"}],
-            "phases": ["PLUGIN_PHASE_STUBS", "PLUGIN_PHASE_COMPILE"]
-          }
-        ]
+      plugins {
+        id: "p.stubs"
+        classpath: "s.jar"
+        options { key: "a" value: "1" }
+        phases: PLUGIN_PHASE_STUBS
+      }
+      plugins {
+        id: "p.compile"
+        classpath: "c.jar"
+        options { key: "b" value: "2" }
+        options { key: "b" value: "3" }
+        phases: PLUGIN_PHASE_COMPILE
+      }
+      plugins {
+        id: "p.both"
+        classpath: "b1.jar"
+        classpath: "b2.jar"
+        options { key: "flagOnly" value: "" }
+        options { key: "k" value: "a=b" }
+        phases: PLUGIN_PHASE_STUBS
+        phases: PLUGIN_PHASE_COMPILE
       }
       """.trimIndent()
   }

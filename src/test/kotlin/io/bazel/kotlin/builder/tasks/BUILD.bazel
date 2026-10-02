@@ -14,6 +14,7 @@
 
 load("@rules_java//java:defs.bzl", "java_library")
 load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
+load(":plugin_phase_names.bzl", "plugin_phase_names")
 
 java_library(
     name = "JdepsParserTestFixtures",
@@ -151,6 +152,21 @@ kt_rules_test(
     ],
 )
 
+# The values of the phase table of payload.bzl; PluginsPayloadPhaseNamesTest checks them against the proto enum.
+plugin_phase_names(name = "plugin_phase_names")
+
+kt_rules_test(
+    name = "PluginsPayloadPhaseNamesTest",
+    srcs = ["PluginsPayloadPhaseNamesTest.kt"],
+    data = ["//src/test/kotlin/io/bazel/kotlin/builder/tasks:plugin_phase_names"],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder/utils",
+        "//src/main/protobuf:kotlin_model_java_proto",
+        "@kotlin_rules_maven_test//:com_google_truth_truth",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
 kt_rules_test(
     name = "BtapiRuntimeCacheTest",
     srcs = ["BtapiRuntimeCacheTest.kt"],
@@ -216,5 +232,6 @@ test_suite(
         ":Ksp2TaskTest",
         ":PluginsPayloadExpansionTest",
         ":PluginsPayloadParserTest",
+        ":PluginsPayloadPhaseNamesTest",
     ],
 )

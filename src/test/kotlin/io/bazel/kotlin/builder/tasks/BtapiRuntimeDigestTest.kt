@@ -118,8 +118,6 @@ class BtapiRuntimeDigestTest {
       "off",
       "--instrument_coverage",
       "false",
-      "--plugins_payload",
-      """{"plugins":[]}""",
       "--btapi_impl_classpath",
       "impl.jar",
       "compiler.jar",

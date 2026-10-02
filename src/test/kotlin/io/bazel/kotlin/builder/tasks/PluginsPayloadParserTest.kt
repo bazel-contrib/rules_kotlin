@@ -26,24 +26,12 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class PluginsPayloadParserTest {
   @Test
-  fun `parses plugins payload json`() {
+  fun `parses the plugins payload text format`() {
+    // The line plugin_payload_test.bzl expects from the producer for the same plugin, so that the
+    // producer's output and the parser stay locked to one contract.
     val plugins =
       PluginsPayloadParser.parse(
-        """
-        {
-          "plugins": [
-            {
-              "id": "plugin.test",
-              "classpath": ["a.jar", "b.jar"],
-              "options": [
-                {"key": "k1", "value": "v1"},
-                {"key": "k2", "value": "v2"}
-              ],
-              "phases": ["PLUGIN_PHASE_COMPILE", "PLUGIN_PHASE_STUBS"]
-            }
-          ]
-        }
-        """.trimIndent(),
+        """plugins { classpath: "a.jar" classpath: "b.jar" id: "plugin.test" options { key: "k1" value: "v1" } options { key: "k2" value: "v2" } phases: PLUGIN_PHASE_COMPILE phases: PLUGIN_PHASE_STUBS }""",
       )
 
     assertThat(plugins).hasSize(1)
@@ -62,56 +50,43 @@ class PluginsPayloadParserTest {
   }
 
   @Test
-  fun `ignores unknown json fields`() {
-    val plugins =
-      PluginsPayloadParser.parse(
-        """
-        {
-          "unknown_top_level": "ignored",
-          "plugins": [
-            {
-              "id": "plugin.unknown",
-              "classpath": [],
-              "options": [],
-              "phases": ["PLUGIN_PHASE_COMPILE"],
-              "unknown_nested": "ignored"
-            }
-          ]
-        }
-        """.trimIndent(),
-      )
+  fun `unescapes string literals`() {
+    // The producer escapes backslashes, quotes and newlines in strings the way JSON does; text format reads them.
+    val plugin =
+      PluginsPayloadParser
+        .parse("""plugins { id: "q\"uo\\te" options { key: "k" value: "a=b\n" } options { key: "e" value: "" } }""")
+        .single()
 
-    assertThat(plugins).hasSize(1)
-    assertThat(plugins.single().id).isEqualTo("plugin.unknown")
+    assertThat(plugin.id).isEqualTo("q\"uo\\te")
+    assertThat(plugin.optionsList.map { "${it.key}=${it.value}" }).containsExactly("k=a=b\n", "e=").inOrder()
   }
 
   @Test
-  fun `silently drops unknown phase enum names`() {
-    // JsonFormat's ignoringUnknownFields() also ignores unknown enum VALUES: an unrecognized
-    // phase name is dropped rather than rejected. Pinned so a protobuf behavior change (or a
-    // stricter parser) surfaces here instead of as a silent contract shift.
-    val plugins =
-      PluginsPayloadParser.parse(
-        """
-        {"plugins": [{"id": "p", "classpath": [], "options": [], "phases": ["PLUGIN_PHASE_BOGUS"]}]}
-        """.trimIndent(),
-      )
-
-    assertThat(plugins.single().phasesList).isEmpty()
+  fun `parses an empty payload to no plugins`() {
+    assertThat(PluginsPayloadParser.parse("")).isEmpty()
   }
 
   @Test
-  fun `parses an empty payload object to no plugins`() {
-    assertThat(PluginsPayloadParser.parse("{}")).isEmpty()
+  fun `rejects unknown fields`() {
+    assertRejected("""plugins { id: "p" unknown: "x" }""")
   }
 
   @Test
-  fun `rejects invalid json`() {
+  fun `rejects unknown phase names`() {
+    assertRejected("""plugins { id: "p" phases: PLUGIN_PHASE_BOGUS }""")
+  }
+
+  @Test
+  fun `rejects malformed text`() {
+    assertRejected("plugins {")
+  }
+
+  private fun assertRejected(text: String) {
     try {
-      PluginsPayloadParser.parse("{invalid")
+      PluginsPayloadParser.parse(text)
       fail("Expected parse to fail")
     } catch (e: IllegalArgumentException) {
-      assertThat(e).hasMessageThat().contains("invalid plugins payload JSON")
+      assertThat(e).hasMessageThat().contains("invalid plugins payload")
     }
   }
 }

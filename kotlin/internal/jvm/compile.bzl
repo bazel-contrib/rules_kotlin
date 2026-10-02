@@ -648,9 +648,10 @@ def btapi_runtime_worker_args(runtime):
         ("--internal_jdeps_gen_classpath", runtime.jdeps_gen),
     ]
 
-# payload: the single args.add_all item, a struct(plugins = ...) carrying the list of compiler plugins
-def _plugins_payload_to_json(payload):
-    return _plugin_payload.plugins_payload_json(payload.plugins)
+# payload: the single args.add_all item, a struct(plugins = ...) carrying the list of compiler plugins.
+# None, for a compilation without plugins, omits the flag.
+def _plugins_payload_to_text(payload):
+    return _plugin_payload.text(payload.plugins)
 
 def _run_kt_builder_action(
         ctx,
@@ -769,14 +770,14 @@ def _run_kt_builder_action(
         uniquify = True,
     )
 
-    # Using 'args.add_all' with a map_each callback instead of 'args.add' allows the json payload
-    # to be computed lazily during command line expansion, when the PathMapper, if any, is
+    # Using 'args.add_all' with a map_each callback instead of 'args.add' allows the text format
+    # payload to be computed lazily during command line expansion, when the PathMapper, if any, is
     # installed (e.g. with --experimental_output_paths=strip). This ensures the computed payload
     # contains correctly mapped paths.
     args.add_all(
         "--plugins_payload",
         [struct(plugins = plugins.plugins)],
-        map_each = _plugins_payload_to_json,
+        map_each = _plugins_payload_to_text,
     )
 
     if not "kt_remove_debug_info_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_debug_info_in_abi_jars == True:

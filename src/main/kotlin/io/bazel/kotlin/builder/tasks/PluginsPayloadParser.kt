@@ -16,18 +16,22 @@
  */
 package io.bazel.kotlin.builder.tasks
 
-import com.google.protobuf.InvalidProtocolBufferException
-import com.google.protobuf.util.JsonFormat
+import com.google.protobuf.TextFormat
 import io.bazel.kotlin.model.JvmCompilationTask
 
+/**
+ * Parses the `--plugins_payload` value: a `JvmCompilationTask.Inputs` message in protobuf text format with one
+ * `plugins { ... }` entry per compiler plugin, as `plugin_payload.text` in payload.bzl writes it.
+ * The parser is strict: an unknown field or an unknown phase name is an error, not an omission.
+ */
 object PluginsPayloadParser {
   @JvmStatic
-  fun parse(json: String): List<JvmCompilationTask.Inputs.Plugin> {
+  fun parse(text: String): List<JvmCompilationTask.Inputs.Plugin> {
     val inputs = JvmCompilationTask.Inputs.newBuilder()
     try {
-      JsonFormat.parser().ignoringUnknownFields().merge(json, inputs)
-    } catch (e: InvalidProtocolBufferException) {
-      throw IllegalArgumentException("invalid plugins payload JSON: ${e.message}", e)
+      TextFormat.merge(text, inputs)
+    } catch (e: TextFormat.ParseException) {
+      throw IllegalArgumentException("invalid plugins payload: ${e.message}", e)
     }
     return inputs.pluginsList
   }

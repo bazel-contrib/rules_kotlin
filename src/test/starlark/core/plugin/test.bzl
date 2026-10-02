@@ -6,7 +6,7 @@ load("//kotlin:core.bzl", "kt_compiler_plugin", "kt_plugin_cfg")
 load("//kotlin:jvm.bzl", "kt_jvm_import", "kt_jvm_library")
 load("//src/main/starlark/core/plugin:providers.bzl", "KtCompilerPluginInfo", "KtPluginConfiguration")
 load("//src/test/starlark:case.bzl", "suite")
-load("//src/test/starlark:truth.bzl", "fail_messages_in", "flags_and_values_of", "payload_plugins_of")
+load("//src/test/starlark:truth.bzl", "fail_messages_in", "flags_and_values_of", "parse_payload_plugins", "payload_plugins_of")
 load(":subjects.bzl", "plugin_configuration_subject_factory")
 
 def _provider_test_impl(env, target):
@@ -63,10 +63,10 @@ def _inline_payload_plugin_ids(argv):
         if arg != "--plugins_payload" or i + 1 >= len(argv):
             continue
         value = argv[i + 1]
-        if not value.startswith("{"):
-            # A params-file reference or split value breaks the inline JSON contract.
+        if not value.startswith("plugins {"):
+            # A params-file reference or split value breaks the inline text format contract.
             return []
-        return [plugin["id"] for plugin in json.decode(value)["plugins"]]
+        return [plugin["id"] for plugin in parse_payload_plugins(value)]
     return []
 
 def _expect_failure(env, target):
