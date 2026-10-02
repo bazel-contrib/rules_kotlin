@@ -12,6 +12,7 @@ release_archive(
     deps = [
         "//src/main/starlark/core/compile:pkg",
         "//src/main/starlark/core/options:pkg",
+        "//src/main/starlark/core/pipeline:pkg",
         "//src/main/starlark/core/plugin:pkg",
         "//src/main/starlark/core/repositories:pkg",
     ],

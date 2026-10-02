@@ -1,0 +1,8 @@
+load(":dep_hygiene_test.bzl", "dep_hygiene_test_suite")
+load(":runner_test.bzl", "runner_test_suite")
+
+runner_test_suite(name = "runner_tests")
+
+# Dep-hygiene gate (design criterion 5): the kt_jvm_library load graph must
+# contain NO @rules_android. See dep_hygiene_test.bzl.
+dep_hygiene_test_suite(name = "dep_hygiene_tests")
