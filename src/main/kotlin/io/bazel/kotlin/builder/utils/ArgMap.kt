@@ -17,8 +17,6 @@
 
 package io.bazel.kotlin.builder.utils
 
-import java.io.File
-
 class ArgMap(
   private val map: Map<String, List<String>>,
 ) {
@@ -37,16 +35,6 @@ class ArgMap(
       }
     }
 
-  private fun optionalSingleIf(
-    key: String,
-    condition: () -> Boolean,
-  ): String? =
-    if (condition()) {
-      optionalSingle(key)
-    } else {
-      mandatorySingle(key)
-    }
-
   private fun hasAll(keys: Array<String>): Boolean =
     keys.all { optional(it)?.isNotEmpty() ?: false }
 
@@ -61,11 +49,6 @@ class ArgMap(
   fun mandatorySingle(key: Flag) = mandatorySingle(key.flag)
 
   fun optionalSingle(key: Flag) = optionalSingle(key.flag)
-
-  fun optionalSingleIf(
-    key: Flag,
-    condition: () -> Boolean,
-  ) = optionalSingleIf(key.flag, condition)
 
   fun hasAll(vararg keys: Flag) = hasAll(keys.map(Flag::flag).toTypedArray())
 
@@ -84,9 +67,6 @@ object ArgMaps {
     mutableMapOf<String, MutableList<String>>()
       .also { argsToMap(args, it) }
       .let(::ArgMap)
-
-  @JvmStatic
-  fun from(file: File): ArgMap = from(file.reader().readLines())
 
   private fun argsToMap(
     args: List<String>,
