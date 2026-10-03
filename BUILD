@@ -94,8 +94,6 @@ release_metadata(
         "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
         "//src/main/kotlin:jdeps-gen-embeddable.jar": "jdeps-gen-embeddable.jar",
         "//src/main/kotlin:jdeps-gen.jar": "jdeps-gen.jar",
-        "//src/main/kotlin:skip-code-gen-embeddable.jar": "skip-code-gen-embeddable.jar",
-        "//src/main/kotlin:skip-code-gen.jar": "skip-code-gen.jar",
     },
     urls = {
         "*": "file://github.com/bazel-contrib/rules_kotlin/releases/download/{version}/{name}",

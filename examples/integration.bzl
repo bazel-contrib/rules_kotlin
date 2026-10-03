@@ -34,14 +34,6 @@ def derive_metadata(directory):
                 allow_empty = True,
             )
         ],
-        has_module = len(native.glob(
-            ["%s/MODULE.bazel" % directory, "%s/MODULE" % directory],
-            allow_empty = True,
-        )) > 0,
-        has_workspace = len(native.glob(
-            ["%s/WORKSPACE" % directory, "%s/WORKSPACE.bazel" % directory],
-            allow_empty = True,
-        )) > 0,
     )
 
 def example_integration_test_suite(
@@ -55,9 +47,6 @@ def example_integration_test_suite(
         metadata: struct describing directory, modes, and version filters.
         tags: tags for integration test targets.
     """
-    if not metadata.has_module:
-        fail("%s: no build mode detected (MODULE.bazel required)" % name)
-
     for version in bazel_binaries.versions.all:
         if version in metadata.only or (not metadata.only and version not in metadata.exclude):
             clean_bazel_version = Label(version).name
