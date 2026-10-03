@@ -1,5 +1,10 @@
 package io.bazel.kotlin.test
 
+import io.bazel.kotlin.generate.GenerateReleaseMetadata.JarEntry
+import io.bazel.kotlin.generate.GenerateReleaseMetadata.ReleaseManifest
+import io.bazel.kotlin.generate.GenerateReleaseMetadata.Companion.sha256Hex
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import org.junit.Test
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
@@ -16,6 +21,23 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
     val workspace = Path.of(env("BIT_WORKSPACE_DIR"))
     val unpack = unpackRelease(
       requireNotNull(System.getProperty("@rules_kotlin...rules_kotlin_release")),
+    )
+
+    val internalJarsDir = Files.createDirectories(root.resolve("internal_jars"))
+    val internalJars = requireNotNull(System.getProperty("@rules_kotlin...internal_jars"))
+      .trim('\'').split(' ')
+      .map { runfile(it) }
+      .map { j -> Files.copy(j, internalJarsDir.resolve(j.fileName)) }
+      .associate { j ->
+        j.fileName.toString() to JarEntry(
+          url = j.toUri().toString(),
+          sha256 = sha256Hex(Files.readAllBytes(j)),
+        )
+      }
+    Files.writeString(
+      unpack.resolve("generated_release_metadata.bzl"),
+      ReleaseManifest("0.0.0-dev", internalJars).render(),
+      StandardOpenOption.TRUNCATE_EXISTING,
     )
 
     val version = bazel.run(workspace, "--version").parseVersion()

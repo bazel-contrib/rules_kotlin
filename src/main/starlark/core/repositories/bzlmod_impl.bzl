@@ -1,6 +1,8 @@
 """Implementation of the rules_kotlin module extension."""
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+load("//:generated_release_metadata.bzl", "JARS")
+load("alias_repository.bzl", "alias_repository")
 load(
     ":btapi_impl.bzl",
     "BTAPI_IMPL_DEFAULT_REPOSITORY",
@@ -32,6 +34,22 @@ def kotlin_repositories(
          name to a record built with btapi_impl_version. The record of the current release is
          always created as @btapi_impl unless the dict replaces it.
     """
+    internal_jars = []
+    for name, entry in JARS.items():
+        label = name.replace(".", "_")
+        http_file(
+            name = label,
+            urls = [entry.url],
+            sha256 = entry.sha256,
+            downloaded_file_path = name,
+        )
+        internal_jars.append("@%s//file:%s" % (label, name))
+
+    # Keeps exposed repository easy.
+    alias_repository(
+        name = "internal_jars",
+        labels = internal_jars,
+    )
 
     kotlin_compiler_repository(
         name = compiler_repository_name,

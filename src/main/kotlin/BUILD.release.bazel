@@ -17,47 +17,47 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 
 java_import(
     name = "worker",
-    jars = ["kotlin_worker.jar"],
+    jars = ["@internal_jars//:kotlin_worker.jar"],
 )
 
 java_import(
     name = "jdeps_merger_worker",
-    jars = ["jdeps_merger_worker.jar"],
+    jars = ["@internal_jars//:jdeps_merger_worker.jar"],
 )
 
 java_import(
     name = "ksp2_worker",
-    jars = ["ksp2_worker.jar"],
+    jars = ["@internal_jars//:ksp2_worker.jar"],
 )
 
 java_import(
     name = "ksp2_invoker",
-    jars = ["ksp2_invoker.jar"],
+    jars = ["@internal_jars//:ksp2_invoker.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "skip-code-gen",
-    jars = ["skip-code-gen.jar"],
+    jars = ["@internal_jars//:skip-code-gen.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "jdeps-gen",
-    jars = ["jdeps-gen.jar"],
+    jars = ["@internal_jars//:jdeps-gen.jar"],
     visibility = ["//visibility:public"],
 )
 
 # Embeddable-dialect plugin variants for the Build Tools API runtime override attributes.
 java_import(
     name = "skip-code-gen-embeddable",
-    jars = ["skip-code-gen-embeddable.jar"],
+    jars = ["@internal_jars//:skip-code-gen-embeddable.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "jdeps-gen-embeddable",
-    jars = ["jdeps-gen-embeddable.jar"],
+    jars = ["@internal_jars//:jdeps-gen-embeddable.jar"],
     visibility = ["//visibility:public"],
 )
 
