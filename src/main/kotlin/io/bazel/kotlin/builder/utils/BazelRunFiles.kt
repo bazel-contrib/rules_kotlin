@@ -19,6 +19,7 @@ import com.google.devtools.build.runfiles.Runfiles
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.FileSystem
+import java.nio.file.Path
 import kotlin.io.path.exists
 
 /** Utility class for getting runfiles on windows and *nix.  */
@@ -71,22 +72,21 @@ object BazelRunFiles {
   fun resolveVerifiedListFromProperty(
     fileSystem: FileSystem,
     key: String,
-  ) = System
-    .getProperty(key)
-    ?.let { value ->
-      value
-        .split(" ")
-        .map { path ->
-          fileSystem.getPath(runfiles.rlocation(path)).also {
-            if (!it.exists()) {
-              throw IllegalStateException(
-                "$it does not exist in the runfiles!",
-              )
-            }
-          }
+  ): List<Path> {
+    val property =
+      System.getProperty(key) ?: let {
+        throw FileNotFoundException("no reference for $key in ${System.getProperties()}")
+      }
+    return property
+      .split(" ")
+      .map(runfiles::rlocation)
+      .map(fileSystem::getPath)
+      .onEach { p ->
+        if (!p.exists()) {
+          throw IllegalStateException(
+            "$p does not exist in the runfiles!",
+          )
         }
-    }
-    ?: let {
-      throw FileNotFoundException("no reference for $key in ${System.getProperties()}")
-    }
+      }
+  }
 }
