@@ -67,7 +67,7 @@ java_binary(
     name = "jarjar_runner",
     main_class = "com.eed3si9n.jarjar.Main",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@kotlin_rules_maven//:com_eed3si9n_jarjar_jarjar"],
+    runtime_deps = ["@jarjar//jar"],
 )
 
 bzl_library(
@@ -88,6 +88,5 @@ release_archive(
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
-        "jarjar_runner_deploy.jar": "jarjar.jar",
     },
 )
