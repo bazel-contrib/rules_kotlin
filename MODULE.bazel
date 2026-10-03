@@ -117,7 +117,6 @@ maven.install(
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "org.apache.commons:commons-compress:1.26.2",
-        # Used directly by the KSP bytecode-generator test processor.
         "org.ow2.asm:asm:9.10.1",
     ],
     fail_if_repin_required = True,
