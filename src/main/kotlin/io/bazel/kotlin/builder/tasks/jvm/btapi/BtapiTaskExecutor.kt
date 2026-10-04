@@ -42,7 +42,7 @@ import io.bazel.kotlin.compiler.CompilerConfiguration
 import io.bazel.kotlin.compiler.CompilerPluginSpec
 import io.bazel.kotlin.compiler.KotlinBtapiCompiler
 import io.bazel.kotlin.model.JvmCompilationTask
-import io.bazel.kotlin.model.JvmCompilationTask.Inputs.PluginPhase
+import io.bazel.kotlin.model.PluginPhase
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.PrintStream
@@ -96,13 +96,12 @@ class BtapiTaskExecutor(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
-    require(task.info.toolchainInfo.hasBtapi()) {
-      "the Build Tools API compilation requires the toolchain-supplied runtime " +
-        "(the --btapi_* and --internal_* worker flags)"
-    }
-    val btapiRuntime =
-      task.info.toolchainInfo.btapi
-        .toRuntime()
+    val btapi =
+      requireNotNull(task.info.toolchainInfo.btapi) {
+        "the Build Tools API compilation requires the toolchain-supplied runtime " +
+          "(the --btapi_* and --internal_* worker flags)"
+      }
+    val btapiRuntime = btapi.toRuntime()
     val compiler =
       getCompilerInvoker(btapiRuntime.apiImplClasspath, btapiRuntime.classpathFingerprint)
     val preprocessedTask =

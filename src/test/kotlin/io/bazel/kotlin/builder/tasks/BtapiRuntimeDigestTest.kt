@@ -144,20 +144,20 @@ class BtapiRuntimeDigestTest {
 
   @Test
   fun `the request digests give the task its runtime digest`() {
-    val btapi = buildWith(digests).info.toolchainInfo.btapi
+    val btapi = buildWith(digests).info.toolchainInfo.btapi!!
     assertThat(btapi.classpathFingerprint).isEqualTo(expected)
     assertThat(btapi.toRuntime().classpathFingerprint).isEqualTo(expected)
   }
 
   @Test
   fun `a plugin entry digest does not change the runtime digest`() {
-    val btapi = buildWith(digests + ("kapt.jar" to "d5-renewed")).info.toolchainInfo.btapi
+    val btapi = buildWith(digests + ("kapt.jar" to "d5-renewed")).info.toolchainInfo.btapi!!
     assertThat(btapi.classpathFingerprint).isEqualTo(expected)
   }
 
   @Test
   fun `a request without input digests leaves the runtime digest empty`() {
-    val btapi = buildWith(emptyMap()).info.toolchainInfo.btapi
+    val btapi = buildWith(emptyMap()).info.toolchainInfo.btapi!!
     assertThat(btapi.classpathFingerprint).isEmpty()
     assertThat(btapi.toRuntime().classpathFingerprint).isEmpty()
   }

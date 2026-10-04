@@ -17,7 +17,7 @@
 package io.bazel.kotlin.builder.tasks
 
 import com.google.common.truth.Truth.assertThat
-import io.bazel.kotlin.model.JvmCompilationTask
+import io.bazel.kotlin.model.PluginPhase
 import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -54,10 +54,7 @@ class PluginsPayloadParserTest {
       .containsExactly("k1=v1", "k2=v2")
       .inOrder()
     assertThat(plugin.phasesList)
-      .containsExactly(
-        JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_COMPILE,
-        JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS,
-      )
+      .containsExactly(PluginPhase.PLUGIN_PHASE_COMPILE, PluginPhase.PLUGIN_PHASE_STUBS)
       .inOrder()
   }
 

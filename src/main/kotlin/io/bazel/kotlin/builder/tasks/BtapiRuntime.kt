@@ -16,7 +16,7 @@
  */
 package io.bazel.kotlin.builder.tasks
 
-import io.bazel.kotlin.model.KotlinToolchainInfo
+import io.bazel.kotlin.model.BtapiRuntime as BtapiRuntimeModel
 
 /**
  * The complete per-request Build Tools API runtime configuration: the compiler classloader jars
@@ -31,8 +31,8 @@ data class BtapiRuntime(
   val jdepsGenClasspath: List<String>,
 )
 
-/** The typed view of the task's toolchain-supplied Build Tools API runtime proto. */
-fun KotlinToolchainInfo.BtapiRuntime.toRuntime(): BtapiRuntime =
+/** The typed view of the task's toolchain-supplied Build Tools API runtime. */
+fun BtapiRuntimeModel.toRuntime(): BtapiRuntime =
   BtapiRuntime(
     apiImplClasspath = apiImplClasspathList,
     classpathFingerprint = classpathFingerprint,

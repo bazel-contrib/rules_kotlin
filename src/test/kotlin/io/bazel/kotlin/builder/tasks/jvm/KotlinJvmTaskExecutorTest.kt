@@ -45,17 +45,17 @@ class KotlinJvmTaskExecutorTest {
     assertTrue(compileTask.inputs.javaSourcesList.isEmpty())
     assertTrue(compileTask.inputs.kotlinSourcesList.isEmpty())
 
-    assertTrue(expandedCompileTask.hasInputs())
+    assertTrue(expandedCompileTask.inputs.javaSourcesList.isNotEmpty())
     // Use platform-specific path separator for cross-platform compatibility
     val javaSuffix = "generated_sources${File.separator}AnotherGenClass.java"
     assertNotNull(expandedCompileTask.inputs.javaSourcesList.find { path ->
       path.endsWith(javaSuffix)
     })
-    assertEquals(expandedCompileTask.inputs.javaSourcesCount, 1)
+    assertEquals(expandedCompileTask.inputs.javaSourcesList.size, 1)
     val ktSuffix = "generated_sources${File.separator}AGenClass.kt"
     assertNotNull(expandedCompileTask.inputs.kotlinSourcesList.find { path ->
       path.endsWith(ktSuffix)
     })
-    assertEquals(expandedCompileTask.inputs.kotlinSourcesCount, 1)
+    assertEquals(expandedCompileTask.inputs.kotlinSourcesList.size, 1)
   }
 }

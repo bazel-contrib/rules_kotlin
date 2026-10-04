@@ -25,13 +25,17 @@ import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.btapi.BtapiTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
+import io.bazel.kotlin.model.BtapiRuntime;
 import io.bazel.kotlin.model.CompilationTaskInfo;
+import io.bazel.kotlin.model.Directories;
+import io.bazel.kotlin.model.Inputs;
 import io.bazel.kotlin.model.JvmCompilationTask;
-import io.bazel.kotlin.model.KotlinToolchainInfo;
+import io.bazel.kotlin.model.Outputs;
 
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -47,7 +51,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             KOTLIN_STDLIB_JDK8 = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-jdk8"),
             JVM_ABI_GEN = Dep.fromLabel("//kotlin/compiler:jvm-abi-gen");
 
-    private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
     private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
             EnumSet.of(
                     DirectoryType.SOURCES,
@@ -60,38 +63,51 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     DirectoryType.TEMP,
                     DirectoryType.COVERAGE_METADATA);
 
+    private JvmCompilationTask.Builder task;
+    private Inputs.Builder inputs;
+    private Outputs.Builder outputs;
+
     private final TaskBuilder taskBuilderInstance = new TaskBuilder();
     private static KotlinJvmTaskExecutor jvmTaskExecutor;
     private static BtapiTaskExecutor btapiTaskExecutor;
-    private static KotlinToolchainInfo.BtapiRuntime btapiRuntime;
+    private static BtapiRuntime btapiRuntime;
 
     @Override
-    void setupForNext(CompilationTaskInfo.Builder taskInfo) {
-        taskBuilder.clear().setInfo(taskInfo);
+    void setupForNext() {
+        task = JvmCompilationTask.builder();
+        inputs = Inputs.builder();
+        outputs = Outputs.builder();
 
         DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
 
-        taskBuilder.getInputsBuilder()
-            .addClasspath(KOTLIN_STDLIB.singleCompileJar())
-            .addClasspath(KOTLIN_STDLIB_JDK7.singleCompileJar())
-            .addClasspath(KOTLIN_STDLIB_JDK8.singleCompileJar());
+        inputs.addClasspath(KOTLIN_STDLIB.singleCompileJar());
+        inputs.addClasspath(KOTLIN_STDLIB_JDK7.singleCompileJar());
+        inputs.addClasspath(KOTLIN_STDLIB_JDK8.singleCompileJar());
 
-        taskBuilder
-                .getDirectoriesBuilder()
-                .setClasses(directory(DirectoryType.CLASSES).toAbsolutePath().toString())
-                .setJavaClasses(directory(DirectoryType.JAVA_CLASSES).toAbsolutePath().toString())
-                .setAbiClasses(directory(DirectoryType.ABI_CLASSES).toAbsolutePath().toString())
-                .setGeneratedSources(directory(DirectoryType.SOURCE_GEN).toAbsolutePath().toString())
-                .setGeneratedJavaSources(directory(DirectoryType.JAVA_SOURCE_GEN).toAbsolutePath().toString())
-                .setGeneratedStubClasses(directory(DirectoryType.GENERATED_STUBS).toAbsolutePath().toString())
-                .setTemp(directory(DirectoryType.TEMP).toAbsolutePath().toString())
-                .setGeneratedClasses(directory(DirectoryType.GENERATED_CLASSES).toAbsolutePath().toString())
-                .setCoverageMetadataClasses(directory(DirectoryType.COVERAGE_METADATA).toAbsolutePath().toString());
+        task.directories(Directories.builder()
+                .classes(directory(DirectoryType.CLASSES).toAbsolutePath().toString())
+                .javaClasses(directory(DirectoryType.JAVA_CLASSES).toAbsolutePath().toString())
+                .abiClasses(directory(DirectoryType.ABI_CLASSES).toAbsolutePath().toString())
+                .generatedSources(directory(DirectoryType.SOURCE_GEN).toAbsolutePath().toString())
+                .generatedJavaSources(directory(DirectoryType.JAVA_SOURCE_GEN).toAbsolutePath().toString())
+                .generatedStubClasses(directory(DirectoryType.GENERATED_STUBS).toAbsolutePath().toString())
+                .temp(directory(DirectoryType.TEMP).toAbsolutePath().toString())
+                .generatedClasses(directory(DirectoryType.GENERATED_CLASSES).toAbsolutePath().toString())
+                .coverageMetadataClasses(directory(DirectoryType.COVERAGE_METADATA).toAbsolutePath().toString())
+                .build());
     }
 
     @Override
     public JvmCompilationTask buildTask() {
-        return taskBuilder.build();
+        return task.info(infoState.build())
+                .inputs(inputs.build())
+                .outputs(outputs.build())
+                .build();
+    }
+
+    @Override
+    CompilationTaskInfo infoOf(JvmCompilationTask task) {
+        return task.getInfo();
     }
 
     @SafeVarargs
@@ -100,7 +116,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         // typed executor, everything else through the legacy executor.
         return executeTask(
                 (context, task) -> {
-                    if (task.getInfo().getToolchainInfo().hasBtapi()) {
+                    if (task.getInfo().getToolchainInfo().getBtapi() != null) {
                         btapiTaskExecutor().execute(context, task);
                     } else {
                         jvmTaskExecutor().execute(context, task);
@@ -136,24 +152,25 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
      * are built against) with the matching embeddable internal plugin variants, while the default
      * toolchain exercises the CLI-distribution family through the integration fixtures.
      */
-    static KotlinToolchainInfo.BtapiRuntime btapiRuntimeForTest() {
+    static BtapiRuntime btapiRuntimeForTest() {
         if (btapiRuntime == null) {
-            btapiRuntime = KotlinToolchainInfo.BtapiRuntime.newBuilder()
-                    .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-build-tools-impl.jar").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-daemon-client.jar").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-stdlib.jar").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-reflect.jar").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-script-runtime.jar").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@kotlinx_coroutines_core_jvm//file").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar())
-                    .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-compiler-embeddable.jar").singleCompileJar())
-                    .addJvmAbiGenClasspath(Dep.fromLabel("@btapi_impl//:jvm-abi-gen.jar").singleCompileJar())
-                    .addKaptClasspath(Dep.fromLabel("@btapi_impl//:kotlin-annotation-processing-embeddable.jar").singleCompileJar())
-                    .addJdepsGenClasspath(Dep.fromLabel("//src/main/kotlin:jdeps-gen-embeddable").singleCompileJar())
-                    .build();
+            btapiRuntime = new BtapiRuntime(
+                    Arrays.asList(
+                            Dep.fromLabel("@btapi_impl//:kotlin-build-tools-impl.jar").singleCompileJar(),
+                            Dep.fromLabel("@btapi_impl//:kotlin-daemon-client.jar").singleCompileJar(),
+                            Dep.fromLabel("@btapi_impl//:kotlin-stdlib.jar").singleCompileJar(),
+                            Dep.fromLabel("@btapi_impl//:kotlin-reflect.jar").singleCompileJar(),
+                            Dep.fromLabel("@btapi_impl//:kotlin-script-runtime.jar").singleCompileJar(),
+                            Dep.fromLabel("@kotlinx_coroutines_core_jvm//file").singleCompileJar(),
+                            Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar(),
+                            Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar(),
+                            Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar(),
+                            Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar(),
+                            Dep.fromLabel("@btapi_impl//:kotlin-compiler-embeddable.jar").singleCompileJar()),
+                    Arrays.asList(Dep.fromLabel("@btapi_impl//:jvm-abi-gen.jar").singleCompileJar()),
+                    Arrays.asList(Dep.fromLabel("@btapi_impl//:kotlin-annotation-processing-embeddable.jar").singleCompileJar()),
+                    Arrays.asList(Dep.fromLabel("//src/main/kotlin:jdeps-gen-embeddable").singleCompileJar()),
+                    "");
         }
         return btapiRuntime;
     }
@@ -180,7 +197,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                 (taskContext, task) -> {
                     executor.accept(taskContext, task);
 
-                    JvmCompilationTask.Outputs outputs = task.getOutputs();
+                    Outputs outputs = task.getOutputs();
                     assertFilesExist(
                             Stream.of(
                                             outputs.getAbijar(),
@@ -212,15 +229,15 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public void setLabel(String label) {
-            taskBuilder.getInfoBuilder().setLabel(label);
+            infoState.label = label;
         }
 
         public void addSource(String filename, String... lines) {
             String pathAsString = writeSourceFile(filename, lines).toString();
             if (pathAsString.endsWith(".kt")) {
-                taskBuilder.getInputsBuilder().addKotlinSources(pathAsString);
+                inputs.addKotlinSources(pathAsString);
             } else if (pathAsString.endsWith(".java")) {
-                taskBuilder.getInputsBuilder().addJavaSources(pathAsString);
+                inputs.addJavaSources(pathAsString);
             } else {
                 throw new RuntimeException("unhandled file type: " + pathAsString);
             }
@@ -231,111 +248,98 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public TaskBuilder compileKotlin() {
-            taskBuilder.getInfoBuilder().addDebug("trace").addDebug("timings");
-            taskBuilder.setCompileKotlin(true);
+            infoState.debug.add("trace");
+            infoState.debug.add("timings");
+            task.compileKotlin(true);
             return this;
         }
 
         public TaskBuilder coverage() {
-            taskBuilder.setInstrumentCoverage(true);
+            task.instrumentCoverage(true);
             return this;
         }
 
         public void addAnnotationProcessors(AnnotationProcessor... annotationProcessors) {
-            Preconditions.checkState(
-                    taskBuilder.getInputs().getProcessorsList().isEmpty(), "processors already set");
+            Preconditions.checkState(inputs.build().getProcessorsList().isEmpty(), "processors already set");
             HashSet<String> processorClasses = new HashSet<>();
-            taskBuilder
-                    .getInputsBuilder()
-                    .addAllProcessorpaths(
-                            Stream.of(annotationProcessors)
-                                    .peek(it -> processorClasses.add(it.processClass()))
-                                    .flatMap(it -> it.processorPath().stream())
-                                    .distinct()
-                                    .collect(Collectors.toList()))
-                    .addAllProcessors(processorClasses);
+            inputs.addAllProcessorpaths(
+                    Stream.of(annotationProcessors)
+                            .peek(it -> processorClasses.add(it.processClass()))
+                            .flatMap(it -> it.processorPath().stream())
+                            .distinct()
+                            .collect(Collectors.toList()));
+            inputs.addAllProcessors(processorClasses);
         }
 
         public void addDirectDependencies(Dep... dependencies) {
             Dep.classpathOf(dependencies).forEach(dependency -> {
-                taskBuilder.getInputsBuilder().addClasspath(dependency);
-                taskBuilder.getInputsBuilder().addDirectDependencies(dependency);
+                inputs.addClasspath(dependency);
+                inputs.addDirectDependencies(dependency);
             });
         }
 
         public void addTransitiveDependencies(Dep... dependencies) {
-            Dep.classpathOf(dependencies).forEach(dependency -> {
-                taskBuilder.getInputsBuilder().addClasspath(dependency);
-            });
+            Dep.classpathOf(dependencies).forEach(inputs::addClasspath);
         }
 
         public TaskBuilder outputSrcJar() {
-            taskBuilder.getOutputsBuilder()
-                    .setSrcjar(instanceRoot().resolve("jar_file-sources.jar").toAbsolutePath().toString());
+            outputs.srcjar(instanceRoot().resolve("jar_file-sources.jar").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder outputJar() {
-            taskBuilder.getOutputsBuilder()
-                    .setJar(instanceRoot().resolve("jar_file.jar").toAbsolutePath().toString());
+            outputs.jar(instanceRoot().resolve("jar_file.jar").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder outputJdeps() {
-            taskBuilder.getOutputsBuilder()
-                    .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
+            outputs.jdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder kotlinStrictDeps(String level) {
-            taskBuilder.getInfoBuilder().setStrictKotlinDeps(level);
+            infoState.strictKotlinDeps = level;
             return this;
         }
 
         public TaskBuilder outputAbiJar() {
-            taskBuilder.getOutputsBuilder()
-                    .setAbijar(instanceRoot().resolve("abi.jar").toAbsolutePath().toString());
+            outputs.abijar(instanceRoot().resolve("abi.jar").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder publicOnlyAbiJar() {
-            taskBuilder.getInfoBuilder().setTreatInternalAsPrivateInAbiJar(true).setRemovePrivateClassesInAbiJar(true);
+            infoState.treatInternalAsPrivateInAbiJar = true;
+            infoState.removePrivateClassesInAbiJar = true;
             return this;
         }
 
         public TaskBuilder generatedSourceJar() {
-            taskBuilder.getOutputsBuilder()
-                    .setGeneratedJavaSrcJar(instanceRoot().resolve("gen-src.jar").toAbsolutePath().toString());
+            outputs.generatedJavaSrcJar(instanceRoot().resolve("gen-src.jar").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder ktStubsJar() {
-            taskBuilder.getOutputsBuilder()
-                    .setGeneratedJavaStubJar(instanceRoot().resolve("kt-stubs.jar").toAbsolutePath().toString());
+            outputs.generatedJavaStubJar(instanceRoot().resolve("kt-stubs.jar").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder incrementalData() {
-            taskBuilder.getOutputsBuilder()
-                    .setGeneratedClassJar(instanceRoot().resolve("incremental.jar").toAbsolutePath().toString());
+            outputs.generatedClassJar(instanceRoot().resolve("incremental.jar").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder useK2() {
-            taskBuilder.getInfoBuilder()
-                    .getToolchainInfoBuilder()
-                    .getCommonBuilder()
-                    .setLanguageVersion("2.0");
+            infoState.languageVersion = "2.0";
             return this;
         }
 
         public TaskBuilder useBuildToolsApi() {
-            taskBuilder.getInfoBuilder().getToolchainInfoBuilder().setBtapi(btapiRuntimeForTest());
+            infoState.btapi = btapiRuntimeForTest();
             return this;
         }
 
         public TaskBuilder addPassthroughFlags(String... flags) {
-            taskBuilder.getInfoBuilder().addAllPassthroughFlags(Arrays.asList(flags));
+            infoState.passthroughFlags.addAll(Arrays.asList(flags));
             return this;
         }
     }

@@ -19,19 +19,22 @@ package io.bazel.kotlin.builder;
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
+import io.bazel.kotlin.model.BtapiRuntime;
+import io.bazel.kotlin.model.Common;
 import io.bazel.kotlin.model.CompilationTaskInfo;
-import io.bazel.kotlin.model.JvmCompilationTaskOrBuilder;
+import io.bazel.kotlin.model.Jvm;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
 import io.bazel.kotlin.model.RuleKind;
 
 import java.io.*;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,15 +48,78 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
-abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> {
+abstract class KotlinAbstractTestBuilder<T> {
     private static final Path BAZEL_TEST_DIR =
             FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"));
 
     private static final AtomicInteger counter = new AtomicInteger(0);
-    private final CompilationTaskInfo.Builder infoBuilder = CompilationTaskInfo.newBuilder();
+    protected final InfoState infoState = new InfoState();
     private Path instanceRoot = null;
     private String label = null;
     private List<String> outLines = null;
+
+    /**
+     * Mutable accumulator for the fields of a {@link CompilationTaskInfo}. The model types are
+     * immutable Kotlin data classes, so tests build up the request here and materialize it in
+     * {@link #build()} when the task is assembled.
+     */
+    static final class InfoState {
+        String label = "";
+        String moduleName = "";
+        Platform platform = Platform.JVM;
+        RuleKind ruleKind = RuleKind.LIBRARY;
+        final List<String> debug = new ArrayList<>();
+        final List<String> passthroughFlags = new ArrayList<>();
+        String strictKotlinDeps = "";
+        boolean treatInternalAsPrivateInAbiJar = false;
+        boolean removePrivateClassesInAbiJar = false;
+        String apiVersion = "";
+        String coroutines = "";
+        String languageVersion = "";
+        String jvmTarget = "";
+        BtapiRuntime btapi = null;
+
+        void reset() {
+            label = "";
+            moduleName = "";
+            platform = Platform.JVM;
+            ruleKind = RuleKind.LIBRARY;
+            debug.clear();
+            passthroughFlags.clear();
+            strictKotlinDeps = "";
+            treatInternalAsPrivateInAbiJar = false;
+            removePrivateClassesInAbiJar = false;
+            apiVersion = "";
+            coroutines = "";
+            languageVersion = "";
+            jvmTarget = "";
+            btapi = null;
+        }
+
+        CompilationTaskInfo build() {
+            List<String> empty = Collections.emptyList();
+            return new CompilationTaskInfo(
+                    label,
+                    platform,
+                    ruleKind,
+                    moduleName,
+                    new ArrayList<>(passthroughFlags),
+                    new KotlinToolchainInfo(
+                            new Common(languageVersion, apiVersion, coroutines),
+                            new Jvm(jvmTarget),
+                            btapi),
+                    empty,
+                    "",
+                    new ArrayList<>(debug),
+                    strictKotlinDeps,
+                    "",
+                    treatInternalAsPrivateInAbiJar,
+                    removePrivateClassesInAbiJar,
+                    false,
+                    false,
+                    false);
+        }
+    }
 
     private static void assertFileExistence(Stream<Path> pathStream, boolean shouldExist) {
         pathStream.forEach(
@@ -78,9 +144,11 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
                 : Paths.get(parts[0], Arrays.copyOfRange(parts, 1, parts.length));
     }
 
-    abstract void setupForNext(CompilationTaskInfo.Builder infoBuilder);
+    abstract void setupForNext();
 
     abstract T buildTask();
+
+    abstract CompilationTaskInfo infoOf(T task);
 
     final String label() {
         return Objects.requireNonNull(label);
@@ -98,25 +166,21 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
     public final void resetForNext() {
         outLines = null;
         label = "a-test-" + counter.incrementAndGet();
-        infoBuilder
-                .setLabel("//some/bogus:" + label())
-                .setModuleName("some_bogus_module")
-                .setPlatform(Platform.JVM)
-                .setRuleKind(RuleKind.LIBRARY)
-                .setToolchainInfo(
-                        KotlinToolchainInfo.newBuilder()
-                                .setCommon(
-                                        KotlinToolchainInfo.Common.newBuilder()
-                                                .setApiVersion("2.0")
-                                                .setCoroutines("enabled")
-                                                .setLanguageVersion("2.0"))
-                                .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("11")));
+        infoState.reset();
+        infoState.label = "//some/bogus:" + label();
+        infoState.moduleName = "some_bogus_module";
+        infoState.platform = Platform.JVM;
+        infoState.ruleKind = RuleKind.LIBRARY;
+        infoState.apiVersion = "2.0";
+        infoState.coroutines = "enabled";
+        infoState.languageVersion = "2.0";
+        infoState.jvmTarget = "11";
         try {
             this.instanceRoot = Files.createTempDirectory(BAZEL_TEST_DIR, label);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        setupForNext(infoBuilder);
+        setupForNext();
     }
 
     final Path directory(DirectoryType type) {
@@ -125,7 +189,7 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
 
     @SuppressWarnings("unused")
     public final void setDebugTags(String... tags) {
-        infoBuilder.addAllDebug(Arrays.asList(tags));
+        infoState.debug.addAll(Arrays.asList(tags));
     }
 
     final Path writeFile(DirectoryType dirType, String filename, String[] lines) {
@@ -159,7 +223,7 @@ abstract class KotlinAbstractTestBuilder<T extends JvmCompilationTaskOrBuilder> 
     private <R> R runCompileTask(T task, BiFunction<CompilationTaskContext, T, R> operation) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (PrintStream outputStream = new PrintStream(out)) {
-            return operation.apply(new CompilationTaskContext(task.getInfo(), outputStream,
+            return operation.apply(new CompilationTaskContext(infoOf(task), outputStream,
                     instanceRoot().toAbsolutePath() + File.separator), task);
         } finally {
             outLines = unmodifiableList(

@@ -1,0 +1,23 @@
+load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
+
+kt_bootstrap_library(
+    name = "model",
+    srcs = [
+        "BtapiRuntime.kt",
+        "Common.kt",
+        "CompilationTaskInfo.kt",
+        "Directories.kt",
+        "Inputs.kt",
+        "Jvm.kt",
+        "JvmCompilationTask.kt",
+        "KotlinToolchainInfo.kt",
+        "Outputs.kt",
+        "Platform.kt",
+        "Plugin.kt",
+        "PluginOption.kt",
+        "PluginPhase.kt",
+        "RuleKind.kt",
+    ],
+    visibility = ["//src:__subpackages__"],
+    deps = [],
+)

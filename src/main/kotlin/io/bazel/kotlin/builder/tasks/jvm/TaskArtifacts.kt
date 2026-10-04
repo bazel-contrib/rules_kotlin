@@ -25,8 +25,8 @@ import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.MANIFEST_DIR
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
+import io.bazel.kotlin.model.Directories
 import io.bazel.kotlin.model.JvmCompilationTask
-import io.bazel.kotlin.model.JvmCompilationTask.Directories
 import java.nio.file.Files
 import java.nio.file.Files.isDirectory
 import java.nio.file.Files.walk
@@ -198,24 +198,24 @@ fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
       .iterator(),
   )
 
-private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
-  updateBuilder { builder ->
-    sources
-      .copyManifestFilesToGeneratedClasses(directories)
-      .filterOutNonCompilableSources()
-      .partitionJvmSources(
-        { builder.inputsBuilder.addKotlinSources(it) },
-        { builder.inputsBuilder.addJavaSources(it) },
-      )
-  }
-
-private fun JvmCompilationTask.updateBuilder(
-  block: (JvmCompilationTask.Builder) -> Unit,
-): JvmCompilationTask =
-  toBuilder().let {
-    block(it)
-    it.build()
-  }
+private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask {
+  val newKotlinSources = mutableListOf<String>()
+  val newJavaSources = mutableListOf<String>()
+  sources
+    .copyManifestFilesToGeneratedClasses(directories)
+    .filterOutNonCompilableSources()
+    .partitionJvmSources(
+      { newKotlinSources.add(it) },
+      { newJavaSources.add(it) },
+    )
+  return copy(
+    inputs =
+      inputs.copy(
+        kotlinSourcesList = inputs.kotlinSourcesList + newKotlinSources,
+        javaSourcesList = inputs.javaSourcesList + newJavaSources,
+      ),
+  )
+}
 
 /**
  * Copy generated manifest files from KSP task into generated folder

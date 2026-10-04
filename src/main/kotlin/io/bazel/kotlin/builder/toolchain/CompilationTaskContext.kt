@@ -16,8 +16,6 @@
  */
 package io.bazel.kotlin.builder.toolchain
 
-import com.google.protobuf.MessageOrBuilder
-import com.google.protobuf.TextFormat
 import io.bazel.kotlin.model.CompilationTaskInfo
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -78,13 +76,13 @@ class CompilationTaskContext(
     }
 
   /**
-   * Print a proto message if debugging is enabled for the task.
+   * Print a task message if debugging is enabled for the task.
    */
-  fun printProto(
+  fun printMsg(
     header: String,
-    msg: MessageOrBuilder,
+    msg: Any,
   ) {
-    printLines(header, TextFormat.printer().printToString(msg).split("\n"), filterEmpty = true)
+    printLines(header, msg.toString().split("\n"), filterEmpty = true)
   }
 
   /**

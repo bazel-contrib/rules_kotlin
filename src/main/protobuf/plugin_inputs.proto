@@ -1,0 +1,54 @@
+// Copyright 2026 The Bazel Authors. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Minimal wire schema for the compiler-plugin metadata payload emitted by
+// src/main/starlark/core/plugin/payload.bzl. Used ONLY as a protobuf JsonFormat
+// decoder: PluginsPayloadParser maps the parsed proto onto the hand-written
+// io.bazel.kotlin.model.Plugin types. The nested messages/enum keep the generated
+// Java symbols under the single outer class PluginInputs so they do not collide
+// with the top-level model classes sharing java_package io.bazel.kotlin.model.
+
+syntax = "proto3";
+
+package bazel.kotlin;
+
+option java_package = "io.bazel.kotlin.model";
+option java_multiple_files = true;
+
+// Root of the --plugins_payload JSON document: {"plugins":[...]}.
+message PluginInputs {
+  // Lifecycle phase a compiler plugin participates in. Enum-constant names are the
+  // frozen JSON wire tokens emitted by payload.bzl.
+  enum PluginPhase {
+    PLUGIN_PHASE_UNSPECIFIED = 0;
+    PLUGIN_PHASE_COMPILE = 1;
+    PLUGIN_PHASE_STUBS = 2;
+  }
+
+  // A single key/value option passed to a compiler plugin.
+  message PluginOption {
+    string key = 1;
+    string value = 2;
+  }
+
+  // One compiler plugin and the phases it runs in.
+  message Plugin {
+    string id = 1;
+    repeated string classpath = 2;
+    repeated PluginOption options = 3;
+    repeated PluginPhase phases = 4;
+  }
+
+  repeated Plugin plugins = 1;
+}

@@ -39,7 +39,7 @@ private class DispatchingTaskExecutor(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
-    if (task.info.toolchainInfo.hasBtapi()) {
+    if (task.info.toolchainInfo.btapi != null) {
       btapiExecutor.execute(context, task)
     } else {
       legacyExecutor.execute(context, task)

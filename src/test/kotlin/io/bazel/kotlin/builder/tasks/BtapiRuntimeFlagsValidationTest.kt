@@ -87,7 +87,7 @@ class BtapiRuntimeFlagsValidationTest {
       }
     }
     val task = checkNotNull(captured) { "the task never reached the executor" }
-    assertThat(task.info.toolchainInfo.hasBtapi()).isFalse()
+    assertThat(task.info.toolchainInfo.btapi != null).isFalse()
   }
 
   @Test

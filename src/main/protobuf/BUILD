@@ -15,20 +15,19 @@ java_proto_library(
 )
 
 proto_library(
-    name = "kotlin_model_proto",
-    srcs = [":kotlin_model.proto"],
+    name = "plugin_inputs_proto",
+    srcs = [":plugin_inputs.proto"],
     visibility = ["//visibility:public"],
 )
 
 java_proto_library(
-    name = "kotlin_model_java_proto",
-    deps = [":kotlin_model_proto"],
+    name = "plugin_inputs_java_proto",
+    deps = [":plugin_inputs_proto"],
 )
 
 java_library(
     name = "protobuf",
     exports = [
         ":deps_java_proto",
-        ":kotlin_model_java_proto",
     ],
 )
