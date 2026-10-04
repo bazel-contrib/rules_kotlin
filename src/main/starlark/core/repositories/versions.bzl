@@ -67,6 +67,13 @@ versions = struct(
             "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
         ],
     ),
+    JARJAR = version(
+        version = "1.17.0",
+        sha256 = "52566e0c865f7468a16b53020289658909ecc61ec3b1efbd7d98bcd3730712db",
+        url_templates = [
+            "https://repo.maven.apache.org/maven2/com/eed3si9n/jarjar/jarjar-assembly/{version}/jarjar-assembly-{version}.jar",
+        ],
+    ),
     PINTEREST_KTLINT = version(
         version = "1.8.0",
         url_templates = [

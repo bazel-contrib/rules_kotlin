@@ -1,6 +1,6 @@
 """Implementation of the rules_kotlin module extension."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file", "http_jar")
 load(
     ":btapi_impl.bzl",
     "BTAPI_IMPL_DEFAULT_REPOSITORY",
@@ -45,6 +45,12 @@ def kotlin_repositories(
         urls = [url.format(version = ksp_compiler_release.version) for url in ksp_compiler_release.url_templates],
         sha256 = ksp_compiler_release.sha256,
         strip_version = ksp_compiler_release.version,
+    )
+
+    versions.use_repository(
+        http_jar,
+        name = "jarjar",
+        version = versions.JARJAR,
     )
 
     versions.use_repository(

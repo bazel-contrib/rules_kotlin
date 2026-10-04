@@ -15,15 +15,6 @@ bazel_dep(name = "rules_android", version = "0.7.1")
 bazel_dep(name = "bazel_features", version = "1.39.0")
 bazel_dep(name = "bazel_lib", version = "3.1.0")
 
-http_jar = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
-
-# The assembly includes ASM, so the released runner needs only this one download.
-http_jar(
-    name = "jarjar",
-    sha256 = "52566e0c865f7468a16b53020289658909ecc61ec3b1efbd7d98bcd3730712db",
-    urls = ["https://repo.maven.apache.org/maven2/com/eed3si9n/jarjar/jarjar-assembly/1.17.0/jarjar-assembly-1.17.0.jar"],
-)
-
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
@@ -37,6 +28,7 @@ use_repo(
     "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
     "com_github_pinterest_ktlint",
+    "jarjar",
     "kotlin_build_tools_api",
     "kotlinx_coroutines_core_jvm",
     "kotlinx_serialization_core_jvm",
