@@ -155,10 +155,8 @@ message JvmCompilationTask {
     string generated_java_stub_jar = 6;
     // The path to the jar containing classes generated from Kotlin annotation processors.
     string generated_class_jar = 7;
-    // Source jar containing the generated KSP sources.
-    string generated_ksp_src_jar = 8;
-    // The path to the jar containing the generated KSP classes
-    string generated_ksp_classes_jar = 9;
+    reserved 8, 9;
+    reserved "generated_ksp_src_jar", "generated_ksp_classes_jar";
   }
 
   message Inputs {

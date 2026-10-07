@@ -25,10 +25,8 @@ import io.bazel.kotlin.builder.tasks.jvm.createAbiJar
 import io.bazel.kotlin.builder.tasks.jvm.createCoverageInstrumentedJar
 import io.bazel.kotlin.builder.tasks.jvm.createGeneratedClassJar
 import io.bazel.kotlin.builder.tasks.jvm.createGeneratedJavaSrcJar
-import io.bazel.kotlin.builder.tasks.jvm.createGeneratedKspKotlinSrcJar
 import io.bazel.kotlin.builder.tasks.jvm.createGeneratedStubJar
 import io.bazel.kotlin.builder.tasks.jvm.createOutputJar
-import io.bazel.kotlin.builder.tasks.jvm.createdGeneratedKspClassesJar
 import io.bazel.kotlin.builder.tasks.jvm.encodeMap
 import io.bazel.kotlin.builder.tasks.jvm.expandWithGeneratedSources
 import io.bazel.kotlin.builder.tasks.jvm.incrementalData
@@ -150,12 +148,6 @@ class BtapiTaskExecutor(
         }
         if (outputs.generatedClassJar.isNotEmpty()) {
           context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
-        }
-        if (outputs.generatedKspSrcJar.isNotEmpty()) {
-          context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
-        }
-        if (outputs.generatedKspClassesJar.isNotEmpty()) {
-          context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
         }
       }
     }

@@ -456,10 +456,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, classpath_jar
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.jdeps_merger.files_to_run.executable,
         execution_requirements = toolchains.kt.execution_requirements,
-        arguments = [
-            ctx.actions.args().add_all(toolchains.kt.builder_args),
-            args,
-        ],
+        arguments = [args],
         progress_message = progress_message,
         toolchain = _TOOLCHAIN_TYPE,
     )
@@ -618,10 +615,7 @@ def _run_ksp_builder_actions(
             toolchains.kt.execution_requirements,
             {"worker-key-mnemonic": "KotlinKsp2"},
         ),
-        arguments = [
-            ctx.actions.args().add_all(toolchains.kt.builder_args),
-            args,
-        ],
+        arguments = [args],
         progress_message = "Running KSP2 for %{label}",
         toolchain = _TOOLCHAIN_TYPE,
     )
@@ -814,7 +808,7 @@ def _run_kt_builder_action(
             toolchains.kt.execution_requirements,
             {"worker-key-mnemonic": mnemonic},
         ),
-        arguments = [ctx.actions.args().add_all(toolchains.kt.builder_args), args],
+        arguments = [args],
         progress_message = progress_message,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
