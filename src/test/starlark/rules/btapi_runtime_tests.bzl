@@ -24,7 +24,6 @@ def _default_runtime_assertion(env, target):
     env.expect.that_collection(_basenames(info.kapt)).contains_exactly(["kotlin-annotation-processing-embeddable.jar"])
     env.expect.that_collection(_basenames(info.jvm_abi_gen)).contains_exactly(["jvm-abi-gen.jar"])
     env.expect.that_collection(_basenames(info.jdeps_gen)).contains_exactly(["jdeps-gen-embeddable.jar"])
-    env.expect.that_collection(_basenames(info.skip_code_gen)).contains_exactly(["skip-code-gen-embeddable.jar"])
 
     # Load order: the implementation, the libraries (the daemon client among them), the compiler.
     classpath = _basenames(btapi_runtime_classpath(info))

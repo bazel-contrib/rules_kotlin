@@ -40,7 +40,6 @@ class BtapiRuntimeDigestTest {
       "impl.jar" to "d1",
       "compiler.jar" to "d2",
       "abi.jar" to "d3",
-      "skip.jar" to "d4",
       "kapt.jar" to "d5",
       "jdeps.jar" to "d6",
     )
@@ -125,8 +124,6 @@ class BtapiRuntimeDigestTest {
       "compiler.jar",
       "--internal_jvm_abi_gen_classpath",
       "abi.jar",
-      "--internal_skip_code_gen_classpath",
-      "skip.jar",
       "--internal_kapt_classpath",
       "kapt.jar",
       "--internal_jdeps_gen_classpath",

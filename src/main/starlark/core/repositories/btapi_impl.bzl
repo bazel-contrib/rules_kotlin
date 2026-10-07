@@ -25,8 +25,8 @@ _ARTIFACTS = [
 ]
 
 # The runtime members every record shares. They are not versioned with the Kotlin release: the
-# coroutines and serialization runtimes, the JetBrains annotations, and the two in-repo compiler
-# plugins in the embeddable dialect.
+# coroutines and serialization runtimes, the JetBrains annotations, and the in-repo jdeps compiler
+# plugin in the embeddable dialect.
 _SHARED_LIBRARIES = [
     str(Label("@kotlinx_coroutines_core_jvm//file")),
     str(Label("//kotlin/compiler:annotations")),
@@ -36,7 +36,6 @@ _SHARED_LIBRARIES = [
 ]
 _SHARED_PLUGINS = {
     "jdeps_gen": [str(Label("//src/main/kotlin:jdeps-gen-embeddable"))],
-    "skip_code_gen": [str(Label("//src/main/kotlin:skip-code-gen-embeddable"))],
 }
 _KT_CORE = str(Label("//kotlin:core.bzl"))
 

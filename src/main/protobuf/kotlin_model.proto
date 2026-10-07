@@ -50,7 +50,8 @@ message KotlinToolchainInfo {
         repeated string api_impl_classpath = 1;
         // The internal compiler plugin classpaths, matching the selected compiler's dialect.
         repeated string jvm_abi_gen_classpath = 2;
-        repeated string skip_code_gen_classpath = 3;
+        reserved 3;
+        reserved "skip_code_gen_classpath";
         repeated string kapt_classpath = 4;
         repeated string jdeps_gen_classpath = 5;
         // One hex digest over the (path, digest) pairs of api_impl_classpath, in order, from the

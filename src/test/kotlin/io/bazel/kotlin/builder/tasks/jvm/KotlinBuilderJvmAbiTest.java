@@ -39,13 +39,14 @@ public class KotlinBuilderJvmAbiTest {
   public void testGeneratesAbiOnly() {
     Deps.Dep d = ctx.runCompileTask(
         c -> {
+          c.addPassthroughFlags("-jvm-target", "17");
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.kt", "package something;", "", "class AnotherClass{}");
-          c.outputJar();
           c.outputAbiJar();
           c.compileKotlin();
           c.outputJdeps();
         });
+    assertThat(ctx.classFileMajorVersion("something/AClass.class"), is(61));
     ctx.runCompileTask(
         c -> {
           c.addDirectDependencies(d);

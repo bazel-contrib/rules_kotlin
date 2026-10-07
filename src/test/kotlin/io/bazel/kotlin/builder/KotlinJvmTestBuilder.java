@@ -114,7 +114,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             KotlinToolchain toolchain = toolchainForTest();
             InternalCompilerPlugins plugins = new InternalCompilerPlugins(
                     toolchain.getJvmAbiGen(),
-                    toolchain.getSkipCodeGen(),
                     toolchain.getKapt3Plugin(),
                     toolchain.getJdepsGen()
             );
@@ -152,7 +151,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     .addApiImplClasspath(Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar())
                     .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-compiler-embeddable.jar").singleCompileJar())
                     .addJvmAbiGenClasspath(Dep.fromLabel("@btapi_impl//:jvm-abi-gen.jar").singleCompileJar())
-                    .addSkipCodeGenClasspath(Dep.fromLabel("//src/main/kotlin:skip-code-gen-embeddable").singleCompileJar())
                     .addKaptClasspath(Dep.fromLabel("@btapi_impl//:kotlin-annotation-processing-embeddable.jar").singleCompileJar())
                     .addJdepsGenClasspath(Dep.fromLabel("//src/main/kotlin:jdeps-gen-embeddable").singleCompileJar())
                     .build();

@@ -13,7 +13,6 @@ _SETTING_CONTROLLED_RUNTIME_TOOLCHAIN = str(Label("@rules_kotlin//src/test/starl
 _BTAPI_RUNTIME_FLAG_COUNTS = [
     ("--btapi_impl_classpath", 11),
     ("--internal_jvm_abi_gen_classpath", 1),
-    ("--internal_skip_code_gen_classpath", 1),
     ("--internal_kapt_classpath", 1),
     ("--internal_jdeps_gen_classpath", 1),
 ]
@@ -56,7 +55,6 @@ def _runtime_args_present_assertion(env, target):
     _basenames_of(action, "--internal_kapt_classpath").contains_exactly(["kotlin-annotation-processing-embeddable.jar"])
     _basenames_of(action, "--internal_jvm_abi_gen_classpath").contains_exactly(["jvm-abi-gen.jar"])
     _basenames_of(action, "--internal_jdeps_gen_classpath").contains_exactly(["jdeps-gen-embeddable.jar"])
-    _basenames_of(action, "--internal_skip_code_gen_classpath").contains_exactly(["skip-code-gen-embeddable.jar"])
 
 def _runtime_args_absent_assertion(env, target):
     action = env.expect.that_target(target).action_named("KotlinCompile")

@@ -125,14 +125,14 @@ class Ksp2TaskTest {
     val args =
       ArgMap(
         mapOf(
-          Ksp2Flags.LANGUAGE_VERSION.flag to listOf("1.9"),
-          Ksp2Flags.API_VERSION.flag to listOf("1.9"),
+          Ksp2Flags.LANGUAGE_VERSION.flag to listOf("2.0"),
+          Ksp2Flags.API_VERSION.flag to listOf("2.0"),
           Ksp2Flags.JVM_TARGET.flag to listOf("17"),
           Ksp2Flags.JDK_HOME.flag to listOf("/path/to/jdk"),
         ),
       )
-    assertThat(args.optionalSingle(Ksp2Flags.LANGUAGE_VERSION)).isEqualTo("1.9")
-    assertThat(args.optionalSingle(Ksp2Flags.API_VERSION)).isEqualTo("1.9")
+    assertThat(args.optionalSingle(Ksp2Flags.LANGUAGE_VERSION)).isEqualTo("2.0")
+    assertThat(args.optionalSingle(Ksp2Flags.API_VERSION)).isEqualTo("2.0")
     assertThat(args.optionalSingle(Ksp2Flags.JVM_TARGET)).isEqualTo("17")
     assertThat(args.optionalSingle(Ksp2Flags.JDK_HOME)).isEqualTo("/path/to/jdk")
   }

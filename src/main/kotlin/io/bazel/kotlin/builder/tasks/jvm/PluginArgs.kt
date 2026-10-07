@@ -101,26 +101,11 @@ internal fun JvmCompilationTask.kaptArgs(
         "apclasspath" to inputs.processorpathsList,
         "aptMode" to listOf(aptMode),
       )
-    val version =
-      info.toolchainInfo.common.apiVersion
-        .toFloat()
-
-    when {
-      version < 1.5 -> {
-        base64Encode(
-          "-P",
-          *values + ("processors" to inputs.processorsList).asKeyToCommaList(),
-        ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
-      }
-
-      else -> {
-        repeatFlag(
-          "-P",
-          *values + ("processors" to inputs.processorsList),
-        ) { option, value ->
-          "plugin:${plugins.kapt.id}:$option=$value"
-        }
-      }
+    repeatFlag(
+      "-P",
+      *values + ("processors" to inputs.processorsList),
+    ) { option, value ->
+      "plugin:${plugins.kapt.id}:$option=$value"
     }
     // Read kapt options from the plugin options
     val optionPrefix = plugins.kapt.id + ":apoption="
@@ -138,10 +123,3 @@ internal fun JvmCompilationTask.kaptArgs(
     }
   }
 }
-
-/**
- * Helper function to convert a list of values into a single comma-separated string.
- * Used for KAPT plugin options in Kotlin versions < 1.5.
- */
-private fun Pair<String, List<String>>.asKeyToCommaList() =
-  first to listOf(second.joinToString(","))

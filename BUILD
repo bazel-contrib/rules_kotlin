@@ -105,7 +105,6 @@ multirun(
         "//src/main/kotlin/io/bazel/kotlin/builder/utils/jars:jars_ktlint_fix",
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler_ktlint_fix",
         "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2_ktlint_fix",
-        "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen-lib_ktlint_fix",
         "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen-lib_ktlint_fix",
         "//src/main/kotlin/io/bazel/worker:worker_ktlint_fix",
     ],

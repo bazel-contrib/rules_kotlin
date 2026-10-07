@@ -25,8 +25,6 @@ SHARD_COUNT = 3
                     "*",
                     # Node is currently broken.
                     "node/**",
-                    # Anvil is broken by a version upgrade.
-                    "anvil/**",
                 ],
             )
         }

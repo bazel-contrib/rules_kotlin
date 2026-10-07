@@ -93,6 +93,8 @@ def _map_api_version_to_flag(version):
 def _map_language_version_to_flag(version):
     if not version:
         return None
+    if int(version.split(".")[0]) < 2:
+        fail("rules_kotlin requires language_version 2.0 or newer; got %s" % version)
     return ["-language-version=%s" % version]
 
 def _map_xxlanguage_to_flag(values):
@@ -167,7 +169,7 @@ Options:
         flag = "-language-version",
         args = dict(
             default = "",
-            doc = "Provide source compatibility with the specified version of Kotlin. Overrides the toolchain's language_version when set.",
+            doc = "Provide source compatibility with the specified version of Kotlin (2.0 or newer). Overrides the toolchain's language_version when set.",
         ),
         type = attr.string,
         value_to_flag = None,
@@ -624,18 +626,6 @@ Migration to jvm_default:
             True: ["-Xtype-enhancement-improvements-strict-mode"],
         },
     ),
-    "x_use_fir": struct(
-        # 1.6
-        flag = "-Xuse-fir",
-        args = dict(
-            default = False,
-            doc = "Compile using the experimental Kotlin Front-end IR. Available from 1.6.",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xuse-fir"],
-        },
-    ),
     "x_use_fir_lt": struct(
         args = dict(
             default = False,
@@ -644,18 +634,6 @@ Migration to jvm_default:
         type = attr.bool,
         value_to_flag = {
             True: ["-Xuse-fir-lt"],
-        },
-    ),
-    "x_use_k2": struct(
-        # 1.7
-        flag = "-Xuse-k2",
-        args = dict(
-            default = False,
-            doc = "Compile using experimental K2. K2 is a new compiler pipeline, no compatibility guarantees are yet provided",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xuse-k2"],
         },
     ),
     "x_warning_level": struct(

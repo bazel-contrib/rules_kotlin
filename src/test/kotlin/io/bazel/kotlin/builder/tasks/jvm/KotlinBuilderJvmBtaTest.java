@@ -235,14 +235,12 @@ public class KotlinBuilderJvmBtaTest {
     public void testAbiJarGeneration() {
         // The abi jar is produced by the jvm-abi-gen compiler plugin configured as a typed
         // descriptor; the plugin must load in the compiler runtime the test harness configures
-        // (the embeddable compiler family). The output jar is requested too: without it the
-        // skip-code-gen plugin would engage, and that plugin does not support the K2 compiler.
+        // (the embeddable compiler family), including when only an ABI jar is requested.
         ctx.runCompileTask(
                 c -> {
                     c.useBuildToolsApi();
                     c.compileKotlin();
                     c.addSource("AClass.kt", "package something;" + "class AClass{}");
-                    c.outputJar();
                     c.outputAbiJar();
                     c.outputJdeps();
                 });

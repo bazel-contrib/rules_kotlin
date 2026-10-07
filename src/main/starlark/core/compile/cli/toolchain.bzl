@@ -25,6 +25,9 @@ KotlincJvmCompileInfo = provider(
 COMPILE_MNEMONIC = "CliKotlinc"
 
 def _cli_toolchain(ctx):
+    if int(ctx.attr.language_version.split(".")[0]) < 2:
+        fail("rules_kotlin requires language_version 2.0 or newer; got %s" % ctx.attr.language_version)
+
     java_runtime = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime
     java_toolchain = ctx.toolchains[JAVA_TOOLCHAIN_TYPE].java
 

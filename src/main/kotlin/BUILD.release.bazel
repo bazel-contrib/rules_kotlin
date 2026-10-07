@@ -37,24 +37,12 @@ java_import(
 )
 
 java_import(
-    name = "skip-code-gen",
-    jars = ["skip-code-gen.jar"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
     name = "jdeps-gen",
     jars = ["jdeps-gen.jar"],
     visibility = ["//visibility:public"],
 )
 
 # Embeddable-dialect plugin variants for the Build Tools API runtime override attributes.
-java_import(
-    name = "skip-code-gen-embeddable",
-    jars = ["skip-code-gen-embeddable.jar"],
-    visibility = ["//visibility:public"],
-)
-
 java_import(
     name = "jdeps-gen-embeddable",
     jars = ["jdeps-gen-embeddable.jar"],
@@ -65,7 +53,6 @@ java_binary(
     name = "build",
     data = [
         ":jdeps-gen",
-        ":skip-code-gen",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-compiler",
@@ -82,7 +69,6 @@ java_binary(
         "-D@com_github_jetbrains_kotlin...kotlin-stdlib=$(rlocationpath //kotlin/compiler:kotlin-stdlib)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
-        "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
         "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
         "-XX:-MaxFDLimit",

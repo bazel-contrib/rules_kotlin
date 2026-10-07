@@ -86,7 +86,7 @@ def _build_file_declares_the_runtime_test(ctx):
     asserts.true(env, 'kapt = [":kotlin-annotation-processing-embeddable.jar"]' in build_file, build_file)
     asserts.true(env, 'jvm_abi_gen = [":jvm-abi-gen.jar"]' in build_file, build_file)
     asserts.true(env, 'libraries = [":kotlin-daemon-client.jar", ":kotlin-stdlib.jar", ":kotlin-reflect.jar", ":kotlin-script-runtime.jar", ' in build_file, build_file)
-    asserts.true(env, "jdeps-gen-embeddable" in build_file and "skip-code-gen-embeddable" in build_file, build_file)
+    asserts.true(env, "jdeps-gen-embeddable" in build_file, build_file)
     asserts.true(env, "kotlinx_coroutines_core_jvm" in build_file, build_file)
     asserts.true(env, "kotlin-compiler.jar" not in build_file, build_file)
 

@@ -8,7 +8,6 @@ _ARTIFACTS = {
     "jvm_abi_gen": "the jvm-abi-gen compiler plugin, embeddable dialect.",
     "kapt": "the kapt compiler plugin, embeddable dialect.",
     "libraries": "the libraries the implementation and the compiler need.",
-    "skip_code_gen": "the skip-code-gen compiler plugin, embeddable dialect.",
 }
 
 # The attributes of kt_btapi_runtime and the fields of BtapiRuntimeInfo: the contract a repository's
@@ -28,7 +27,6 @@ _DISTRIBUTION_JARS = {
     "jdeps_gen": Label("//src/main/kotlin:jdeps-gen"),
     "jvm_abi_gen": Label("//kotlin/compiler:jvm-abi-gen"),
     "kapt": Label("//kotlin/compiler:kotlin-annotation-processing"),
-    "skip_code_gen": Label("//src/main/kotlin:skip-code-gen"),
 }
 
 def _kt_btapi_runtime_impl(ctx):
@@ -49,7 +47,7 @@ def _kt_btapi_runtime_impl(ctx):
         values[name] = files
 
     runtime = BtapiRuntimeInfo(**values)
-    plugins = values["jvm_abi_gen"] + values["kapt"] + values["jdeps_gen"] + values["skip_code_gen"]
+    plugins = values["jvm_abi_gen"] + values["kapt"] + values["jdeps_gen"]
     return [
         runtime,
         DefaultInfo(files = depset(btapi_runtime_classpath(runtime) + plugins)),

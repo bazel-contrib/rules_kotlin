@@ -87,6 +87,16 @@ _rejects_a_malformed_plugin_order_constraint_test = analysistest.make(
     expect_failure = True,
 )
 
+def _rejects_k1_language_version_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    asserts.expect_failure(env, "requires language_version 2.0 or newer")
+    return analysistest.end(env)
+
+_rejects_k1_language_version_test = analysistest.make(
+    _rejects_k1_language_version_test_impl,
+    expect_failure = True,
+)
+
 def _kotlinc_options_contents():
     write_file(
         name = "language_options_kt_source",
@@ -135,6 +145,24 @@ def _kotlinc_options_contents():
         tags = ["manual"],
     )
 
+    kt_kotlinc_options(
+        name = "k1_language_options",
+        language_version = "1.9",
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
+        name = "k1_language_library",
+        srcs = ["language_options_kt_source"],
+        kotlinc_opts = ":k1_language_options",
+        tags = ["manual"],
+    )
+
+    _rejects_k1_language_version_test(
+        name = "rejects_k1_language_version_test",
+        target_under_test = ":k1_language_library",
+    )
+
     _language_options_test(
         name = "language_options_reach_the_compiler_test",
         target_under_test = ":language_options_library",
@@ -159,5 +187,6 @@ def kotlinc_options_test_suite(name):
             ":language_options_reach_the_compiler_test",
             ":toolchain_versions_by_default_test",
             ":rejects_a_malformed_plugin_order_constraint_test",
+            ":rejects_k1_language_version_test",
         ],
     )
