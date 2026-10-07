@@ -9,6 +9,7 @@ import org.junit.Test
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.useLines
@@ -59,7 +60,7 @@ class ToolchainLoadingTest : BazelIntegrationTestBase() {
     val release = unpackRelease(env("RULES_KOTLIN_RELEASE"))
     val consumer = root.resolve("consumer").createDirectories()
     val output = root.resolve("output")
-    val logs = Path.of(env("TEST_UNDECLARED_OUTPUTS_DIR"), "nested_bazel").createDirectories()
+    val logs = Paths.get(env("TEST_UNDECLARED_OUTPUTS_DIR"), "nested_bazel").createDirectories()
 
     consumer.resolve("MODULE.bazel").writeText(
       """

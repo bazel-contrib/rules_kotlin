@@ -9,6 +9,7 @@ import java.io.OutputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -21,13 +22,13 @@ abstract class BazelIntegrationTestBase {
 
   // Data belongs to the outer integration test, not an individual runner's runfiles.
   private val runfiles = Runfiles.preload(mapOf("RUNFILES_DIR" to env("TEST_SRCDIR"))).unmapped()
-  protected val root: Path = Path.of(env("TEST_TMPDIR"))
+  protected val root: Path = Paths.get(env("TEST_TMPDIR"))
   protected val bazel: Path =
-    Path.of(env("BIT_BAZEL_BINARY")).also {
+    Paths.get(env("BIT_BAZEL_BINARY")).also {
       println("Bazel launcher: $it\nResolved path: ${it.toRealPath()}")
     }
 
-  protected fun runfile(path: String): Path = Path.of(runfiles.rlocation(path))
+  protected fun runfile(path: String): Path = Paths.get(runfiles.rlocation(path))
 
   protected fun unpackRelease(archiveRunfile: String): Path {
     val release = root.resolve("rules_kotlin").createDirectories()

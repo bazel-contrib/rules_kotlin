@@ -22,7 +22,7 @@ import com.google.devtools.build.lib.worker.WorkRequestHandler
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import java.io.IOException
 import java.io.PrintWriter
-import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.Duration
 
 /**
@@ -45,7 +45,7 @@ class PersistentWorker : Worker {
                 ->
                 return@WorkRequestCallback doTask(
                   name = "request ${request.requestId}",
-                  sandboxDir = request.sandboxDir.takeIf { it.isNotEmpty() }?.let { Path.of(it) },
+                  sandboxDir = request.sandboxDir.takeIf { it.isNotEmpty() }?.let { Paths.get(it) },
                   inputDigests = request.inputDigests(),
                   task = request.workTo(execute),
                 ).asResponse(pw)

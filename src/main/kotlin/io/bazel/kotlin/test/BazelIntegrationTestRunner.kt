@@ -3,6 +3,7 @@ package io.bazel.kotlin.test
 import org.junit.Test
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.function.Predicate
 import kotlin.io.path.exists
 
@@ -13,7 +14,7 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
   @Test
   fun exampleBuildsAndTests() {
     val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-    val workspace = Path.of(env("BIT_WORKSPACE_DIR"))
+    val workspace = Paths.get(env("BIT_WORKSPACE_DIR"))
     val unpack = unpackRelease(
       requireNotNull(System.getProperty("@rules_kotlin...rules_kotlin_release")),
     )
