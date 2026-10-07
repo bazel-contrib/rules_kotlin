@@ -95,7 +95,6 @@ class KotlinBuilderBuildTest {
             .singleCompileJar(),
         ),
         File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
-        File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
         File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
         File(
           Deps.Dep
@@ -107,7 +106,6 @@ class KotlinBuilderBuildTest {
       toolchain,
       InternalCompilerPlugins(
         toolchain.jvmAbiGen,
-        toolchain.skipCodeGen,
         toolchain.kapt3Plugin,
         toolchain.jdepsGen,
       ),

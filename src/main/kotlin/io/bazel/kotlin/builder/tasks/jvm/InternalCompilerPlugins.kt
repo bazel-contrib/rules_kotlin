@@ -21,7 +21,6 @@ import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 
 class InternalCompilerPlugins constructor(
   val jvmAbiGen: KotlinToolchain.CompilerPlugin,
-  val skipCodeGen: KotlinToolchain.CompilerPlugin,
   val kapt: KotlinToolchain.CompilerPlugin,
   val jdeps: KotlinToolchain.CompilerPlugin,
 )

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.squareup.anvil.sample">
-    <uses-sdk android:minSdkVersion="28"
-              android:targetSdkVersion="29"
-              android:maxSdkVersion="28"/>
-    <application/>
-</manifest>

@@ -643,7 +643,6 @@ def btapi_runtime_worker_args(runtime):
     return [
         ("--btapi_impl_classpath", btapi_runtime_classpath(runtime)),
         ("--internal_jvm_abi_gen_classpath", runtime.jvm_abi_gen),
-        ("--internal_skip_code_gen_classpath", runtime.skip_code_gen),
         ("--internal_kapt_classpath", runtime.kapt),
         ("--internal_jdeps_gen_classpath", runtime.jdeps_gen),
     ]

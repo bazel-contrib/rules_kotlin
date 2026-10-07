@@ -28,7 +28,6 @@ class KotlinToolchain private constructor(
   private val baseJars: List<File>,
   val kapt3Plugin: CompilerPlugin,
   val jvmAbiGen: CompilerPlugin,
-  val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
   /**
    * The worker-provided jars every Build Tools API compiler runtime shares regardless of the
@@ -60,13 +59,6 @@ class KotlinToolchain private constructor(
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@rules_kotlin...compiler",
-        ).toPath()
-    }
-
-    private val SKIP_CODE_GEN_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...skip-code-gen",
         ).toPath()
     }
 
@@ -114,7 +106,6 @@ class KotlinToolchain private constructor(
         BUILD_TOOLS_API.verified().absoluteFile,
         COMPILER.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
-        SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
         KAPT_PLUGIN.verified().absoluteFile,
       )
@@ -127,7 +118,6 @@ class KotlinToolchain private constructor(
       buildToolsApi: File,
       compiler: File,
       jvmAbiGenFile: File,
-      skipCodeGenFile: File,
       jdepsGenFile: File,
       kaptFile: File,
     ): KotlinToolchain =
@@ -150,11 +140,6 @@ class KotlinToolchain private constructor(
           CompilerPlugin(
             jvmAbiGenFile.path,
             "org.jetbrains.kotlin.jvm.abi",
-          ),
-        skipCodeGen =
-          CompilerPlugin(
-            skipCodeGenFile.path,
-            "io.bazel.kotlin.plugin.SkipCodeGen",
           ),
         jdepsGen =
           CompilerPlugin(

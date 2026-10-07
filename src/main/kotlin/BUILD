@@ -7,13 +7,6 @@ exports_files(
 )
 
 jar_jar(
-    name = "skip-code-gen",
-    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
-    rules = "shade.jarjar",
-    visibility = ["//visibility:public"],
-)
-
-jar_jar(
     name = "jdeps-gen",
     input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
     rules = "shade.jarjar",
@@ -22,13 +15,6 @@ jar_jar(
 
 # The embeddable-dialect variants of the builder's compiler plugins the Build Tools API runtime uses.
 # (see the btapi_*/internal_* toolchain attributes)
-jar_jar(
-    name = "skip-code-gen-embeddable",
-    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
-    rules = "shade.embeddable.jarjar",
-    visibility = ["//visibility:public"],
-)
-
 jar_jar(
     name = "jdeps-gen-embeddable",
     input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
@@ -65,8 +51,6 @@ release_archive(
     srcs = [
         ":jdeps-gen.jar",
         ":jdeps-gen-embeddable.jar",
-        ":skip-code-gen.jar",
-        ":skip-code-gen-embeddable.jar",
     ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {

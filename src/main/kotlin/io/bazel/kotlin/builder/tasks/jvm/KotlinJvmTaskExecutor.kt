@@ -87,10 +87,8 @@ class KotlinJvmTaskExecutor(
                           }
                           flag("strict_kotlin_deps", info.strictKotlinDeps)
                         }
-                      }.given(outputs.jar)
-                      .notEmpty {
-                        append(codeGenArgs())
-                      }.given(outputs.abijar)
+                      }.append(codeGenArgs())
+                      .given(outputs.abijar)
                       .notEmpty {
                         plugin(plugins.jvmAbiGen) {
                           flag("outputDir", directories.abiClasses)
@@ -109,9 +107,6 @@ class KotlinJvmTaskExecutor(
                           if (info.removeDataClassCopyIfConstructorIsPrivate) {
                             flag("removeDataClassCopyIfConstructorIsPrivate", "true")
                           }
-                        }
-                        given(outputs.jar).empty {
-                          plugin(plugins.skipCodeGen)
                         }
                       },
                   printOnFail = false,

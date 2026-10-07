@@ -88,6 +88,8 @@ def _parse_version(basename):
 def _get_capability_template(compiler_version, templates):
     version_index = {}
     target = _version(compiler_version)
+    if target[0] < 2:
+        fail("rules_kotlin requires Kotlin 2.0 or newer; got %s" % compiler_version)
     if len(target) > 2:
         target = target[0:2]
     for template in templates:
@@ -101,12 +103,7 @@ def _get_capability_template(compiler_version, templates):
 
     last_version = sorted(version_index.keys(), reverse = True)[0]
 
-    # After latest version, chosen by major revision
-    if target[0] >= last_version[0]:
-        return version_index[last_version]
-
-    # Legacy
-    return version_index[(0, 0, 0)]
+    return version_index[last_version]
 
 kotlin_capabilities_repository = repository_rule(
     implementation = _kotlin_capabilities_impl,

@@ -56,7 +56,6 @@ object Build {
         val plugins =
           InternalCompilerPlugins(
             toolchain.jvmAbiGen,
-            toolchain.skipCodeGen,
             toolchain.kapt3Plugin,
             toolchain.jdepsGen,
           )

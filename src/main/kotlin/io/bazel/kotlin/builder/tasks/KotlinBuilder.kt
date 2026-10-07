@@ -86,7 +86,6 @@ class KotlinBuilder(
       INSTRUMENT_COVERAGE("--instrument_coverage"),
       BTAPI_IMPL_CLASSPATH("--btapi_impl_classpath"),
       INTERNAL_JVM_ABI_GEN_CLASSPATH("--internal_jvm_abi_gen_classpath"),
-      INTERNAL_SKIP_CODE_GEN_CLASSPATH("--internal_skip_code_gen_classpath"),
       INTERNAL_KAPT_CLASSPATH("--internal_kapt_classpath"),
       INTERNAL_JDEPS_GEN_CLASSPATH("--internal_jdeps_gen_classpath"),
     }
@@ -205,7 +204,6 @@ class KotlinBuilder(
     listOf(
       KotlinBuilderFlags.BTAPI_IMPL_CLASSPATH,
       KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN_CLASSPATH,
-      KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN_CLASSPATH,
       KotlinBuilderFlags.INTERNAL_KAPT_CLASSPATH,
       KotlinBuilderFlags.INTERNAL_JDEPS_GEN_CLASSPATH,
     )
@@ -238,9 +236,6 @@ class KotlinBuilder(
       addAllApiImplClasspath(argMap.mandatory(KotlinBuilderFlags.BTAPI_IMPL_CLASSPATH))
       addAllJvmAbiGenClasspath(
         argMap.mandatory(KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN_CLASSPATH),
-      )
-      addAllSkipCodeGenClasspath(
-        argMap.mandatory(KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN_CLASSPATH),
       )
       addAllKaptClasspath(argMap.mandatory(KotlinBuilderFlags.INTERNAL_KAPT_CLASSPATH))
       addAllJdepsGenClasspath(argMap.mandatory(KotlinBuilderFlags.INTERNAL_JDEPS_GEN_CLASSPATH))

@@ -42,13 +42,6 @@ class CompilationArgs(
       }
       return parent
     }
-
-    fun empty(conditionalArgs: CompilationArgs.(it: String) -> Unit): CompilationArgs {
-      if (value.isEmpty()) {
-        parent.conditionalArgs(value)
-      }
-      return parent
-    }
   }
 
   interface SetFlag {
@@ -57,8 +50,6 @@ class CompilationArgs(
       value: String,
     ): SetFlag
   }
-
-  fun plugin(p: KotlinToolchain.CompilerPlugin): CompilationArgs = plugin(p) {}
 
   fun plugin(
     p: KotlinToolchain.CompilerPlugin,

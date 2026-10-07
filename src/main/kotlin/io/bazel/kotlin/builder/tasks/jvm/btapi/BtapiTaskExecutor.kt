@@ -52,7 +52,6 @@ import java.util.concurrent.ConcurrentHashMap
 // The internal compiler plugin ids; the plugin jars come from the toolchain-supplied
 // Build Tools API runtime (BtapiRuntime).
 private const val JVM_ABI_GEN_PLUGIN_ID = "org.jetbrains.kotlin.jvm.abi"
-private const val SKIP_CODE_GEN_PLUGIN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"
 private const val KAPT_PLUGIN_ID = "org.jetbrains.kotlin.kapt3"
 private const val JDEPS_GEN_PLUGIN_ID = "io.bazel.kotlin.plugin.jdeps.JDepsGen"
 
@@ -277,15 +276,6 @@ class BtapiTaskExecutor(
           options = abiOptions,
         ),
       )
-      if (outputs.jar.isEmpty()) {
-        descriptors.add(
-          PluginDescriptor(
-            id = SKIP_CODE_GEN_PLUGIN_ID,
-            classpath = runtime.skipCodeGenClasspath,
-            options = emptyList(),
-          ),
-        )
-      }
     }
     descriptors.addAll(userPluginDescriptors(PluginPhase.PLUGIN_PHASE_COMPILE, runtime))
 

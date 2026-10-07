@@ -303,8 +303,7 @@ Core Kotlin rule and providers.
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_btapi_runtime")
 
-kt_btapi_runtime(<a href="#kt_btapi_runtime-name">name</a>, <a href="#kt_btapi_runtime-base">base</a>, <a href="#kt_btapi_runtime-build_tools_impl">build_tools_impl</a>, <a href="#kt_btapi_runtime-compiler">compiler</a>, <a href="#kt_btapi_runtime-jdeps_gen">jdeps_gen</a>, <a href="#kt_btapi_runtime-jvm_abi_gen">jvm_abi_gen</a>, <a href="#kt_btapi_runtime-kapt">kapt</a>, <a href="#kt_btapi_runtime-libraries">libraries</a>,
-                 <a href="#kt_btapi_runtime-skip_code_gen">skip_code_gen</a>)
+kt_btapi_runtime(<a href="#kt_btapi_runtime-name">name</a>, <a href="#kt_btapi_runtime-base">base</a>, <a href="#kt_btapi_runtime-build_tools_impl">build_tools_impl</a>, <a href="#kt_btapi_runtime-compiler">compiler</a>, <a href="#kt_btapi_runtime-jdeps_gen">jdeps_gen</a>, <a href="#kt_btapi_runtime-jvm_abi_gen">jvm_abi_gen</a>, <a href="#kt_btapi_runtime-kapt">kapt</a>, <a href="#kt_btapi_runtime-libraries">libraries</a>)
 </pre>
 
 The Build Tools API compilation runtime: the jars the worker loads into the Build Tools
@@ -329,7 +328,6 @@ artifact from the configured Kotlin release.
 | <a id="kt_btapi_runtime-jvm_abi_gen"></a>jvm_abi_gen |  The jvm-abi-gen compiler plugin, embeddable dialect.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_btapi_runtime-kapt"></a>kapt |  The kapt compiler plugin, embeddable dialect.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_btapi_runtime-libraries"></a>libraries |  The libraries the implementation and the compiler need.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="kt_btapi_runtime-skip_code_gen"></a>skip_code_gen |  The skip-code-gen compiler plugin, embeddable dialect.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 
 
 <a id="kt_compiler_plugin"></a>
@@ -438,8 +436,8 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
                    <a href="#kt_kotlinc_options-x_nullability_annotations">x_nullability_annotations</a>, <a href="#kt_kotlinc_options-x_optin">x_optin</a>, <a href="#kt_kotlinc_options-x_render_internal_diagnostic_names">x_render_internal_diagnostic_names</a>,
                    <a href="#kt_kotlinc_options-x_report_all_warnings">x_report_all_warnings</a>, <a href="#kt_kotlinc_options-x_report_perf">x_report_perf</a>, <a href="#kt_kotlinc_options-x_sam_conversions">x_sam_conversions</a>, <a href="#kt_kotlinc_options-x_skip_prerelease_check">x_skip_prerelease_check</a>,
                    <a href="#kt_kotlinc_options-x_suppress_version_warnings">x_suppress_version_warnings</a>, <a href="#kt_kotlinc_options-x_suppress_warning">x_suppress_warning</a>,
-                   <a href="#kt_kotlinc_options-x_type_enhancement_improvements_strict_mode">x_type_enhancement_improvements_strict_mode</a>, <a href="#kt_kotlinc_options-x_use_fir_lt">x_use_fir_lt</a>, <a href="#kt_kotlinc_options-x_use_k2">x_use_k2</a>,
-                   <a href="#kt_kotlinc_options-x_warning_level">x_warning_level</a>, <a href="#kt_kotlinc_options-x_when_guards">x_when_guards</a>, <a href="#kt_kotlinc_options-x_xlanguage">x_xlanguage</a>)
+                   <a href="#kt_kotlinc_options-x_type_enhancement_improvements_strict_mode">x_type_enhancement_improvements_strict_mode</a>, <a href="#kt_kotlinc_options-x_use_fir_lt">x_use_fir_lt</a>, <a href="#kt_kotlinc_options-x_warning_level">x_warning_level</a>,
+                   <a href="#kt_kotlinc_options-x_when_guards">x_when_guards</a>, <a href="#kt_kotlinc_options-x_xlanguage">x_xlanguage</a>)
 </pre>
 
 Define kotlin compiler options.
@@ -455,7 +453,7 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-java_parameters"></a>java_parameters |  Generate metadata for Java 1.8+ reflection on method parameters.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-jvm_default"></a>jvm_default |  Specifies how to generate JVM default methods for interface declarations with bodies. This is the stable replacement for x_jvm_default (-Xjvm-default). Available from Kotlin 2.2. Options: - 'off': Don't pass the flag (uses compiler default, which is 'enable' in Kotlin 2.2+). - 'enable': Generate default methods and DefaultImpls for compatibility. - 'no-compatibility': Generate default methods without DefaultImpls classes. - 'disable': Do not generate JVM default methods (was the default up to Kotlin 2.1).   | String | optional |  `"off"`  |
 | <a id="kt_kotlinc_options-jvm_target"></a>jvm_target |  The target version of the generated JVM bytecode   | String | optional |  `""`  |
-| <a id="kt_kotlinc_options-language_version"></a>language_version |  Provide source compatibility with the specified version of Kotlin. Overrides the toolchain's language_version when set.   | String | optional |  `""`  |
+| <a id="kt_kotlinc_options-language_version"></a>language_version |  Provide source compatibility with the specified version of Kotlin (2.0 or newer). Overrides the toolchain's language_version when set.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-progressive"></a>progressive |  Enable progressive compiler mode. In this mode, deprecations and bug fixes for unstable code take effect immediately instead of going through a graceful migration cycle.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-warn"></a>warn |  Control warning behaviour.   | String | optional |  `"report"`  |
 | <a id="kt_kotlinc_options-x_allow_kotlin_package"></a>x_allow_kotlin_package |  Allow compiling code in the 'kotlin' package, and allow not requiring 'kotlin.stdlib' in 'module-info'.   | Boolean | optional |  `False`  |
@@ -493,7 +491,6 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-x_suppress_warning"></a>x_suppress_warning |  Suppress specific warnings globally   | List of strings | optional |  `[]`  |
 | <a id="kt_kotlinc_options-x_type_enhancement_improvements_strict_mode"></a>x_type_enhancement_improvements_strict_mode |  Enables strict mode for type enhancement improvements, enforcing stricter type checking and enhancements.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_use_fir_lt"></a>x_use_fir_lt |  Compile using LightTree parser with Front-end IR. Warning: this feature is far from being production-ready   | Boolean | optional |  `False`  |
-| <a id="kt_kotlinc_options-x_use_k2"></a>x_use_k2 |  Compile using experimental K2. K2 is a new compiler pipeline, no compatibility guarantees are yet provided   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_warning_level"></a>x_warning_level |  Suppress specific warnings globally. Ex: 'OPTION': '(error\|warning\|disabled)'   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="kt_kotlinc_options-x_when_guards"></a>x_when_guards |  Enable experimental language support for when guards.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_xlanguage"></a>x_xlanguage |  Enable or disable the specified language feature. Not intended for production use; prefer language_version or the dedicated feature flags.   | List of strings | optional |  `[]`  |
@@ -578,7 +575,7 @@ This allows setting options and dependencies independently from the initial plug
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "BtapiRuntimeInfo")
 
-BtapiRuntimeInfo(<a href="#BtapiRuntimeInfo-build_tools_impl">build_tools_impl</a>, <a href="#BtapiRuntimeInfo-compiler">compiler</a>, <a href="#BtapiRuntimeInfo-jdeps_gen">jdeps_gen</a>, <a href="#BtapiRuntimeInfo-jvm_abi_gen">jvm_abi_gen</a>, <a href="#BtapiRuntimeInfo-kapt">kapt</a>, <a href="#BtapiRuntimeInfo-libraries">libraries</a>, <a href="#BtapiRuntimeInfo-skip_code_gen">skip_code_gen</a>)
+BtapiRuntimeInfo(<a href="#BtapiRuntimeInfo-build_tools_impl">build_tools_impl</a>, <a href="#BtapiRuntimeInfo-compiler">compiler</a>, <a href="#BtapiRuntimeInfo-jdeps_gen">jdeps_gen</a>, <a href="#BtapiRuntimeInfo-jvm_abi_gen">jvm_abi_gen</a>, <a href="#BtapiRuntimeInfo-kapt">kapt</a>, <a href="#BtapiRuntimeInfo-libraries">libraries</a>)
 </pre>
 
 The complete Build Tools API compilation runtime: the classloader group and the internal
@@ -594,7 +591,6 @@ compiler plugins. Every jar is the embeddable compiler dialect.
 | <a id="BtapiRuntimeInfo-jvm_abi_gen"></a>jvm_abi_gen |  list of File: the jvm-abi-gen compiler plugin, embeddable dialect.    |
 | <a id="BtapiRuntimeInfo-kapt"></a>kapt |  list of File: the kapt compiler plugin, embeddable dialect.    |
 | <a id="BtapiRuntimeInfo-libraries"></a>libraries |  list of File: the libraries the implementation and the compiler need.    |
-| <a id="BtapiRuntimeInfo-skip_code_gen"></a>skip_code_gen |  list of File: the skip-code-gen compiler plugin, embeddable dialect.    |
 
 
 <a id="define_kt_toolchain"></a>

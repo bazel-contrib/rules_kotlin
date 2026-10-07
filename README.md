@@ -38,7 +38,7 @@ Other features:
   * Mixed-Mode compilation (compile Java and Kotlin in one pass).
   * Configurable Kotlinc distribution and version
   * Configurable Toolchain
-  * Support for all recent major Kotlin releases.
+  * Kotlin 2 compiler and language versions (2.0 or newer). K1 is no longer supported.
   
 Javascript is reported to work, but is not as well maintained (at present)
 
@@ -87,7 +87,7 @@ define_kt_toolchain(
     name = "kotlin_toolchain",
     api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
     jvm_target = JAVA_LANGUAGE_LEVEL, # "1.8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", or "25"
-    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
+    language_version = KOTLIN_LANGUAGE_LEVEL,  # "2.0", "2.1", "2.2", "2.3", or "2.4"
 )
 ```
 
