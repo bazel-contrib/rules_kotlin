@@ -134,15 +134,6 @@ class CompilationArgs(
   }
 
   fun flag(
-    key: String,
-    value: () -> String,
-  ): CompilationArgs {
-    args.add(key)
-    args.add(value())
-    return this
-  }
-
-  fun flag(
     flag: String,
     value: String,
   ): CompilationArgs {
