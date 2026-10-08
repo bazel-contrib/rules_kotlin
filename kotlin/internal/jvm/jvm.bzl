@@ -300,6 +300,7 @@ Compiler plugins listed here will be treated as if they were added in the plugin
 of any targets that directly depend on this target. Like `java_plugin`s exported_plugins,
 this is not transitive""",
         default = [],
+        cfg = "exec",
         providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration]],
     ),
     "exports": attr.label_list(
@@ -482,6 +483,7 @@ Compiler plugins listed here will be treated as if they were added in the plugin
 attribute of any targets that directly depend on this target. Like java_plugins'
 exported_plugins, this is not transitive""",
             default = [],
+            cfg = "exec",
             providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration], [_KspPluginInfo]],
         ),
         "exports": attr.label_list(

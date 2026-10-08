@@ -640,6 +640,115 @@ def _test_library_plugin_without_phase(test):
         },
     )
 
+def _compile_exported_plugin_configuration(test, exporter_of):
+    """Compiles a consumer that configures a plugin which a dependency exports.
+
+    The export and the consumer's kt_plugin_cfg must resolve to one configured plugin target.
+    The compile then merges the configuration into the plugin instead of rejecting a duplicate id.
+    """
+    plugin_jar = test.artifact(
+        name = "plugin.jar",
+    )
+
+    plugin = test.have(
+        kt_compiler_plugin,
+        name = "plugin",
+        id = "test.stub",
+        options = {
+            "annotation": ["plugin.StubForTesting"],
+        },
+        deps = [
+            test.have(
+                kt_jvm_import,
+                name = "plugin_jar",
+                jars = [
+                    plugin_jar,
+                ],
+            ),
+        ],
+    )
+
+    exporter = exporter_of(plugin)
+
+    cfg = test.have(
+        kt_plugin_cfg,
+        name = "cfg",
+        plugin = plugin,
+        options = {
+            "-Dop": ["koo"],
+        },
+    )
+
+    got = test.got(
+        kt_jvm_library,
+        name = "got_library",
+        srcs = [
+            test.artifact(
+                name = "got_library.kt",
+            ),
+        ],
+        plugins = [cfg],
+        deps = [exporter],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _action_test_impl,
+        target = got,
+        config_settings = _LEGACY_INVOCATION,
+        attr_values = {
+            "on_action_mnemonic": "KotlinCompile",
+            "want_flag_keys": ["--plugins_payload"],
+            "want_flags": {
+            },
+            "want_inputs": [
+                plugin_jar,
+            ],
+            "want_payload_plugins": [
+                "id=test.stub classpath=[{n}_plugin.jar] ".format(n = test.name) +
+                "phases=[PLUGIN_PHASE_COMPILE,PLUGIN_PHASE_STUBS] " +
+                "options=[annotation=plugin.StubForTesting,-Dop=koo]",
+            ],
+        },
+        attrs = {
+            "on_action_mnemonic": attr.string(),
+            "want_flag_keys": attr.string_list(),
+            "want_flags": attr.string_list_dict(),
+            "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
+            "want_payload_plugins": attr.string_list(),
+        },
+    )
+
+def _test_compile_exported_plugin_configuration(test):
+    _compile_exported_plugin_configuration(
+        test,
+        exporter_of = lambda plugin: test.have(
+            kt_jvm_library,
+            name = "exporter",
+            srcs = [
+                test.artifact(
+                    name = "exporter.kt",
+                ),
+            ],
+            exported_compiler_plugins = [plugin],
+        ),
+    )
+
+def _test_compile_exported_plugin_configuration_import(test):
+    _compile_exported_plugin_configuration(
+        test,
+        exporter_of = lambda plugin: test.have(
+            kt_jvm_import,
+            name = "exporter",
+            jars = [
+                test.artifact(
+                    name = "exporter.jar",
+                ),
+            ],
+            exported_compiler_plugins = [plugin],
+        ),
+    )
+
 def test_suite(name):
     suite(
         name,
@@ -651,4 +760,6 @@ def test_suite(name):
         test_library_plugin_without_phase = _test_library_plugin_without_phase,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
         test_compile_multiple_configurations = _test_compile_multiple_configurations,
+        test_compile_exported_plugin_configuration = _test_compile_exported_plugin_configuration,
+        test_compile_exported_plugin_configuration_import = _test_compile_exported_plugin_configuration_import,
     )
