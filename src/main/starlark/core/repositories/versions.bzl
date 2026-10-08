@@ -26,7 +26,7 @@ def _use_repository(rule, name, version, **kwargs):
 # The Kotlin compiler release train: the CLI distribution, the Build Tools API jar, and the Build
 # Tools API implementation record ship together under this one version. Bump them together; each
 # entry keeps its own per-artifact sha256.
-_KOTLIN_CURRENT_RELEASE = "2.4.20"
+_KOTLIN_CURRENT_RELEASE = "2.4.21"
 
 versions = struct(
     # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
@@ -86,7 +86,7 @@ versions = struct(
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "59e9ca74c7904ef2c122b12114937673ccce68de820a663f0ed66ccf8799e0b7",
+        sha256 = "7cc140e76daf416a0424a5557f99afd7ca89ebd463ea1101261e3e01c33e75cd",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "2.3.12",
@@ -102,7 +102,7 @@ versions = struct(
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/{version}/kotlin-build-tools-api-{version}.jar",
         ],
-        sha256 = "47a622dce7231b1916334b69a00bc1094adf6577e6492f9f06b3d9c2450fe459",
+        sha256 = "c5cd6a49bd072b529ae10809111c16a7aa0f92147e95d288354017fd65799461",
     ),
     # The Build Tools API implementation of the current release and the embeddable compiler family
     # it loads: the Maven-published kotlinc build whose bundled third-party packages are shaded
@@ -110,14 +110,14 @@ versions = struct(
     # Gradle/Maven consumption are compiled against. The repository @btapi_impl is built from it.
     BTAPI_IMPL_CURRENT_RELEASE = btapi_impl_version(
         version = _KOTLIN_CURRENT_RELEASE,
-        build_tools_impl_sha256 = "68fb6f266a66463a1ba3ddb99b96e5eb202ab19a5ca4e3b56dad5eec62641c7d",
-        compiler_sha256 = "cf97161430683fb9af96dc6a7017ffae1fe8737b80d12eee11f2fe3e76f8ded8",
-        annotation_processing_sha256 = "b1462810aa9b3b2f2a93339f1d0729fd8081690d3d5aae194aff3fb5b026a79e",
-        jvm_abi_gen_sha256 = "cf4a7ab4b94d1e508bfa1ab6f6dd66dbde4b35f608c3ab658f9ba338d518dbe1",
-        stdlib_sha256 = "2226de463d309d4a5500a481320b3dea515a6981dcae1def531fbc158884e25f",
-        reflect_sha256 = "b4aac2a4686ffdc110602ce153e4a90ffd7f37fa86fcca9d3b3aa39c08f8c2fc",
-        daemon_client_sha256 = "89532756fc258fbde177cf1654383f15127c048d17525141c922e9aa0969d997",
-        script_runtime_sha256 = "fc5a19df78be445d84e8352e0d01098a6a8181324aa50c6f7bf850338e81e1b4",
+        build_tools_impl_sha256 = "3152b3e1fbaa4d48f3681734a2c0efc438359a48c8a3c5cac00d874670de1377",
+        compiler_sha256 = "ef19419c765e7ac8404465fa026ca8fc4dbb8a822de0fc79aa53c8dce29f1d02",
+        annotation_processing_sha256 = "b798fabf9adf246e3091d0e8ae06a1b3d19feee5e399e3d13b61e27871f19692",
+        jvm_abi_gen_sha256 = "e8ef7a82bc2df9c140d204fc0362f59b0e6df51c0406fb7360d18312da3be1cf",
+        stdlib_sha256 = "bd8250210584cb659847dce9cda660f8e9906e5def7fbebcea93dc6dcb6a88a3",
+        reflect_sha256 = "7c9e8bda3cafa85b65692065acd22578b2843292b4e4baa8361bdc9175746e88",
+        daemon_client_sha256 = "095903c4c4713bf91a562d226d7ba0464cf5424e76342d487deec494451ab29b",
+        script_runtime_sha256 = "a658cf5902a1525a06c264a5e42b437e97a6679ddeef8ca641246f270cf6a013",
     ),
     RULES_ANDROID = version(
         version = "0.7.3",
