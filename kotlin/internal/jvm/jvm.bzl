@@ -287,7 +287,6 @@ _common_attr = utils.add_dicts(
             default = [],
             allow_files = [".srcjar", ".kt", ".java"],
         ),
-        "_use_auto_exec_groups": attr.bool(default = False),
     },
 )
 
