@@ -5,7 +5,6 @@ common --incompatible_use_plus_in_repo_names
 common --incompatible_disallow_empty_glob=false
 common --incompatible_disable_native_repo_rules=true
 common --incompatible_autoload_externally=
-common --incompatible_auto_exec_groups
 
 common --java_runtime_version=remotejdk_17
 common --tool_java_runtime_version=remotejdk_17

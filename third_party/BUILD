@@ -21,7 +21,6 @@ package(default_visibility = ["//visibility:public"])
 exports_files([
     "empty.jdeps",
     "java_stub_template.txt",
-    "protobuf_auto_exec_groups.patch",
 ])
 
 copy_file(
