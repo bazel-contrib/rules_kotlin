@@ -314,7 +314,7 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
             "" if not action_type else " (%s)" % action_type,
             len(input_jars),
         ),
-        toolchain = _TOOLCHAIN_TYPE,
+        toolchain = _JAVA_TOOLCHAIN_TYPE,
     )
 
 def _resourcejar_resource_specs(ctx, extra_resources = {}):
@@ -412,7 +412,7 @@ def _build_resourcejar_action(ctx, toolchains, extra_resources = {}):
         outputs = [resources_jar_output],
         arguments = [args],
         progress_message = "Creating intermediate resource jar %{label}",
-        toolchain = _TOOLCHAIN_TYPE,
+        toolchain = _JAVA_TOOLCHAIN_TYPE,
     )
     return resources_jar_output
 
