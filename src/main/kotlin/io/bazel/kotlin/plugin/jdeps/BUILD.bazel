@@ -46,6 +46,7 @@ generate_jvm_service(
         "io.bazel.kotlin.plugin.jdeps.JdepsGenCommandLineProcessor": "org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor",
         "io.bazel.kotlin.plugin.jdeps.JdepsGenComponentRegistrar": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",
     },
+    visibility = ["//src:__subpackages__"],
 )
 
 # The plugin binary.
