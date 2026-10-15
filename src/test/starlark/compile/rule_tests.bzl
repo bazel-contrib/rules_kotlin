@@ -1,7 +1,11 @@
 """Analysis tests for the core Kotlin compile rules."""
 
+load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
+
+# buildifier: disable=bzl-visibility
+load("//kotlin/internal/jvm:pipelines.bzl", "BINARY_PROCESSORS", "LIBRARY_PROCESSORS", "TEST_PROCESSORS")
 load("//src/main/starlark/core/compile:common.bzl", "KtJvmInfo")
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_binary", "core_kt_jvm_library")
 load("//src/main/starlark/core/compile/cli:toolchain.bzl", "COMPILE_MNEMONIC")
@@ -453,7 +457,58 @@ def test_jvm():
         test_runfiles = _test_runfiles(**library),
     )
 
+def _library_processors_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # The kt_jvm_library chain is declared statically: collect deps, then compile.
+    asserts.equals(
+        env,
+        ["DepsProcessor", "JvmCompileProcessor"],
+        LIBRARY_PROCESSORS.keys(),
+    )
+
+    return unittest.end(env)
+
+library_processors_test = unittest.make(_library_processors_test_impl)
+
+def _binary_processors_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # The kt_jvm_binary chain adds a launcher phase after the compile phase.
+    asserts.equals(
+        env,
+        ["DepsProcessor", "JvmCompileProcessor", "LauncherProcessor"],
+        BINARY_PROCESSORS.keys(),
+    )
+
+    return unittest.end(env)
+
+binary_processors_test = unittest.make(_binary_processors_test_impl)
+
+def _test_processors_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # The kt_jvm_junit_test chain adds a test-launcher phase after the compile phase.
+    asserts.equals(
+        env,
+        ["DepsProcessor", "JvmCompileProcessor", "TestLauncherProcessor"],
+        TEST_PROCESSORS.keys(),
+    )
+
+    return unittest.end(env)
+
+test_processors_test = unittest.make(_test_processors_test_impl)
+
 def test_suite(name):
+    library_processors_test(
+        name = "library_processors_test",
+    )
+    binary_processors_test(
+        name = "binary_processors_test",
+    )
+    test_processors_test(
+        name = "test_processors_test",
+    )
     suite(
         name,
         **{

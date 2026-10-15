@@ -36,6 +36,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//kotlin:__subpackages__"],
     deps = [
+        "//src/main/starlark/core/pipeline",
         "//third_party:bzl",
         "@bazel_skylib//lib:sets",
         "@bazel_skylib//rules:common_settings",
