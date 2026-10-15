@@ -22,7 +22,12 @@ _ARTIFACTS = [
     struct(artifact_id = "kotlin-stdlib", field = "stdlib", runtime_attr = "libraries"),
     struct(artifact_id = "kotlin-reflect", field = "reflect", runtime_attr = "libraries"),
     struct(artifact_id = "kotlin-script-runtime", field = "script_runtime", runtime_attr = "libraries"),
+    struct(artifact_id = "kotlin-tooling-core", field = "tooling_core", runtime_attr = "libraries"),
 ]
+
+# The artifacts a record may leave out. The implementation needs kotlin-tooling-core for versioned
+# compiler options only; records declared before it was added lack its checksum.
+_OPTIONAL_FIELDS = ["tooling_core"]
 
 # The runtime members every record shares. They are not versioned with the Kotlin release: the
 # coroutines and serialization runtimes, the JetBrains annotations, and the in-repo jdeps compiler
@@ -56,12 +61,14 @@ def btapi_impl_version(
         stdlib_sha256,
         reflect_sha256,
         daemon_client_sha256,
-        script_runtime_sha256):
+        script_runtime_sha256,
+        tooling_core_sha256 = None):
     """Describes the Build Tools API implementation of one Kotlin release.
 
     The record is versioned by kotlin-build-tools-impl. It lists the implementation, the
     same-version embeddable compiler it loads, the two embeddable-dialect plugins of that compiler,
-    and the four libraries of the release the compiler needs. Every checksum is required.
+    and the five libraries of the release the compiler and the implementation need. Every checksum
+    but that of kotlin-tooling-core is required.
 
     The defined implementation is expected to be compatible with the Build Tools API jar from the rule_kotlin release the worker is compiled against.
     Expected compatibility guarantee: the API supports implementations from three version lines back to one line forward.
@@ -76,10 +83,13 @@ def btapi_impl_version(
         reflect_sha256: the checksum of kotlin-reflect.
         daemon_client_sha256: the checksum of kotlin-daemon-client.
         script_runtime_sha256: the checksum of kotlin-script-runtime.
+        tooling_core_sha256: the checksum of kotlin-tooling-core. Without it, the record and its
+            runtime leave the library out, and the implementation fails on versioned compiler
+            options.
 
     Returns:
         a composite with one version attribute and one struct per artifact, each holding
-        url_templates and sha256.
+        url_templates and sha256; None for an optional artifact without a checksum.
     """
     sha256s = {
         "annotation_processing": annotation_processing_sha256,
@@ -90,11 +100,19 @@ def btapi_impl_version(
         "reflect": reflect_sha256,
         "script_runtime": script_runtime_sha256,
         "stdlib": stdlib_sha256,
+        "tooling_core": tooling_core_sha256,
     }
     return struct(
         version = version,
-        **{artifact.field: _maven_artifact(artifact.artifact_id, sha256s[artifact.field]) for artifact in _ARTIFACTS}
+        **{
+            artifact.field: _maven_artifact(artifact.artifact_id, sha256s[artifact.field]) if sha256s[artifact.field] or artifact.field not in _OPTIONAL_FIELDS else None
+            for artifact in _ARTIFACTS
+        }
     )
+
+def _artifacts_of(release):
+    """The artifacts the record names: every artifact but the optional ones it leaves out."""
+    return [artifact for artifact in _ARTIFACTS if getattr(release, artifact.field) != None]
 
 def btapi_impl_version_from_tag(tag):
     """Builds the record from a btapi_impl_version module extension tag.
@@ -129,7 +147,7 @@ def btapi_impl_build_file(release):
       the BUILD file content.
     """
     runtime_attrs = dict(_SHARED_PLUGINS)
-    for artifact in _ARTIFACTS:
+    for artifact in _artifacts_of(release):
         runtime_attrs[artifact.runtime_attr] = runtime_attrs.get(artifact.runtime_attr, []) + [":" + _jar(artifact.artifact_id)]
     runtime_attrs["libraries"] = runtime_attrs["libraries"] + _SHARED_LIBRARIES
     return "\n".join([
@@ -138,7 +156,7 @@ def btapi_impl_build_file(release):
         "",
         'package(default_visibility = ["//visibility:public"])',
         "",
-        "exports_files(%s)" % _quoted_list([_jar(artifact.artifact_id) for artifact in _ARTIFACTS]),
+        "exports_files(%s)" % _quoted_list([_jar(artifact.artifact_id) for artifact in _artifacts_of(release)]),
         "",
         "kt_btapi_runtime(",
         '    name = "runtime",',
@@ -194,10 +212,10 @@ def btapi_impl_repository(name, release):
         _btapi_impl_repository,
         name = name,
         build_file_content = btapi_impl_build_file(release),
-        sha256s = {artifact.artifact_id: getattr(release, artifact.field).sha256 for artifact in _ARTIFACTS},
+        sha256s = {artifact.artifact_id: getattr(release, artifact.field).sha256 for artifact in _artifacts_of(release)},
         urls = {
             artifact.artifact_id: [url.format(version = release.version) for url in getattr(release, artifact.field).url_templates]
-            for artifact in _ARTIFACTS
+            for artifact in _artifacts_of(release)
         },
         version = release.version,
     )

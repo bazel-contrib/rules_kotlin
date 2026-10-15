@@ -144,6 +144,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-stdlib.jar").singleCompileJar())
                     .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-reflect.jar").singleCompileJar())
                     .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-script-runtime.jar").singleCompileJar())
+                    .addApiImplClasspath(Dep.fromLabel("@btapi_impl//:kotlin-tooling-core.jar").singleCompileJar())
                     .addApiImplClasspath(Dep.fromLabel("@kotlinx_coroutines_core_jvm//file").singleCompileJar())
                     .addApiImplClasspath(Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
                     .addApiImplClasspath(Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar())

@@ -64,6 +64,7 @@ def kt_rules_test(name, **kwargs):
         "@btapi_impl//:kotlin-reflect.jar",
         "@btapi_impl//:kotlin-daemon-client.jar",
         "@btapi_impl//:kotlin-script-runtime.jar",
+        "@btapi_impl//:kotlin-tooling-core.jar",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

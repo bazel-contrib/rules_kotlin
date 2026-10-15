@@ -8,10 +8,10 @@ _SETTING_CONTROLLED_RUNTIME_TOOLCHAIN = str(Label("@rules_kotlin//src/test/starl
 
 # The complete Build Tools API runtime surface the worker receives when the Build Tools API
 # compilation is enabled: the classloader jars and the internal compiler plugin classpaths,
-# as (flag, expected default jar count) pairs. The classloader holds the implementation, the four
+# as (flag, expected default jar count) pairs. The classloader holds the implementation, the five
 # release libraries, the five shared libraries, and the compiler.
 _BTAPI_RUNTIME_FLAG_COUNTS = [
-    ("--btapi_impl_classpath", 11),
+    ("--btapi_impl_classpath", 12),
     ("--internal_jvm_abi_gen_classpath", 1),
     ("--internal_kapt_classpath", 1),
     ("--internal_jdeps_gen_classpath", 1),

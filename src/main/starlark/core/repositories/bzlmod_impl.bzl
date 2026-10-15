@@ -182,7 +182,7 @@ _version_tag = tag_class(
 
 _btapi_impl_version_tag = tag_class(
     doc = "A Build Tools API implementation record as a repository: the implementation, the " +
-          "embeddable compiler, its kapt and jvm-abi-gen plugins, and the four libraries of one " +
+          "embeddable compiler, its kapt and jvm-abi-gen plugins, and the five libraries of one " +
           "Kotlin release, with the runtime target @<name>//:runtime for a toolchain. The name " +
           "btapi_impl replaces the record of the current release.",
     attrs = {
@@ -195,6 +195,10 @@ _btapi_impl_version_tag = tag_class(
         "reflect_sha256": attr.string(mandatory = True),
         "script_runtime_sha256": attr.string(mandatory = True),
         "stdlib_sha256": attr.string(mandatory = True),
+        "tooling_core_sha256": attr.string(
+            doc = "Optional: without it, the runtime leaves kotlin-tooling-core out, and the " +
+                  "implementation fails on versioned compiler options.",
+        ),
         "version": attr.string(mandatory = True, doc = "The Kotlin release version."),
     },
 )

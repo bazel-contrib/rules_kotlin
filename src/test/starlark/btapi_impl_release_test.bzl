@@ -21,6 +21,7 @@ _ARTIFACTS = [
     ("reflect", "kotlin-reflect"),
     ("daemon_client", "kotlin-daemon-client"),
     ("script_runtime", "kotlin-script-runtime"),
+    ("tooling_core", "kotlin-tooling-core"),
 ]
 
 _CHECKSUMS = {
@@ -32,6 +33,7 @@ _CHECKSUMS = {
     "reflect_sha256": "reflectsha",
     "script_runtime_sha256": "scriptsha",
     "stdlib_sha256": "stdlibsha",
+    "tooling_core_sha256": "toolingsha",
 }
 
 def _release(version = "2.4.0"):
@@ -85,7 +87,7 @@ def _build_file_declares_the_runtime_test(ctx):
     asserts.true(env, 'compiler = [":kotlin-compiler-embeddable.jar"]' in build_file, build_file)
     asserts.true(env, 'kapt = [":kotlin-annotation-processing-embeddable.jar"]' in build_file, build_file)
     asserts.true(env, 'jvm_abi_gen = [":jvm-abi-gen.jar"]' in build_file, build_file)
-    asserts.true(env, 'libraries = [":kotlin-daemon-client.jar", ":kotlin-stdlib.jar", ":kotlin-reflect.jar", ":kotlin-script-runtime.jar", ' in build_file, build_file)
+    asserts.true(env, 'libraries = [":kotlin-daemon-client.jar", ":kotlin-stdlib.jar", ":kotlin-reflect.jar", ":kotlin-script-runtime.jar", ":kotlin-tooling-core.jar", ' in build_file, build_file)
     asserts.true(env, "jdeps-gen-embeddable" in build_file, build_file)
     asserts.true(env, "kotlinx_coroutines_core_jvm" in build_file, build_file)
     asserts.true(env, "kotlin-compiler.jar" not in build_file, build_file)
@@ -119,8 +121,24 @@ def _build_file_sets_every_runtime_attribute_test(ctx):
 
     return unittest.end(env)
 
-def _tag(name, version):
-    return struct(name = name, version = version, **_CHECKSUMS)
+def _without_tooling_core():
+    return {name: sha256 for name, sha256 in _CHECKSUMS.items() if name != "tooling_core_sha256"}
+
+def _record_without_tooling_core_leaves_it_out_test(ctx):
+    """A record declared without the checksum of kotlin-tooling-core composes the runtime without it."""
+    env = unittest.begin(ctx)
+
+    release = btapi_impl_version(version = "2.4.0", **_without_tooling_core())
+    asserts.equals(env, None, release.tooling_core)
+    build_file = btapi_impl_build_file(release)
+    asserts.true(env, "kotlin-tooling-core" not in build_file, build_file)
+    asserts.true(env, 'libraries = [":kotlin-daemon-client.jar", ":kotlin-stdlib.jar", ":kotlin-reflect.jar", ":kotlin-script-runtime.jar", ' in build_file, build_file)
+    asserts.equals(env, BTAPI_RUNTIME_ATTRIBUTES, _runtime_attributes_in(build_file))
+
+    return unittest.end(env)
+
+def _tag(name, version, checksums = _CHECKSUMS):
+    return struct(name = name, version = version, **checksums)
 
 def _module(name, is_root, tags):
     return struct(name = name, is_root = is_root, tags = struct(btapi_impl_version = tags))
@@ -142,6 +160,17 @@ def _tags_become_named_records_test(ctx):
 
     return unittest.end(env)
 
+def _tag_without_tooling_core_test(ctx):
+    """A tag that predates kotlin-tooling-core, whose attribute defaults to empty, still builds a record."""
+    env = unittest.begin(ctx)
+
+    checksums = dict(_without_tooling_core(), tooling_core_sha256 = "")
+    releases = collect_btapi_impl_releases([_module("root", True, [_tag("kotlin_2_4_0", "2.4.0", checksums)])])
+    asserts.equals(env, None, releases["kotlin_2_4_0"].tooling_core)
+    asserts.equals(env, "compilersha", releases["kotlin_2_4_0"].compiler.sha256)
+
+    return unittest.end(env)
+
 def _no_tags_keep_the_defaults_test(ctx):
     """Without tags the extension leaves the records to kotlin_repositories."""
     env = unittest.begin(ctx)
@@ -155,7 +184,9 @@ constructor_keeps_the_default_urls_test = unittest.make(_constructor_keeps_the_d
 default_release_matches_the_compiler_test = unittest.make(_default_release_matches_the_compiler_test)
 build_file_declares_the_runtime_test = unittest.make(_build_file_declares_the_runtime_test)
 build_file_sets_every_runtime_attribute_test = unittest.make(_build_file_sets_every_runtime_attribute_test)
+record_without_tooling_core_leaves_it_out_test = unittest.make(_record_without_tooling_core_leaves_it_out_test)
 tags_become_named_records_test = unittest.make(_tags_become_named_records_test)
+tag_without_tooling_core_test = unittest.make(_tag_without_tooling_core_test)
 no_tags_keep_the_defaults_test = unittest.make(_no_tags_keep_the_defaults_test)
 
 def btapi_impl_release_test_suite(name):
@@ -166,6 +197,8 @@ def btapi_impl_release_test_suite(name):
         default_release_matches_the_compiler_test,
         build_file_declares_the_runtime_test,
         build_file_sets_every_runtime_attribute_test,
+        record_without_tooling_core_leaves_it_out_test,
         tags_become_named_records_test,
+        tag_without_tooling_core_test,
         no_tags_keep_the_defaults_test,
     )
