@@ -18,6 +18,7 @@ package io.bazel.kotlin.builder.tasks
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2EntryPoint
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.Ksp2Flags
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.clearKspClassLoaderCacheForTesting
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.getKspClassLoader
@@ -30,6 +31,8 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.util.GregorianCalendar
+import java.util.jar.JarFile
 
 /**
  * Unit tests for KSP2 task argument handling.
@@ -299,5 +302,58 @@ class Ksp2TaskTest {
     val invokerClass =
       Class.forName("io.bazel.kotlin.ksp2.Ksp2Invoker", false, javaClass.classLoader)
     assertThat(Ksp2EntryPoint::class.java.isAssignableFrom(invokerClass)).isTrue()
+  }
+
+  @Test
+  fun packagedJarIsByteIdenticalAcrossRuns() {
+    val src = tmp.newFolder("gen")
+    // Nested, and deliberately not created in sorted order, so that a walk which preserves
+    // filesystem order has a chance to differ from one that sorts.
+    java.io.File(src, "b/Second.class").apply { parentFile.mkdirs() }.writeText("second")
+    java.io.File(src, "a/First.class").apply { parentFile.mkdirs() }.writeText("first")
+    java.io.File(src, "a/Zero.class").writeText("zero")
+
+    val first = tmp.newFile("first.jar")
+    Ksp2Task().packageDirectoriesToJar(first.absolutePath, listOf(src.toPath()))
+
+    // Cross a wall-clock second, so a jar stamped with the current time cannot come out identical.
+    Thread.sleep(1100)
+
+    val second = tmp.newFile("second.jar")
+    Ksp2Task().packageDirectoriesToJar(second.absolutePath, listOf(src.toPath()))
+
+    assertThat(second.readBytes()).isEqualTo(first.readBytes())
+  }
+
+  @Test
+  fun packagedJarEntriesCarryFixedTimestamp() {
+    val src = tmp.newFolder("gen")
+    java.io.File(src, "pkg/Some.class").apply { parentFile.mkdirs() }.writeText("x")
+
+    val jar = tmp.newFile("out.jar")
+    Ksp2Task().packageDirectoriesToJar(jar.absolutePath, listOf(src.toPath()))
+
+    val fixed = GregorianCalendar(1980, 0, 1, 0, 0, 0).timeInMillis
+    JarFile(jar).use { jf ->
+      val times = jf.entries().toList().map { it.time }.distinct()
+      assertThat(times).containsExactly(fixed)
+    }
+  }
+
+  @Test
+  fun packagedJarEntriesAreSortedCaseSensitively() {
+    val src = tmp.newFolder("gen")
+    java.io.File(src, "a/First.class").apply { parentFile.mkdirs() }.writeText("first")
+    java.io.File(src, "B/Second.class").apply { parentFile.mkdirs() }.writeText("second")
+
+    val jar = tmp.newFile("out.jar")
+    Ksp2Task().packageDirectoriesToJar(jar.absolutePath, listOf(src.toPath()))
+
+    JarFile(jar).use { jf ->
+      val names = jf.entries().toList().map { it.name }.filterNot { it.startsWith("META-INF") }
+      assertThat(names)
+        .containsExactly("B/", "B/Second.class", "a/", "a/First.class")
+        .inOrder()
+    }
   }
 }
