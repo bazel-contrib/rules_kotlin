@@ -41,4 +41,15 @@ object JdepsGenConfigurationKeys {
     CompilerConfigurationKey.create(
       JdepsGenCommandLineProcessor.FULL_CLASSPATH_OPTION.description,
     )
+
+  /**
+   * The file that records the dependencies of each source, see
+   * [io.bazel.kotlin.builder.utils.jars.SourceDependenciesFile]. Incremental compilation analyzes
+   * only the recompiled sources, possibly over several iterations, and computes the jdeps of the
+   * whole target from it.
+   */
+  val PER_SOURCE_OUTPUT: CompilerConfigurationKey<String> =
+    CompilerConfigurationKey.create(
+      JdepsGenCommandLineProcessor.PER_SOURCE_OUTPUT_OPTION.description,
+    )
 }
