@@ -37,8 +37,6 @@ data class ContextLog(
 
   /** Logging runtime messages lazily */
   interface Logging {
-    fun debug(msg: () -> String)
-
     fun info(msg: () -> String)
 
     fun error(

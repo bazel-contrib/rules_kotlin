@@ -93,10 +93,6 @@ class WorkerContext private constructor(
       logger.logp(Level.SEVERE, sourceName, name, msg)
     }
 
-    override fun debug(msg: () -> String) {
-      logger.logp(Level.FINE, sourceName, name, msg)
-    }
-
     override fun narrowTo(name: String): ScopeLogging = ContextLogger(name, level, this)
 
     override fun contents() = handler.flush().run { ContextLog(out.toByteArray()) }
