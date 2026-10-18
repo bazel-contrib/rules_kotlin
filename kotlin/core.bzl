@@ -15,7 +15,7 @@ load(
     _define_kt_toolchain = "define_kt_toolchain",
 )
 load(
-    "//kotlin/internal/jvm:jvm.bzl",
+    "//kotlin/internal/jvm:compiler_plugins.bzl",
     _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_ksp_plugin = "kt_ksp_plugin",
     _kt_plugin_cfg = "kt_plugin_cfg",

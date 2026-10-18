@@ -33,9 +33,9 @@ def dep_hygiene_test_suite(name):
             "#!/usr/bin/env bash",
             "set -euo pipefail",
             'graph="$1"',
-            # Guard against a vacuous pass by confirming the graph contains the kt_jvm_library impl.bzl.
-            'if ! grep -q "internal/jvm:impl.bzl" "$graph"; then',
-            '  echo "FAIL: load graph does not contain the kt_jvm_library definition (kotlin/internal/jvm/impl.bzl); genquery captured the wrong/empty graph" >&2',
+            # Guard against a vacuous pass by confirming the graph contains the rule's implementation.
+            'if ! grep -q "internal/jvm:kt_jvm_library.bzl" "$graph"; then',
+            '  echo "FAIL: load graph does not contain the kt_jvm_library implementation (kotlin/internal/jvm/kt_jvm_library.bzl); genquery captured the wrong/empty graph" >&2',
             "  exit 1",
             "fi",
             # Matches @rules_android// or @@rules_android+// but not rules_java's android_lint.bzl.

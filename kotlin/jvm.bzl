@@ -5,10 +5,19 @@ load(
     _kt_javac_options = "kt_javac_options",
 )
 load(
-    "//kotlin/internal/jvm:jvm.bzl",
+    "//kotlin/internal/jvm:kt_jvm_binary.bzl",
     _kt_jvm_binary = "kt_jvm_binary",
+)
+load(
+    "//kotlin/internal/jvm:kt_jvm_import.bzl",
     _kt_jvm_import = "kt_jvm_import",
+)
+load(
+    "//kotlin/internal/jvm:kt_jvm_library.bzl",
     _kt_jvm_library = "kt_jvm_library",
+)
+load(
+    "//kotlin/internal/jvm:kt_jvm_test.bzl",
     _kt_jvm_test = "kt_jvm_test",
 )
 

@@ -27,7 +27,7 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
-    "//kotlin/internal/jvm:jvm.bzl",
+    "//kotlin/internal/jvm:attrs.bzl",
     _attrs = "attrs",
 )
 load(

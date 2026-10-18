@@ -25,6 +25,16 @@ load(
     "get_launcher_maker_toolchain_for_action",
     "is_windows",
 )
+load("//src/main/starlark/core/pipeline:pipeline.bzl", _ProviderInfo = "ProviderInfo")
+
+def process_deps(context):
+    """Collect the deps, exports, runtime_deps and data targets that contribute runfiles."""
+    ctx = context.ctx
+    return _ProviderInfo(
+        name = "DepsProcessor",
+        value = ctx.attr.deps + getattr(ctx.attr, "exports", []) + ctx.attr.runtime_deps + ctx.attr.data,
+        runfiles = None,
+    )
 
 def _artifact_short_path(artifact):
     return artifact.short_path
