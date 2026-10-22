@@ -19,5 +19,6 @@ test_suite(
         ":ktlint_fix_runfiles_tests",
         ":resource_strip_prefix_tests",
         "//src/test/starlark/ksp:ksp_tests",
+        "//src/test/starlark/release:release_metadata_tests",
     ],
 )

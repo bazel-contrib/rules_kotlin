@@ -1,0 +1,9 @@
+# Release notes for {version}
+## Using Bzlmod with Bazel >=7
+
+1. Enable with `common --enable_bzlmod` in `.bazelrc`.
+2. Add to your `MODULE.bazel` file:
+
+```starlark
+bazel_dep(name = "rules_kotlin", version = "{version}")
+```
