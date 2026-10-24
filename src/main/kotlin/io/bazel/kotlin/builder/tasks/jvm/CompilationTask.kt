@@ -44,7 +44,7 @@ fun JvmCompilationTask.codeGenArgs(): CompilationArgs =
       "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
     }.values(info.passthroughFlagsList)
 
-fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): CompilationArgs {
+fun JvmCompilationTask.baseArgs(): CompilationArgs {
   val classpath =
     when (info.reducedClasspathMode) {
       "KOTLINBUILDER_REDUCED" -> {
@@ -75,10 +75,10 @@ fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): Co
       it
         .map(Path::toString)
         .joinToString(File.pathSeparator)
-    }.flag(API_VERSION_ARG, overrides[API_VERSION_ARG] ?: info.toolchainInfo.common.apiVersion)
+    }.flag(API_VERSION_ARG, info.toolchainInfo.common.apiVersion)
     .flag(
       LANGUAGE_VERSION_ARG,
-      overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
+      info.toolchainInfo.common.languageVersion,
     ).flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
     .flag("-module-name", info.moduleName)
 }
