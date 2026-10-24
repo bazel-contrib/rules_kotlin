@@ -14,10 +14,25 @@ import org.jetbrains.kotlin.name.ClassId
 
 private const val ANONYMOUS = "<anonymous>"
 
-class ClassUsageRecorder(
-  internal val explicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
-  internal val implicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
-) {
+/**
+ * The classes the analyzed sources use, by the path of the source using them. A usage outside a
+ * source file is recorded under the empty path.
+ */
+class ClassUsageRecorder {
+  internal val explicitClassesBySource = LinkedHashMap<String, MutableSet<String>>()
+  internal val implicitClassesBySource = LinkedHashMap<String, MutableSet<String>>()
+
+  internal val explicitClassesCanonicalPaths: Set<String>
+    get() = explicitClassesBySource.values.flatten().toSet()
+  internal val implicitClassesCanonicalPaths: Set<String>
+    get() = implicitClassesBySource.values.flatten().toSet()
+
+  /** Records an analyzed source, so that it is listed even if it uses no classes. */
+  internal fun recordSource(path: String) {
+    explicitClassesBySource.getOrPut(path) { linkedSetOf() }
+    implicitClassesBySource.getOrPut(path) { linkedSetOf() }
+  }
+
   internal fun recordTypeRef(
     typeRef: FirTypeRef,
     context: CheckerContext,
@@ -70,7 +85,7 @@ class ClassUsageRecorder(
       visited.add(classIdAndIsExplicit)
     }
 
-    firClass.sourceElement?.binaryClass()?.let { addFile(it, isExplicit) }
+    firClass.sourceElement?.binaryClass()?.let { addFile(it, isExplicit, context) }
 
     if (firClass is FirClassSymbol<*>) {
       firClass.resolvedSuperTypeRefs.forEach {
@@ -86,19 +101,23 @@ class ClassUsageRecorder(
 
   internal fun recordClass(
     binaryClass: String,
+    context: CheckerContext,
     isExplicit: Boolean = true,
   ) {
-    addFile(binaryClass, isExplicit)
+    addFile(binaryClass, isExplicit, context)
   }
 
   private fun addFile(
     path: String,
     isExplicit: Boolean,
+    context: CheckerContext,
   ) {
+    val source = context.containingFile?.path.orEmpty()
+    recordSource(source)
     if (isExplicit) {
-      explicitClassesCanonicalPaths.add(path)
+      explicitClassesBySource.getValue(source).add(path)
     } else {
-      implicitClassesCanonicalPaths.add(path)
+      implicitClassesBySource.getValue(source).add(path)
     }
   }
 }

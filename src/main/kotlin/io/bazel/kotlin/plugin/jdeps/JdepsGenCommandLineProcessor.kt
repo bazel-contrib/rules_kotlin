@@ -34,6 +34,13 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
       )
     val STRICT_KOTLIN_DEPS_OPTION: CliOption =
       CliOption("strict_kotlin_deps", "<String>", "Report strict deps violations", required = true)
+    val PER_SOURCE_OUTPUT_OPTION: CliOption =
+      CliOption(
+        "per_source_output",
+        "<path>",
+        "Records the dependencies of each analyzed source in this file, keeping the other sources'",
+        required = false,
+      )
   }
 
   override val pluginId: String
@@ -46,6 +53,7 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
         DIRECT_DEPENDENCIES_OPTION,
         FULL_CLASSPATH_OPTION,
         STRICT_KOTLIN_DEPS_OPTION,
+        PER_SOURCE_OUTPUT_OPTION,
       )
 
   override fun processOption(
@@ -81,6 +89,10 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
           JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
           value,
         )
+      }
+
+      PER_SOURCE_OUTPUT_OPTION -> {
+        configuration.put(JdepsGenConfigurationKeys.PER_SOURCE_OUTPUT, value)
       }
 
       else -> {
