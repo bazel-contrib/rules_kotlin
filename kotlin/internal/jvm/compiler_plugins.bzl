@@ -175,6 +175,7 @@ def kt_compiler_plugin_impl(ctx):
             id = plugin_id,
             classpath = classpath,
             options = options,
+            data = depset(ctx.files.data),
             stubs = ctx.attr.stubs_phase,
             compile = ctx.attr.compile_phase,
             resolve_cfg = plugin_common.resolve_cfg,
@@ -186,7 +187,7 @@ def kt_plugin_cfg_impl(ctx):
     plugin = ctx.attr.plugin[_KtCompilerPluginInfo]
     return [
         plugin,
-    ] + plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, _expand_location_with_data_deps(ctx))
+    ] + plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, _expand_location_with_data_deps(ctx), ctx.files.data)
 
 def kt_ksp_plugin_impl(ctx):
     """Implements the kt_ksp_plugin rule.
@@ -288,7 +289,9 @@ kt_jvm_library(
             default = True,
         ),
         "data": attr.label_list(
-            doc = "The list of data files to be used by compiler's plugin",
+            doc = """The files the plugin reads at compile time. An option value names one of them as
+            `$(location <file>)`. The files are inputs of the compilation.""",
+            allow_files = True,
             providers = [DefaultInfo],
             cfg = "exec",
         ),
@@ -409,7 +412,9 @@ kt_plugin_cfg = rule(
     """,
     attrs = {
         "data": attr.label_list(
-            doc = "The list of data files to be used by compiler's plugin",
+            doc = """The files the plugin reads at compile time. An option value names one of them as
+            `$(location <file>)`. The files are inputs of the compilation.""",
+            allow_files = True,
             providers = [DefaultInfo],
             cfg = "exec",
         ),

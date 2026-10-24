@@ -19,6 +19,8 @@ def _provider_test_impl(env, target):
         map_each = lambda o: "%s=%s" % (o.key, o.value) if o.value else o.key,
     ).contains_at_least(want_options)
     got_provider.id().equals(env.ctx.attr.want_plugin[KtCompilerPluginInfo].id)
+    if hasattr(env.ctx.attr, "want_data"):
+        got_provider.data().contains_at_least([f.short_path for f in env.ctx.files.want_data])
 
 # The per-phase plugin flags the plugins payload replaced; no action may carry them.
 _RETIRED_PLUGIN_FLAGS = [
@@ -749,10 +751,139 @@ def _test_compile_exported_plugin_configuration_import(test):
         ),
     )
 
+def _test_kt_plugin_cfg_data(test):
+    """A configuration carries the files its data attribute names, source files included."""
+    plugin = test.have(
+        kt_compiler_plugin,
+        name = "plugin",
+        id = "test.stub",
+        deps = [
+            test.have(
+                kt_jvm_import,
+                name = "plugin_jar",
+                jars = [
+                    test.artifact(
+                        name = "plugin.jar",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    cfg = test.got(
+        kt_plugin_cfg,
+        name = "got",
+        plugin = plugin,
+        data = ["cfg.conf"],
+        options = {
+            "configurationPath": ["$(location cfg.conf)"],
+        },
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _provider_test_impl,
+        target = cfg,
+        attr_values = {
+            "want_data": ["cfg.conf"],
+            "want_options": [
+                "configurationPath=src/test/starlark/core/plugin/cfg.conf",
+            ],
+            "want_plugin": plugin,
+        },
+        attrs = {
+            "want_data": attr.label_list(allow_files = True),
+            "want_options": attr.string_list(),
+            "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
+        },
+    )
+
+def _test_compile_configuration_data(test):
+    """The data files of a plugin and of its configuration are inputs of the compile action."""
+    plugin_jar = test.artifact(
+        name = "plugin.jar",
+    )
+
+    plugin = test.have(
+        kt_compiler_plugin,
+        name = "plugin",
+        id = "test.stub",
+        data = ["plugin.conf"],
+        options = {
+            "pluginConfiguration": ["$(location plugin.conf)"],
+        },
+        deps = [
+            test.have(
+                kt_jvm_import,
+                name = "plugin_jar",
+                jars = [
+                    plugin_jar,
+                ],
+            ),
+        ],
+    )
+
+    cfg = test.have(
+        kt_plugin_cfg,
+        name = "cfg",
+        plugin = plugin,
+        data = ["cfg.conf"],
+        options = {
+            "configurationPath": ["$(location cfg.conf)"],
+        },
+    )
+
+    got = test.got(
+        kt_jvm_library,
+        name = "got_library",
+        srcs = [
+            test.artifact(
+                name = "got_library.kt",
+            ),
+        ],
+        plugins = [
+            plugin,
+            cfg,
+        ],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _action_test_impl,
+        target = got,
+        config_settings = _LEGACY_INVOCATION,
+        attr_values = {
+            "on_action_mnemonic": "KotlinCompile",
+            "want_flag_keys": ["--plugins_payload"],
+            "want_flags": {
+            },
+            "want_inputs": [
+                plugin_jar,
+                "plugin.conf",
+                "cfg.conf",
+            ],
+            "want_payload_plugins": [
+                "id=test.stub classpath=[{n}_plugin.jar] ".format(n = test.name) +
+                "phases=[PLUGIN_PHASE_COMPILE,PLUGIN_PHASE_STUBS] " +
+                "options=[pluginConfiguration=src/test/starlark/core/plugin/plugin.conf," +
+                "configurationPath=src/test/starlark/core/plugin/cfg.conf]",
+            ],
+        },
+        attrs = {
+            "on_action_mnemonic": attr.string(),
+            "want_flag_keys": attr.string_list(),
+            "want_flags": attr.string_list_dict(),
+            "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
+            "want_payload_plugins": attr.string_list(),
+        },
+    )
+
 def test_suite(name):
     suite(
         name,
         test_kt_plugin_cfg = _test_kt_plugin_cfg,
+        test_kt_plugin_cfg_data = _test_kt_plugin_cfg_data,
+        test_compile_configuration_data = _test_compile_configuration_data,
         test_kt_plugin_cfg_multi_value_options = _test_kt_plugin_cfg_multi_value_options,
         test_compile_configuration = _test_compile_configuration,
         test_compile_configuration_inline_payload_json = _test_compile_configuration_inline_payload_json,

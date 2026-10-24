@@ -4,7 +4,7 @@ load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":providers.bzl", "KtCompilerPluginOption", "KtPluginConfiguration")
 
-def _resolve_plugin_cfg(info, options, deps, expand_location):
+def _resolve_plugin_cfg(info, options, deps, expand_location, data = []):
     """Resolves a plugin config.
 
     Args:
@@ -12,21 +12,24 @@ def _resolve_plugin_cfg(info, options, deps, expand_location):
         options: Dict[str, List[str]] of options from kt_plugin_cfg
         deps: List[Target] from kt_plugin_cfg
         expand_location: Callable[str]str to expand any target references, from ctx.expand_location
+        data: List[File] from kt_plugin_cfg; the files an option value names through $(location).
     Return:
         List[Provider] of providers.
     """
     ji = java_common.merge([dep[JavaInfo] for dep in deps if JavaInfo in dep])
     classpath = depset(ji.runtime_output_jars, transitive = [ji.transitive_runtime_jars])
-    data = None
-    data_runfiles = [d[DefaultInfo].default_runfiles for d in deps if d[DefaultInfo]]
-    if data_runfiles:
-        data = data_runfiles[0].merge_all(data_runfiles[1:])
+
+    # The compilation gets the data files and the runfiles of the dependencies as inputs.
+    data_files = depset(
+        data,
+        transitive = [dep[DefaultInfo].default_runfiles.files for dep in deps],
+    )
     return [
         KtPluginConfiguration(
             id = info.id,
             options = _resolve_plugin_options(options, expand_location),
             classpath = classpath,
-            data = data,
+            data = data_files,
         ),
     ]
 
@@ -37,7 +40,7 @@ def _merge_plugin_cfgs(info, cfgs):
         id = info.id,
         options = options,
         classpath = classpath,
-        data = depset(),
+        data = depset(transitive = [cfg.data for cfg in cfgs]),
     )
 
 def _resolve_plugin_options(string_list_dict, expand_location):

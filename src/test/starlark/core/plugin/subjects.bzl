@@ -8,7 +8,7 @@ def plugin_configuration_subject_factory(value, meta):
         meta = meta,
         attrs = {
             "classpath": subjects.collection,
-            "data": subjects.collection,
+            "data": subjects.depset_file,
             "id": subjects.str,
             "options": subjects.collection,
         },

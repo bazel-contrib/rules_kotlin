@@ -16,7 +16,8 @@ def _resolve_kapt_cfg(
         info,
         option_string_list_dict,
         deps,
-        expand_location):  # @unused Needed for lambda contract.
+        expand_location,  # @unused Needed for lambda contract.
+        data = []):
     infos = []
     plugins = []
     for d in deps:
@@ -39,10 +40,10 @@ def _resolve_kapt_cfg(
 
     ji = java_common.merge(infos)
     classpath = depset(ji.runtime_output_jars, transitive = [ji.transitive_runtime_jars])
-    data = None
-    data_runfiles = [d[DefaultInfo].default_runfiles for d in deps if d[DefaultInfo]]
-    if data_runfiles:
-        data = data_runfiles[0].merge_all(data_runfiles[1:])
+    data_files = depset(
+        data,
+        transitive = [d[DefaultInfo].default_runfiles.files for d in deps],
+    )
     return [
         ji,  # allows java compilation to pick up the annotation processor.
         JavacOptions(
@@ -63,7 +64,7 @@ def _resolve_kapt_cfg(
                 for v in vs
             ],
             classpath = classpath,
-            data = data,
+            data = data_files,
         ),
     ] + plugins
 
@@ -74,6 +75,7 @@ def _kapt_compiler_plugin_impl(ctx):
             id = plugin_id,
             classpath = depset(),
             options = [],
+            data = depset(),
             stubs = True,
             compile = False,
             resolve_cfg = _resolve_kapt_cfg,

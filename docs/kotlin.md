@@ -380,7 +380,7 @@ kt_jvm_library(
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="kt_compiler_plugin-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="kt_compiler_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="kt_compiler_plugin-data"></a>data |  The list of data files to be used by compiler's plugin   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_compiler_plugin-data"></a>data |  The files the plugin reads at compile time. An option value names one of them as `$(location <file>)`. The files are inputs of the compilation.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_compiler_plugin-compile_phase"></a>compile_phase |  Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`   | Boolean | optional |  `True`  |
 | <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | required |  |
 | <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Each option key can have multiple values. Supports the following template values:<br><br>- `{generatedClasses}`: directory for generated class output - `{temp}`: temporary directory, discarded between invocations - `{generatedSources}`:  directory for generated source output - `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
@@ -563,7 +563,7 @@ This allows setting options and dependencies independently from the initial plug
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="kt_plugin_cfg-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="kt_plugin_cfg-deps"></a>deps |  Dependencies for this configuration.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="kt_plugin_cfg-data"></a>data |  The list of data files to be used by compiler's plugin   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_plugin_cfg-data"></a>data |  The files the plugin reads at compile time. An option value names one of them as `$(location <file>)`. The files are inputs of the compilation.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_plugin_cfg-options"></a>options |  A dictionary of flag to values to be used as plugin configuration options.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
 | <a id="kt_plugin_cfg-plugin"></a>plugin |  The plugin to associate with this configuration   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
