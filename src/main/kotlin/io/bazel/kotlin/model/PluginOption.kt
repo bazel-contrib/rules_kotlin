@@ -6,15 +6,23 @@ data class PluginOption(
 ) {
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    operator fun invoke(block: Builder.() -> Unit): PluginOption = Builder().apply(block).build()
   }
 
-  class Builder {
-    private var model = PluginOption()
+  @ModelDsl
+  class Builder(model: PluginOption = PluginOption()) {
+    var key = model.key
+    var value = model.value
 
-    fun key(value: String) = apply { model = model.copy(key = value) }
+    fun key(value: String) = apply { key = value }
 
-    fun value(value: String) = apply { model = model.copy(value = value) }
+    fun value(value: String) = apply { this.value = value }
 
-    fun build(): PluginOption = model
+    fun build(): PluginOption =
+      PluginOption(
+        key = key,
+        value = value,
+      )
   }
 }

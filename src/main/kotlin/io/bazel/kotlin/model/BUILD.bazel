@@ -11,6 +11,7 @@ kt_bootstrap_library(
         "Jvm.kt",
         "JvmCompilationTask.kt",
         "KotlinToolchainInfo.kt",
+        "ModelDsl.kt",
         "Outputs.kt",
         "Platform.kt",
         "Plugin.kt",

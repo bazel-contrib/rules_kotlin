@@ -5,13 +5,19 @@ data class Jvm(
 ) {
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    operator fun invoke(block: Builder.() -> Unit): Jvm = Builder().apply(block).build()
   }
 
-  class Builder {
-    private var model = Jvm()
+  @ModelDsl
+  class Builder(model: Jvm = Jvm()) {
+    var jvmTarget = model.jvmTarget
 
-    fun jvmTarget(value: String) = apply { model = model.copy(jvmTarget = value) }
+    fun jvmTarget(value: String) = apply { jvmTarget = value }
 
-    fun build(): Jvm = model
+    fun build(): Jvm =
+      Jvm(
+        jvmTarget = jvmTarget,
+      )
   }
 }

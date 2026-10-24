@@ -20,100 +20,112 @@ data class CompilationTaskInfo(
 ) {
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    operator fun invoke(block: Builder.() -> Unit): CompilationTaskInfo =
+      Builder().apply(block).build()
   }
 
-  class Builder {
-    private var model = CompilationTaskInfo()
-    private val passthroughFlagsList = mutableListOf<String>()
-    private val friendPathsList = mutableListOf<String>()
-    private val debugList = mutableListOf<String>()
+  @ModelDsl
+  class Builder(model: CompilationTaskInfo = CompilationTaskInfo()) {
+    var label = model.label
+    var platform = model.platform
+    var ruleKind = model.ruleKind
+    var moduleName = model.moduleName
+    val passthroughFlagsList = model.passthroughFlagsList.toMutableList()
+    var toolchainInfo = model.toolchainInfo
+    val friendPathsList = model.friendPathsList.toMutableList()
+    var primaryOutputPath = model.primaryOutputPath
+    val debugList = model.debugList.toMutableList()
+    var strictKotlinDeps = model.strictKotlinDeps
+    var reducedClasspathMode = model.reducedClasspathMode
+    var treatInternalAsPrivateInAbiJar = model.treatInternalAsPrivateInAbiJar
+    var removePrivateClassesInAbiJar = model.removePrivateClassesInAbiJar
+    var removeDebugInfo = model.removeDebugInfo
+    var preserveDeclarationOrder = model.preserveDeclarationOrder
+    var removeDataClassCopyIfConstructorIsPrivate = model.removeDataClassCopyIfConstructorIsPrivate
 
-    fun label(value: String) = apply { model = model.copy(label = value) }
+    fun label(value: String) = apply { label = value }
 
-    fun platform(value: Platform) = apply { model = model.copy(platform = value) }
+    fun platform(value: Platform) = apply { platform = value }
 
-    fun ruleKind(value: RuleKind) = apply { model = model.copy(ruleKind = value) }
+    fun ruleKind(value: RuleKind) = apply { ruleKind = value }
 
-    fun moduleName(value: String) = apply { model = model.copy(moduleName = value) }
+    fun moduleName(value: String) = apply { moduleName = value }
 
-    fun passthroughFlagsList(value: List<String>) =
-      apply {
-        passthroughFlagsList.clear()
-        passthroughFlagsList.addAll(value)
-      }
+    fun passthroughFlagsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      passthroughFlagsList.clear()
+      passthroughFlagsList.addAll(snapshot)
+    }
 
-    fun addPassthroughFlags(value: String) = apply { passthroughFlagsList.add(value) }
+    fun addPassthroughFlags(value: String) = apply { passthroughFlagsList += value }
 
-    fun addAllPassthroughFlags(values: Iterable<String>) =
-      apply { passthroughFlagsList.addAll(values) }
+    fun addAllPassthroughFlags(values: Iterable<String>) = apply { passthroughFlagsList += values }
 
-    fun toolchainInfo(value: KotlinToolchainInfo) =
-      apply {
-        model =
-          model.copy(toolchainInfo = value)
-      }
+    fun toolchainInfo(value: KotlinToolchainInfo) = apply { toolchainInfo = value }
 
-    fun friendPathsList(value: List<String>) =
-      apply {
-        friendPathsList.clear()
-        friendPathsList.addAll(value)
-      }
+    @JvmSynthetic
+    fun toolchainInfo(block: KotlinToolchainInfo.Builder.() -> Unit) {
+      toolchainInfo = KotlinToolchainInfo.Builder(toolchainInfo).apply(block).build()
+    }
 
-    fun addFriendPaths(value: String) = apply { friendPathsList.add(value) }
+    fun friendPathsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      friendPathsList.clear()
+      friendPathsList.addAll(snapshot)
+    }
 
-    fun addAllFriendPaths(values: Iterable<String>) = apply { friendPathsList.addAll(values) }
+    fun addFriendPaths(value: String) = apply { friendPathsList += value }
 
-    fun primaryOutputPath(value: String) = apply { model = model.copy(primaryOutputPath = value) }
+    fun addAllFriendPaths(values: Iterable<String>) = apply { friendPathsList += values }
 
-    fun debugList(value: List<String>) =
-      apply {
-        debugList.clear()
-        debugList.addAll(value)
-      }
+    fun primaryOutputPath(value: String) = apply { primaryOutputPath = value }
 
-    fun addDebug(value: String) = apply { debugList.add(value) }
+    fun debugList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      debugList.clear()
+      debugList.addAll(snapshot)
+    }
 
-    fun addAllDebug(values: Iterable<String>) = apply { debugList.addAll(values) }
+    fun addDebug(value: String) = apply { debugList += value }
 
-    fun strictKotlinDeps(value: String) = apply { model = model.copy(strictKotlinDeps = value) }
+    fun addAllDebug(values: Iterable<String>) = apply { debugList += values }
 
-    fun reducedClasspathMode(value: String) =
-      apply {
-        model =
-          model.copy(reducedClasspathMode = value)
-      }
+    fun strictKotlinDeps(value: String) = apply { strictKotlinDeps = value }
+
+    fun reducedClasspathMode(value: String) = apply { reducedClasspathMode = value }
 
     fun treatInternalAsPrivateInAbiJar(value: Boolean) =
-      apply {
-        model =
-          model.copy(treatInternalAsPrivateInAbiJar = value)
-      }
+      apply { treatInternalAsPrivateInAbiJar = value }
 
     fun removePrivateClassesInAbiJar(value: Boolean) =
-      apply {
-        model =
-          model.copy(removePrivateClassesInAbiJar = value)
-      }
+      apply { removePrivateClassesInAbiJar = value }
 
-    fun removeDebugInfo(value: Boolean) = apply { model = model.copy(removeDebugInfo = value) }
+    fun removeDebugInfo(value: Boolean) = apply { removeDebugInfo = value }
 
-    fun preserveDeclarationOrder(value: Boolean) =
-      apply {
-        model =
-          model.copy(preserveDeclarationOrder = value)
-      }
+    fun preserveDeclarationOrder(value: Boolean) = apply { preserveDeclarationOrder = value }
 
     fun removeDataClassCopyIfConstructorIsPrivate(value: Boolean) =
-      apply {
-        model =
-          model.copy(removeDataClassCopyIfConstructorIsPrivate = value)
-      }
+      apply { removeDataClassCopyIfConstructorIsPrivate = value }
 
     fun build(): CompilationTaskInfo =
-      model.copy(
+      CompilationTaskInfo(
+        label = label,
+        platform = platform,
+        ruleKind = ruleKind,
+        moduleName = moduleName,
         passthroughFlagsList = passthroughFlagsList.toList(),
+        toolchainInfo = toolchainInfo,
         friendPathsList = friendPathsList.toList(),
+        primaryOutputPath = primaryOutputPath,
         debugList = debugList.toList(),
+        strictKotlinDeps = strictKotlinDeps,
+        reducedClasspathMode = reducedClasspathMode,
+        treatInternalAsPrivateInAbiJar = treatInternalAsPrivateInAbiJar,
+        removePrivateClassesInAbiJar = removePrivateClassesInAbiJar,
+        removeDebugInfo = removeDebugInfo,
+        preserveDeclarationOrder = preserveDeclarationOrder,
+        removeDataClassCopyIfConstructorIsPrivate = removeDataClassCopyIfConstructorIsPrivate,
       )
   }
 }

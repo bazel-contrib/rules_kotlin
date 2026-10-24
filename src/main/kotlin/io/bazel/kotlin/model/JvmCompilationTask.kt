@@ -10,24 +10,60 @@ data class JvmCompilationTask(
 ) {
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    operator fun invoke(block: Builder.() -> Unit): JvmCompilationTask =
+      Builder().apply(block).build()
   }
 
-  class Builder {
-    private var model = JvmCompilationTask()
+  @ModelDsl
+  class Builder(model: JvmCompilationTask = JvmCompilationTask()) {
+    var info = model.info
+    var directories = model.directories
+    var outputs = model.outputs
+    var inputs = model.inputs
+    var compileKotlin = model.compileKotlin
+    var instrumentCoverage = model.instrumentCoverage
 
-    fun info(value: CompilationTaskInfo) = apply { model = model.copy(info = value) }
+    fun info(value: CompilationTaskInfo) = apply { info = value }
 
-    fun directories(value: Directories) = apply { model = model.copy(directories = value) }
+    @JvmSynthetic
+    fun info(block: CompilationTaskInfo.Builder.() -> Unit) {
+      info = CompilationTaskInfo.Builder(info).apply(block).build()
+    }
 
-    fun outputs(value: Outputs) = apply { model = model.copy(outputs = value) }
+    fun directories(value: Directories) = apply { directories = value }
 
-    fun inputs(value: Inputs) = apply { model = model.copy(inputs = value) }
+    @JvmSynthetic
+    fun directories(block: Directories.Builder.() -> Unit) {
+      directories = Directories.Builder(directories).apply(block).build()
+    }
 
-    fun compileKotlin(value: Boolean) = apply { model = model.copy(compileKotlin = value) }
+    fun outputs(value: Outputs) = apply { outputs = value }
 
-    fun instrumentCoverage(value: Boolean) =
-      apply { model = model.copy(instrumentCoverage = value) }
+    @JvmSynthetic
+    fun outputs(block: Outputs.Builder.() -> Unit) {
+      outputs = Outputs.Builder(outputs).apply(block).build()
+    }
 
-    fun build(): JvmCompilationTask = model
+    fun inputs(value: Inputs) = apply { inputs = value }
+
+    @JvmSynthetic
+    fun inputs(block: Inputs.Builder.() -> Unit) {
+      inputs = Inputs.Builder(inputs).apply(block).build()
+    }
+
+    fun compileKotlin(value: Boolean) = apply { compileKotlin = value }
+
+    fun instrumentCoverage(value: Boolean) = apply { instrumentCoverage = value }
+
+    fun build(): JvmCompilationTask =
+      JvmCompilationTask(
+        info = info,
+        directories = directories,
+        outputs = outputs,
+        inputs = inputs,
+        compileKotlin = compileKotlin,
+        instrumentCoverage = instrumentCoverage,
+      )
   }
 }

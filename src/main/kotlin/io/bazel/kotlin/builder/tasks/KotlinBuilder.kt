@@ -25,14 +25,8 @@ import io.bazel.kotlin.builder.utils.fingerprintOf
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.model.BtapiRuntime
-import io.bazel.kotlin.model.Common
 import io.bazel.kotlin.model.CompilationTaskInfo
-import io.bazel.kotlin.model.Directories
-import io.bazel.kotlin.model.Inputs
-import io.bazel.kotlin.model.Jvm
 import io.bazel.kotlin.model.JvmCompilationTask
-import io.bazel.kotlin.model.KotlinToolchainInfo
-import io.bazel.kotlin.model.Outputs
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.PluginPhase
 import io.bazel.kotlin.model.RuleKind
@@ -156,43 +150,36 @@ class KotlinBuilder(
       argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
         check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
       }
-    val common =
-      Common
-        .builder()
-        .apiVersion(argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION))
-        .languageVersion(argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION))
-        .build()
-    val toolchainInfo =
-      KotlinToolchainInfo
-        .builder()
-        .common(common)
-        .btapi(buildBtapiRuntime(argMap, inputDigests))
-        .build()
-    return CompilationTaskInfo
-      .builder()
-      .label(argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL))
-      .platform(platform)
-      .ruleKind(ruleKind)
-      .moduleName(moduleName)
-      .passthroughFlagsList(argMap.optional(KotlinBuilderFlags.PASSTHROUGH_FLAGS) ?: emptyList())
-      .toolchainInfo(toolchainInfo)
-      .friendPathsList(argMap.optional(KotlinBuilderFlags.FRIEND_PATHS) ?: emptyList())
-      .debugList(argMap.mandatory(KotlinBuilderFlags.DEBUG))
-      .strictKotlinDeps(argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS))
-      .reducedClasspathMode(argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE))
-      .treatInternalAsPrivateInAbiJar(
-        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE) == "true",
-      ).removePrivateClassesInAbiJar(
-        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_PRIVATE_CLASSES) == "true",
-      ).removeDebugInfo(
-        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO) == "true",
-      ).preserveDeclarationOrder(
-        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_PRESERVE_DECLARATION_ORDER) == "true",
-      ).removeDataClassCopyIfConstructorIsPrivate(
+    return CompilationTaskInfo {
+      label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
+      this.platform = platform
+      this.ruleKind = ruleKind
+      this.moduleName = moduleName
+      passthroughFlagsList += argMap.optional(KotlinBuilderFlags.PASSTHROUGH_FLAGS).orEmpty()
+      toolchainInfo {
+        common {
+          apiVersion = argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
+          languageVersion = argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
+        }
+        btapi = buildBtapiRuntime(argMap, inputDigests)
+      }
+      friendPathsList += argMap.optional(KotlinBuilderFlags.FRIEND_PATHS).orEmpty()
+      debugList += argMap.mandatory(KotlinBuilderFlags.DEBUG)
+      strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
+      reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
+      treatInternalAsPrivateInAbiJar =
+        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE) == "true"
+      removePrivateClassesInAbiJar =
+        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_PRIVATE_CLASSES) == "true"
+      removeDebugInfo =
+        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO) == "true"
+      preserveDeclarationOrder =
+        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_PRESERVE_DECLARATION_ORDER) == "true"
+      removeDataClassCopyIfConstructorIsPrivate =
         argMap.optionalSingle(
           KotlinBuilderFlags.ABI_JAR_REMOVE_DATA_CLASS_COPY_IF_CONSTRUCTOR_IS_PRIVATE,
-        ) == "true",
-      ).build()
+        ) == "true"
+    }
   }
 
   private fun executeJvmTask(
@@ -239,14 +226,13 @@ class KotlinBuilder(
       "incomplete Build Tools API runtime flag set: missing ${missing.joinToString { it.flag }}"
     }
     val apiImplClasspath = argMap.mandatory(KotlinBuilderFlags.BTAPI_IMPL_CLASSPATH)
-    return BtapiRuntime
-      .builder()
-      .apiImplClasspathList(apiImplClasspath)
-      .jvmAbiGenClasspathList(argMap.mandatory(KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN_CLASSPATH))
-      .kaptClasspathList(argMap.mandatory(KotlinBuilderFlags.INTERNAL_KAPT_CLASSPATH))
-      .jdepsGenClasspathList(argMap.mandatory(KotlinBuilderFlags.INTERNAL_JDEPS_GEN_CLASSPATH))
-      .classpathFingerprint(fingerprintOf(apiImplClasspath, inputDigests))
-      .build()
+    return BtapiRuntime {
+      apiImplClasspathList += apiImplClasspath
+      jvmAbiGenClasspathList += argMap.mandatory(KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN_CLASSPATH)
+      kaptClasspathList += argMap.mandatory(KotlinBuilderFlags.INTERNAL_KAPT_CLASSPATH)
+      jdepsGenClasspathList += argMap.mandatory(KotlinBuilderFlags.INTERNAL_JDEPS_GEN_CLASSPATH)
+      classpathFingerprint = fingerprintOf(apiImplClasspath, inputDigests)
+    }
   }
 
   private fun buildJvmTask(
@@ -254,101 +240,82 @@ class KotlinBuilder(
     workingDir: Path,
     argMap: ArgMap,
   ): JvmCompilationTask {
-    val outputs =
-      Outputs
-        .builder()
-        .jar(argMap.optionalSingle(KotlinBuilderFlags.OUTPUT) ?: "")
-        .srcjar(argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR) ?: "")
-        .jdeps(argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS) ?: "")
-        .generatedJavaSrcJar(argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR) ?: "")
-        .generatedJavaStubJar(
-          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR) ?: "",
-        ).abijar(argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR) ?: "")
-        .generatedClassJar(argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR) ?: "")
-        .build()
-
     val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
 
     fun directory(name: String): String =
       workingDir.resolveNewDirectories(getOutputDirPath(moduleName, name)).toString()
 
-    val directories =
-      Directories
-        .builder()
-        .classes(directory("classes"))
-        .javaClasses(directory("java_classes"))
-        .apply {
-          if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) {
-            abiClasses(directory("abi_classes"))
+    return JvmCompilationTask {
+      this.info = info
+      info {
+        toolchainInfo {
+          jvm { jvmTarget = argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET) }
+        }
+      }
+      outputs {
+        jar = argMap.optionalSingle(KotlinBuilderFlags.OUTPUT).orEmpty()
+        srcjar = argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR).orEmpty()
+        jdeps = argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS).orEmpty()
+        generatedJavaSrcJar =
+          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR).orEmpty()
+        generatedJavaStubJar =
+          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR).orEmpty()
+        abijar = argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR).orEmpty()
+        generatedClassJar = argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR).orEmpty()
+      }
+      directories {
+        classes = directory("classes")
+        javaClasses = directory("java_classes")
+        if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) {
+          abiClasses = directory("abi_classes")
+        }
+        generatedClasses = directory("generated_classes")
+        temp = directory("temp")
+        generatedSources = directory("generated_sources")
+        generatedJavaSources = directory("generated_java_sources")
+        generatedStubClasses = directory("stubs")
+        coverageMetadataClasses = directory("coverage-metadata")
+      }
+      inputs {
+        pluginsList +=
+          argMap.optional(KotlinBuilderFlags.PLUGINS_PAYLOAD)
+            ?.singleOrNull()
+            ?.let(PluginsPayloadParser::parse)
+            .orEmpty()
+
+        // Expand structured plugins into the legacy per-phase compiler arguments.
+        for (plugin in pluginsList) {
+          val optionStrings = plugin.optionsList.map { option ->
+            if (option.value.isEmpty()) {
+              "${plugin.id}:${option.key}"
+            } else {
+              "${plugin.id}:${option.key}=${option.value}"
+            }
           }
-        }.generatedClasses(directory("generated_classes"))
-        .temp(directory("temp"))
-        .generatedSources(directory("generated_sources"))
-        .generatedJavaSources(directory("generated_java_sources"))
-        .generatedStubClasses(directory("stubs"))
-        .coverageMetadataClasses(directory("coverage-metadata"))
-        .build()
-
-    val plugins =
-      argMap
-        .optional(KotlinBuilderFlags.PLUGINS_PAYLOAD)
-        ?.singleOrNull()
-        ?.let(PluginsPayloadParser::parse)
-        ?: emptyList()
-
-    // Expand the structured plugins into the per-phase fields the compilation paths consume.
-    // The expansion reproduces the exact strings the legacy per-phase worker flags used to
-    // carry, so the -Xplugin/-P arguments handed to kotlinc are unchanged.
-    val inputs = Inputs.builder()
-    for (plugin in plugins) {
-      val optionStrings =
-        plugin.optionsList.map { option ->
-          if (option.value.isEmpty()) {
-            "${plugin.id}:${option.key}"
-          } else {
-            "${plugin.id}:${option.key}=${option.value}"
+          if (PluginPhase.PLUGIN_PHASE_STUBS in plugin.phasesList) {
+            stubsPluginClasspathList += plugin.classpathList
+            stubsPluginOptionsList += optionStrings
+          }
+          if (PluginPhase.PLUGIN_PHASE_COMPILE in plugin.phasesList) {
+            compilerPluginClasspathList += plugin.classpathList
+            compilerPluginOptionsList += optionStrings
           }
         }
-      if (PluginPhase.PLUGIN_PHASE_STUBS in plugin.phasesList) {
-        inputs.addAllStubsPluginClasspath(plugin.classpathList)
-        inputs.addAllStubsPluginOptions(optionStrings)
+        argMap.optional(KotlinBuilderFlags.SOURCES)?.iterator()?.partitionJvmSources(
+          { kotlinSourcesList += it },
+          { javaSourcesList += it },
+        )
+        classpathList += argMap.mandatory(KotlinBuilderFlags.CLASSPATH)
+        directDependenciesList += argMap.mandatory(KotlinBuilderFlags.DIRECT_DEPENDENCIES)
+        sourceJarsList += argMap.optional(KotlinBuilderFlags.SOURCE_JARS).orEmpty()
+        processorsList += argMap.optional(KotlinBuilderFlags.PROCESSORS).orEmpty()
+        processorpathsList += argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH).orEmpty()
+        depsArtifactsList += argMap.optional(KotlinBuilderFlags.DEPS_ARTIFACTS).orEmpty()
       }
-      if (PluginPhase.PLUGIN_PHASE_COMPILE in plugin.phasesList) {
-        inputs.addAllCompilerPluginClasspath(plugin.classpathList)
-        inputs.addAllCompilerPluginOptions(optionStrings)
-      }
+      compileKotlin = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean()
+      instrumentCoverage =
+        argMap.mandatorySingle(KotlinBuilderFlags.INSTRUMENT_COVERAGE).toBoolean()
     }
-
-    argMap
-      .optional(KotlinBuilderFlags.SOURCES)
-      ?.iterator()
-      ?.partitionJvmSources(
-        { inputs.addKotlinSources(it) },
-        { inputs.addJavaSources(it) },
-      )
-
-    inputs
-      .classpathList(argMap.mandatory(KotlinBuilderFlags.CLASSPATH))
-      .directDependenciesList(argMap.mandatory(KotlinBuilderFlags.DIRECT_DEPENDENCIES))
-      .sourceJarsList(argMap.optional(KotlinBuilderFlags.SOURCE_JARS) ?: emptyList())
-      .processorsList(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
-      .processorpathsList(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
-      .depsArtifactsList(argMap.optional(KotlinBuilderFlags.DEPS_ARTIFACTS) ?: emptyList())
-      .pluginsList(plugins)
-
-    val jvm = Jvm.builder().jvmTarget(argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET)).build()
-    val finalInfo = info.copy(toolchainInfo = info.toolchainInfo.copy(jvm = jvm))
-
-    return JvmCompilationTask
-      .builder()
-      .info(finalInfo)
-      .directories(directories)
-      .outputs(outputs)
-      .inputs(inputs.build())
-      .compileKotlin(argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean())
-      .instrumentCoverage(
-        argMap.mandatorySingle(KotlinBuilderFlags.INSTRUMENT_COVERAGE).toBoolean(),
-      ).build()
   }
 
   private fun getOutputDirPath(

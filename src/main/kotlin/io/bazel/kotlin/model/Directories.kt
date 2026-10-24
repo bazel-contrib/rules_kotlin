@@ -13,41 +13,51 @@ data class Directories(
 ) {
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    operator fun invoke(block: Builder.() -> Unit): Directories = Builder().apply(block).build()
   }
 
-  class Builder {
-    private var model = Directories()
+  @ModelDsl
+  class Builder(model: Directories = Directories()) {
+    var classes = model.classes
+    var generatedClasses = model.generatedClasses
+    var generatedSources = model.generatedSources
+    var temp = model.temp
+    var generatedStubClasses = model.generatedStubClasses
+    var abiClasses = model.abiClasses
+    var generatedJavaSources = model.generatedJavaSources
+    var javaClasses = model.javaClasses
+    var coverageMetadataClasses = model.coverageMetadataClasses
 
-    fun classes(value: String) = apply { model = model.copy(classes = value) }
+    fun classes(value: String) = apply { classes = value }
 
-    fun generatedClasses(value: String) = apply { model = model.copy(generatedClasses = value) }
+    fun generatedClasses(value: String) = apply { generatedClasses = value }
 
-    fun generatedSources(value: String) = apply { model = model.copy(generatedSources = value) }
+    fun generatedSources(value: String) = apply { generatedSources = value }
 
-    fun temp(value: String) = apply { model = model.copy(temp = value) }
+    fun temp(value: String) = apply { temp = value }
 
-    fun generatedStubClasses(value: String) =
-      apply {
-        model =
-          model.copy(generatedStubClasses = value)
-      }
+    fun generatedStubClasses(value: String) = apply { generatedStubClasses = value }
 
-    fun abiClasses(value: String) = apply { model = model.copy(abiClasses = value) }
+    fun abiClasses(value: String) = apply { abiClasses = value }
 
-    fun generatedJavaSources(value: String) =
-      apply {
-        model =
-          model.copy(generatedJavaSources = value)
-      }
+    fun generatedJavaSources(value: String) = apply { generatedJavaSources = value }
 
-    fun javaClasses(value: String) = apply { model = model.copy(javaClasses = value) }
+    fun javaClasses(value: String) = apply { javaClasses = value }
 
-    fun coverageMetadataClasses(value: String) =
-      apply {
-        model =
-          model.copy(coverageMetadataClasses = value)
-      }
+    fun coverageMetadataClasses(value: String) = apply { coverageMetadataClasses = value }
 
-    fun build(): Directories = model
+    fun build(): Directories =
+      Directories(
+        classes = classes,
+        generatedClasses = generatedClasses,
+        generatedSources = generatedSources,
+        temp = temp,
+        generatedStubClasses = generatedStubClasses,
+        abiClasses = abiClasses,
+        generatedJavaSources = generatedJavaSources,
+        javaClasses = javaClasses,
+        coverageMetadataClasses = coverageMetadataClasses,
+      )
   }
 }

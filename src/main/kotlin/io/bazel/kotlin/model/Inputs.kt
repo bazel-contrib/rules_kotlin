@@ -20,205 +20,196 @@ data class Inputs(
 ) {
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    operator fun invoke(block: Builder.() -> Unit): Inputs = Builder().apply(block).build()
   }
 
-  class Builder {
-    private var model = Inputs()
-    private val classpathList = mutableListOf<String>()
-    private val directDependenciesList = mutableListOf<String>()
-    private val kotlinSourcesList = mutableListOf<String>()
-    private val javaSourcesList = mutableListOf<String>()
-    private val sourceJarsList = mutableListOf<String>()
-    private val processorsList = mutableListOf<String>()
-    private val processorpathsList = mutableListOf<String>()
-    private val stubsPluginOptionsList = mutableListOf<String>()
-    private val stubsPluginsList = mutableListOf<String>()
-    private val stubsPluginClasspathList = mutableListOf<String>()
-    private val compilerPluginOptionsList = mutableListOf<String>()
-    private val compilerPluginsList = mutableListOf<String>()
-    private val compilerPluginClasspathList = mutableListOf<String>()
-    private val javacFlagsList = mutableListOf<String>()
-    private val depsArtifactsList = mutableListOf<String>()
-    private val pluginsList = mutableListOf<Plugin>()
+  @ModelDsl
+  class Builder(model: Inputs = Inputs()) {
+    val classpathList = model.classpathList.toMutableList()
+    val directDependenciesList = model.directDependenciesList.toMutableList()
+    val kotlinSourcesList = model.kotlinSourcesList.toMutableList()
+    val javaSourcesList = model.javaSourcesList.toMutableList()
+    val sourceJarsList = model.sourceJarsList.toMutableList()
+    val processorsList = model.processorsList.toMutableList()
+    val processorpathsList = model.processorpathsList.toMutableList()
+    val stubsPluginOptionsList = model.stubsPluginOptionsList.toMutableList()
+    val stubsPluginsList = model.stubsPluginsList.toMutableList()
+    val stubsPluginClasspathList = model.stubsPluginClasspathList.toMutableList()
+    val compilerPluginOptionsList = model.compilerPluginOptionsList.toMutableList()
+    val compilerPluginsList = model.compilerPluginsList.toMutableList()
+    val compilerPluginClasspathList = model.compilerPluginClasspathList.toMutableList()
+    val javacFlagsList = model.javacFlagsList.toMutableList()
+    val depsArtifactsList = model.depsArtifactsList.toMutableList()
+    val pluginsList = model.pluginsList.toMutableList()
 
-    fun classpathList(value: List<String>) =
-      apply {
-        classpathList.clear()
-        classpathList.addAll(value)
-      }
+    fun classpathList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      classpathList.clear()
+      classpathList.addAll(snapshot)
+    }
 
-    fun addClasspath(value: String) = apply { classpathList.add(value) }
+    fun addClasspath(value: String) = apply { classpathList += value }
 
-    fun addAllClasspath(values: Iterable<String>) = apply { classpathList.addAll(values) }
+    fun addAllClasspath(values: Iterable<String>) = apply { classpathList += values }
 
-    fun directDependenciesList(value: List<String>) =
-      apply {
-        directDependenciesList.clear()
-        directDependenciesList.addAll(value)
-      }
+    fun directDependenciesList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      directDependenciesList.clear()
+      directDependenciesList.addAll(snapshot)
+    }
 
-    fun addDirectDependencies(value: String) = apply { directDependenciesList.add(value) }
+    fun addDirectDependencies(value: String) = apply { directDependenciesList += value }
 
     fun addAllDirectDependencies(values: Iterable<String>) =
-      apply {
-        directDependenciesList.addAll(values)
-      }
+      apply { directDependenciesList += values }
 
-    fun kotlinSourcesList(value: List<String>) =
-      apply {
-        kotlinSourcesList.clear()
-        kotlinSourcesList.addAll(value)
-      }
+    fun kotlinSourcesList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      kotlinSourcesList.clear()
+      kotlinSourcesList.addAll(snapshot)
+    }
 
-    fun addKotlinSources(value: String) = apply { kotlinSourcesList.add(value) }
+    fun addKotlinSources(value: String) = apply { kotlinSourcesList += value }
 
-    fun addAllKotlinSources(values: Iterable<String>) = apply { kotlinSourcesList.addAll(values) }
+    fun addAllKotlinSources(values: Iterable<String>) = apply { kotlinSourcesList += values }
 
-    fun javaSourcesList(value: List<String>) =
-      apply {
-        javaSourcesList.clear()
-        javaSourcesList.addAll(value)
-      }
+    fun javaSourcesList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      javaSourcesList.clear()
+      javaSourcesList.addAll(snapshot)
+    }
 
-    fun addJavaSources(value: String) = apply { javaSourcesList.add(value) }
+    fun addJavaSources(value: String) = apply { javaSourcesList += value }
 
-    fun addAllJavaSources(values: Iterable<String>) = apply { javaSourcesList.addAll(values) }
+    fun addAllJavaSources(values: Iterable<String>) = apply { javaSourcesList += values }
 
-    fun sourceJarsList(value: List<String>) =
-      apply {
-        sourceJarsList.clear()
-        sourceJarsList.addAll(value)
-      }
+    fun sourceJarsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      sourceJarsList.clear()
+      sourceJarsList.addAll(snapshot)
+    }
 
-    fun addSourceJars(value: String) = apply { sourceJarsList.add(value) }
+    fun addSourceJars(value: String) = apply { sourceJarsList += value }
 
-    fun addAllSourceJars(values: Iterable<String>) = apply { sourceJarsList.addAll(values) }
+    fun addAllSourceJars(values: Iterable<String>) = apply { sourceJarsList += values }
 
-    fun processorsList(value: List<String>) =
-      apply {
-        processorsList.clear()
-        processorsList.addAll(value)
-      }
+    fun processorsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      processorsList.clear()
+      processorsList.addAll(snapshot)
+    }
 
-    fun addProcessors(value: String) = apply { processorsList.add(value) }
+    fun addProcessors(value: String) = apply { processorsList += value }
 
-    fun addAllProcessors(values: Iterable<String>) = apply { processorsList.addAll(values) }
+    fun addAllProcessors(values: Iterable<String>) = apply { processorsList += values }
 
-    fun processorpathsList(value: List<String>) =
-      apply {
-        processorpathsList.clear()
-        processorpathsList.addAll(value)
-      }
+    fun processorpathsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      processorpathsList.clear()
+      processorpathsList.addAll(snapshot)
+    }
 
-    fun addProcessorpaths(value: String) = apply { processorpathsList.add(value) }
+    fun addProcessorpaths(value: String) = apply { processorpathsList += value }
 
-    fun addAllProcessorpaths(values: Iterable<String>) = apply { processorpathsList.addAll(values) }
+    fun addAllProcessorpaths(values: Iterable<String>) = apply { processorpathsList += values }
 
-    fun stubsPluginOptionsList(value: List<String>) =
-      apply {
-        stubsPluginOptionsList.clear()
-        stubsPluginOptionsList.addAll(value)
-      }
+    fun stubsPluginOptionsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      stubsPluginOptionsList.clear()
+      stubsPluginOptionsList.addAll(snapshot)
+    }
 
-    fun addStubsPluginOptions(value: String) = apply { stubsPluginOptionsList.add(value) }
+    fun addStubsPluginOptions(value: String) = apply { stubsPluginOptionsList += value }
 
     fun addAllStubsPluginOptions(values: Iterable<String>) =
-      apply {
-        stubsPluginOptionsList.addAll(values)
-      }
+      apply { stubsPluginOptionsList += values }
 
-    fun stubsPluginsList(value: List<String>) =
-      apply {
-        stubsPluginsList.clear()
-        stubsPluginsList.addAll(value)
-      }
+    fun stubsPluginsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      stubsPluginsList.clear()
+      stubsPluginsList.addAll(snapshot)
+    }
 
-    fun addStubsPlugins(value: String) = apply { stubsPluginsList.add(value) }
+    fun addStubsPlugins(value: String) = apply { stubsPluginsList += value }
 
-    fun addAllStubsPlugins(values: Iterable<String>) = apply { stubsPluginsList.addAll(values) }
+    fun addAllStubsPlugins(values: Iterable<String>) = apply { stubsPluginsList += values }
 
-    fun stubsPluginClasspathList(value: List<String>) =
-      apply {
-        stubsPluginClasspathList.clear()
-        stubsPluginClasspathList.addAll(value)
-      }
+    fun stubsPluginClasspathList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      stubsPluginClasspathList.clear()
+      stubsPluginClasspathList.addAll(snapshot)
+    }
 
-    fun addStubsPluginClasspath(value: String) = apply { stubsPluginClasspathList.add(value) }
+    fun addStubsPluginClasspath(value: String) = apply { stubsPluginClasspathList += value }
 
     fun addAllStubsPluginClasspath(values: Iterable<String>) =
-      apply {
-        stubsPluginClasspathList.addAll(values)
-      }
+      apply { stubsPluginClasspathList += values }
 
-    fun compilerPluginOptionsList(value: List<String>) =
-      apply {
-        compilerPluginOptionsList.clear()
-        compilerPluginOptionsList.addAll(value)
-      }
+    fun compilerPluginOptionsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      compilerPluginOptionsList.clear()
+      compilerPluginOptionsList.addAll(snapshot)
+    }
 
-    fun addCompilerPluginOptions(value: String) = apply { compilerPluginOptionsList.add(value) }
+    fun addCompilerPluginOptions(value: String) = apply { compilerPluginOptionsList += value }
 
     fun addAllCompilerPluginOptions(values: Iterable<String>) =
-      apply {
-        compilerPluginOptionsList.addAll(values)
-      }
+      apply { compilerPluginOptionsList += values }
 
-    fun compilerPluginsList(value: List<String>) =
-      apply {
-        compilerPluginsList.clear()
-        compilerPluginsList.addAll(value)
-      }
+    fun compilerPluginsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      compilerPluginsList.clear()
+      compilerPluginsList.addAll(snapshot)
+    }
 
-    fun addCompilerPlugins(value: String) = apply { compilerPluginsList.add(value) }
+    fun addCompilerPlugins(value: String) = apply { compilerPluginsList += value }
 
-    fun addAllCompilerPlugins(values: Iterable<String>) =
-      apply { compilerPluginsList.addAll(values) }
+    fun addAllCompilerPlugins(values: Iterable<String>) = apply { compilerPluginsList += values }
 
-    fun compilerPluginClasspathList(value: List<String>) =
-      apply {
-        compilerPluginClasspathList.clear()
-        compilerPluginClasspathList.addAll(value)
-      }
+    fun compilerPluginClasspathList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      compilerPluginClasspathList.clear()
+      compilerPluginClasspathList.addAll(snapshot)
+    }
 
-    fun addCompilerPluginClasspath(value: String) = apply { compilerPluginClasspathList.add(value) }
+    fun addCompilerPluginClasspath(value: String) = apply { compilerPluginClasspathList += value }
 
     fun addAllCompilerPluginClasspath(values: Iterable<String>) =
-      apply {
-        compilerPluginClasspathList.addAll(values)
-      }
+      apply { compilerPluginClasspathList += values }
 
-    fun javacFlagsList(value: List<String>) =
-      apply {
-        javacFlagsList.clear()
-        javacFlagsList.addAll(value)
-      }
+    fun javacFlagsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      javacFlagsList.clear()
+      javacFlagsList.addAll(snapshot)
+    }
 
-    fun addJavacFlags(value: String) = apply { javacFlagsList.add(value) }
+    fun addJavacFlags(value: String) = apply { javacFlagsList += value }
 
-    fun addAllJavacFlags(values: Iterable<String>) = apply { javacFlagsList.addAll(values) }
+    fun addAllJavacFlags(values: Iterable<String>) = apply { javacFlagsList += values }
 
-    fun depsArtifactsList(value: List<String>) =
-      apply {
-        depsArtifactsList.clear()
-        depsArtifactsList.addAll(value)
-      }
+    fun depsArtifactsList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      depsArtifactsList.clear()
+      depsArtifactsList.addAll(snapshot)
+    }
 
-    fun addDepsArtifacts(value: String) = apply { depsArtifactsList.add(value) }
+    fun addDepsArtifacts(value: String) = apply { depsArtifactsList += value }
 
-    fun addAllDepsArtifacts(values: Iterable<String>) = apply { depsArtifactsList.addAll(values) }
+    fun addAllDepsArtifacts(values: Iterable<String>) = apply { depsArtifactsList += values }
 
-    fun pluginsList(value: List<Plugin>) =
-      apply {
-        pluginsList.clear()
-        pluginsList.addAll(value)
-      }
+    fun pluginsList(value: List<Plugin>) = apply {
+      val snapshot = value.toList()
+      pluginsList.clear()
+      pluginsList.addAll(snapshot)
+    }
 
-    fun addPlugins(value: Plugin) = apply { pluginsList.add(value) }
+    fun addPlugins(value: Plugin) = apply { pluginsList += value }
 
-    fun addAllPlugins(values: Iterable<Plugin>) = apply { pluginsList.addAll(values) }
+    fun addAllPlugins(values: Iterable<Plugin>) = apply { pluginsList += values }
 
     fun build(): Inputs =
-      model.copy(
+      Inputs(
         classpathList = classpathList.toList(),
         directDependenciesList = directDependenciesList.toList(),
         kotlinSourcesList = kotlinSourcesList.toList(),

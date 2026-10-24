@@ -7,17 +7,27 @@ data class Common(
 ) {
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    operator fun invoke(block: Builder.() -> Unit): Common = Builder().apply(block).build()
   }
 
-  class Builder {
-    private var model = Common()
+  @ModelDsl
+  class Builder(model: Common = Common()) {
+    var languageVersion = model.languageVersion
+    var apiVersion = model.apiVersion
+    var coroutines = model.coroutines
 
-    fun languageVersion(value: String) = apply { model = model.copy(languageVersion = value) }
+    fun languageVersion(value: String) = apply { languageVersion = value }
 
-    fun apiVersion(value: String) = apply { model = model.copy(apiVersion = value) }
+    fun apiVersion(value: String) = apply { apiVersion = value }
 
-    fun coroutines(value: String) = apply { model = model.copy(coroutines = value) }
+    fun coroutines(value: String) = apply { coroutines = value }
 
-    fun build(): Common = model
+    fun build(): Common =
+      Common(
+        languageVersion = languageVersion,
+        apiVersion = apiVersion,
+        coroutines = coroutines,
+      )
   }
 }

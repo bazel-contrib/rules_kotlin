@@ -8,48 +8,52 @@ data class Plugin(
 ) {
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    operator fun invoke(block: Builder.() -> Unit): Plugin = Builder().apply(block).build()
   }
 
-  class Builder {
-    private var model = Plugin()
-    private val classpathList = mutableListOf<String>()
-    private val optionsList = mutableListOf<PluginOption>()
-    private val phasesList = mutableListOf<PluginPhase>()
+  @ModelDsl
+  class Builder(model: Plugin = Plugin()) {
+    var id = model.id
+    val classpathList = model.classpathList.toMutableList()
+    val optionsList = model.optionsList.toMutableList()
+    val phasesList = model.phasesList.toMutableList()
 
-    fun id(value: String) = apply { model = model.copy(id = value) }
+    fun id(value: String) = apply { id = value }
 
-    fun classpathList(value: List<String>) =
-      apply {
-        classpathList.clear()
-        classpathList.addAll(value)
-      }
+    fun classpathList(value: List<String>) = apply {
+      val snapshot = value.toList()
+      classpathList.clear()
+      classpathList.addAll(snapshot)
+    }
 
-    fun addClasspath(value: String) = apply { classpathList.add(value) }
+    fun addClasspath(value: String) = apply { classpathList += value }
 
-    fun addAllClasspath(values: Iterable<String>) = apply { classpathList.addAll(values) }
+    fun addAllClasspath(values: Iterable<String>) = apply { classpathList += values }
 
-    fun optionsList(value: List<PluginOption>) =
-      apply {
-        optionsList.clear()
-        optionsList.addAll(value)
-      }
+    fun optionsList(value: List<PluginOption>) = apply {
+      val snapshot = value.toList()
+      optionsList.clear()
+      optionsList.addAll(snapshot)
+    }
 
-    fun addOptions(value: PluginOption) = apply { optionsList.add(value) }
+    fun addOptions(value: PluginOption) = apply { optionsList += value }
 
-    fun addAllOptions(values: Iterable<PluginOption>) = apply { optionsList.addAll(values) }
+    fun addAllOptions(values: Iterable<PluginOption>) = apply { optionsList += values }
 
-    fun phasesList(value: List<PluginPhase>) =
-      apply {
-        phasesList.clear()
-        phasesList.addAll(value)
-      }
+    fun phasesList(value: List<PluginPhase>) = apply {
+      val snapshot = value.toList()
+      phasesList.clear()
+      phasesList.addAll(snapshot)
+    }
 
-    fun addPhases(value: PluginPhase) = apply { phasesList.add(value) }
+    fun addPhases(value: PluginPhase) = apply { phasesList += value }
 
-    fun addAllPhases(values: Iterable<PluginPhase>) = apply { phasesList.addAll(values) }
+    fun addAllPhases(values: Iterable<PluginPhase>) = apply { phasesList += values }
 
     fun build(): Plugin =
-      model.copy(
+      Plugin(
+        id = id,
         classpathList = classpathList.toList(),
         optionsList = optionsList.toList(),
         phasesList = phasesList.toList(),

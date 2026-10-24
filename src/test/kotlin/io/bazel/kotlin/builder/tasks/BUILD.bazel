@@ -36,6 +36,16 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "ModelDslTest",
+    srcs = ["ModelDslTest.kt"],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/model",
+        "@kotlin_rules_maven_test//:com_google_truth_truth",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
+kt_rules_test(
     name = "JdepsParserTest",
     srcs = ["jvm/JdepsParserTest.java"],
     deps = [
@@ -221,6 +231,7 @@ test_suite(
         ":KotlinBuilderJvmStrictDepsTest",
         ":KotlinJvmTaskExecutorTest",
         ":Ksp2TaskTest",
+        ":ModelDslTest",
         ":PluginsPayloadExpansionTest",
         ":PluginsPayloadParserTest",
     ],
