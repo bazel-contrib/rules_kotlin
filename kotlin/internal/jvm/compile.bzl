@@ -76,13 +76,10 @@ def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
 def _deps_artifacts(toolchains, targets):
-    """Collect Jdeps artifacts if required."""
-    if not toolchains.kt.experimental_report_unused_deps == "off":
-        deps_artifacts = [t[JavaInfo].outputs.jdeps for t in targets if JavaInfo in t and t[JavaInfo].outputs.jdeps]
-    else:
-        deps_artifacts = []
-
-    return depset(deps_artifacts)
+    """Collect the deps' jdeps for the builder's KOTLINBUILDER_REDUCED classpath mode, the only consumer."""
+    if toolchains.kt.experimental_reduce_classpath_mode != "KOTLINBUILDER_REDUCED" or toolchains.kt.experimental_report_unused_deps == "off":
+        return depset()
+    return depset([t[JavaInfo].outputs.jdeps for t in targets if JavaInfo in t and t[JavaInfo].outputs.jdeps])
 
 def _partitioned_srcs(srcs):
     """Creates a struct of srcs sorted by extension. Fails if there are no sources."""

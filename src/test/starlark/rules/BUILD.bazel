@@ -4,6 +4,7 @@ load("//kotlin:jvm.bzl", "kt_jvm_import")
 load(":associates_tests.bzl", "associates_tests")
 load(":btapi_runtime_args_tests.bzl", "btapi_runtime_args_tests")
 load(":btapi_runtime_tests.bzl", "btapi_runtime_tests")
+load(":deps_artifacts_tests.bzl", "deps_artifacts_tests")
 load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
 load(":jdeps_merge_inputs_tests.bzl", "jdeps_merge_inputs_tests")
 load(":mixed_mode_tests.bzl", "mixed_mode_tests")
@@ -107,6 +108,10 @@ jdeps_merge_inputs_tests(
     name = "jdeps_merge_inputs_tests",
 )
 
+deps_artifacts_tests(
+    name = "deps_artifacts_tests",
+)
+
 mixed_mode_tests(
     name = "mixed_mode_tests",
 )
@@ -118,5 +123,11 @@ plugin_dialect_tests(
 # Only registered through --extra_toolchains by the tests that need unused dep reporting on.
 define_kt_toolchain(
     name = "report_unused_deps_toolchain",
+    experimental_report_unused_deps = "warn",
+)
+
+define_kt_toolchain(
+    name = "reduced_classpath_toolchain",
+    experimental_reduce_classpath_mode = "KOTLINBUILDER_REDUCED",
     experimental_report_unused_deps = "warn",
 )
