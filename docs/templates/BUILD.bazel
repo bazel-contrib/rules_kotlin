@@ -1,0 +1,4 @@
+exports_files(
+    ["release_notes.txt.template"],
+    visibility = ["//visibility:public"],
+)

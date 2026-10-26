@@ -20,6 +20,7 @@ release_archive(
         "BUILD.com_github_google_ksp.bazel",
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "BUILD.kotlin_capabilities.bazel",
+        "alias_repository.bzl",
         "btapi_impl.bzl",
         "bzlmod_impl.bzl",
         "bzlmod_setup.bzl",
@@ -40,6 +41,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
+        "//:generated_release_metadata",
         "//src/main/starlark/core/repositories/kotlin",
         "@bazel_skylib//lib:versions",
     ],
