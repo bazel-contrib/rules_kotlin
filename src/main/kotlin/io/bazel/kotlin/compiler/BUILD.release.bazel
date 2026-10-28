@@ -15,6 +15,6 @@ load("@rules_java//java:defs.bzl", "java_import")
 
 java_import(
     name = "compiler",
-    jars = ["compiler.jar"],
+    jars = ["@rules_kotlin_jars//:compiler.jar"],
     visibility = ["//src:__subpackages__"],
 )

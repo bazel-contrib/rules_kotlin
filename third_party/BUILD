@@ -81,8 +81,8 @@ bzl_library(
 release_archive(
     name = "pkg",
     srcs = [
-        "empty.jar",
         "empty.jdeps",
+        "empty-definately-not-binary-jar.txt",
         "jarjar.bzl",
         "java_stub_template.txt",
     ],

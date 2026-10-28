@@ -58,6 +58,7 @@ class ToolchainLoadingTest : BazelIntegrationTestBase() {
       Files.isSameFile(bazel, runfile(env("BAZEL_BINARY_RUNFILE"))),
     )
     val release = unpackRelease(env("RULES_KOTLIN_RELEASE"))
+    val distdir = prebuiltJarsDistdir(env("RULES_KOTLIN_JARS"))
     val consumer = root.resolve("consumer").createDirectories()
     val output = root.resolve("output")
     val logs = Paths.get(env("TEST_UNDECLARED_OUTPUTS_DIR"), "nested_bazel").createDirectories()
@@ -97,6 +98,7 @@ class ToolchainLoadingTest : BazelIntegrationTestBase() {
           "--repo_contents_cache=",
           "--repository_cache=",
           "--override_module=rules_kotlin=$release",
+          "--distdir=$distdir",
           "--build_event_json_file=$log",
           target,
         ).getOrThrow()
@@ -111,13 +113,20 @@ class ToolchainLoadingTest : BazelIntegrationTestBase() {
         }
       }
 
+    fun prebuiltJarsPresent(): Boolean =
+      Files.list(output.resolve("external")).use { repos ->
+        repos.anyMatch { it.fileName.toString().substringAfterLast('+') == "rules_kotlin_jars" }
+      }
+
     assertDownloads(build("//:empty", "cpp"), expected = false)
     assertFalse("Unrelated C++ build materialized Kotlin capabilities", metadataPresent())
+    assertFalse("Unrelated C++ build materialized the prebuilt jars", prebuiltJarsPresent())
     assertDownloads(
       build("@rules_kotlin//kotlin/internal:default_kotlinc_options", "options"),
       expected = false,
     )
     assertTrue("Kotlin options did not materialize capabilities", metadataPresent())
+    assertFalse("Kotlin options materialized the prebuilt jars", prebuiltJarsPresent())
     Files.list(output.resolve("external")).use { repos ->
       assertFalse(
         "Kotlin options materialized the compiler",

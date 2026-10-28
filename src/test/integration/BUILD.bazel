@@ -20,10 +20,14 @@ bazel_integration_test(
     name = "toolchain_loading_test",
     bazel_binaries = bazel_binaries,
     bazel_version = bazel_binaries.versions.current,
-    data = ["//:rules_kotlin_release"],
+    data = [
+        "//:rules_kotlin_release",
+        "//src/main/kotlin:rules_kotlin_jars",
+    ],
     env = {
         "BAZEL_BINARY_RUNFILE": "$(rlocationpath %s)" % bazel_binaries.label(bazel_binaries.versions.current),
         "RULES_KOTLIN_RELEASE": "$(rlocationpath //:rules_kotlin_release)",
+        "RULES_KOTLIN_JARS": "$(rlocationpath //src/main/kotlin:rules_kotlin_jars)",
     },
     tags = [
         "no-remote",

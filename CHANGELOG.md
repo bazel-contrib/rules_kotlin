@@ -2,6 +2,7 @@
 
 | Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News                    |
 |:-----------------------------------------------------------------------------------------------------------------|-------------------------|
+| Oct 28, 2026 | Prebuilt jars are no longer part of the release archive: they are downloaded from the `rules_kotlin_jars.tar.gz` release asset when Kotlin code is compiled. Offline setups need to provide that asset as well, e.g. via `--distdir` |
 | Oct 19, 2026 | The Build Tools API implementation record requires the checksum of `kotlin-tooling-core`: custom `btapi_impl_version` records must add `tooling_core_sha256` |
 | Mar 6, 2026 | Drop support for Java 8 |
 | May 26, 2022  | Released version [v1.6.0-RC-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.6.0-RC-2). |

@@ -1,0 +1,9 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+
+# The tag of the release, used in the URL of the prebuilt jars referenced by the released
+# MODULE.bazel. Set by .github/workflows/release_prep.sh.
+string_flag(
+    name = "tag",
+    build_setting_default = "unreleased",
+    visibility = ["//:__subpackages__"],
+)

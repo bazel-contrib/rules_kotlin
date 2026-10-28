@@ -55,6 +55,11 @@ abstract class BazelIntegrationTestBase {
     return release
   }
 
+  // The released MODULE.bazel downloads the prebuilt jars from a release asset. Serve the one built
+  // at this commit instead by passing the returned directory to --distdir.
+  protected fun prebuiltJarsDistdir(jarsArchiveRunfile: String): Path =
+    runfile(jarsArchiveRunfile).parent
+
   data class ProcessResult(
     val exit: Int,
     val stdOut: ByteArray,

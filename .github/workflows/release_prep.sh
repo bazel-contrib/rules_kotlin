@@ -8,8 +8,12 @@ TAG=${GITHUB_REF_NAME}
 # The prefix is chosen to match what GitHub generates for source archives
 PREFIX="rules_kotlin-${TAG:1}"
 ARCHIVE="rules_kotlin-$TAG.tar.gz"
-bazel --bazelrc=.github/workflows/ci.bazelrc --bazelrc=.bazelrc build //:rules_kotlin_release
+bazel --bazelrc=.github/workflows/ci.bazelrc --bazelrc=.bazelrc build \
+  --//src/main/starlark/release:tag="$TAG" \
+  //:rules_kotlin_release //src/main/kotlin:rules_kotlin_jars
 cp bazel-bin/rules_kotlin_release.tgz $ARCHIVE
+# The prebuilt jars are published as a separate release asset, see MODULE.release.bazel.
+cp bazel-bin/src/main/kotlin/rules_kotlin_jars.tar.gz .
 SHA=$(shasum -a 256 $ARCHIVE | awk '{print $1}')
 
 # Write the release notes to release_notes.txt

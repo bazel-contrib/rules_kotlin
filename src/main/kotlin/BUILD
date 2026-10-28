@@ -48,19 +48,28 @@ alias(
 
 release_archive(
     name = "pkg",
-    srcs = [
-        ":jdeps-gen.jar",
-        ":jdeps-gen-embeddable.jar",
-    ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/compiler:pkg",
     ],
+)
+
+# The prebuilt jars are published as a separate release asset instead of being part of the source
+# archive. MODULE.release.bazel only downloads them when Kotlin code is compiled.
+release_archive(
+    name = "rules_kotlin_jars",
+    extension = "tar.gz",
+    package_dir = "",
+    src_map = {
+        ":jdeps-gen.jar": "jdeps-gen.jar",
+        ":jdeps-gen-embeddable.jar": "jdeps-gen-embeddable.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar": "compiler.jar",
+        "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
+    },
 )

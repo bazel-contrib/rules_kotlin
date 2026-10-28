@@ -18,6 +18,9 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
     val unpack = unpackRelease(
       requireNotNull(System.getProperty("@rules_kotlin...rules_kotlin_release")),
     )
+    val distdir = prebuiltJarsDistdir(
+      requireNotNull(System.getProperty("@rules_kotlin...rules_kotlin_jars")),
+    )
 
     val version = bazel.run(workspace, "--version").parseVersion()
 
@@ -25,6 +28,7 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
       listOf(
         listOf(
           Flag("--override_module=rules_kotlin=$unpack"),
+          Flag("--distdir=$distdir"),
         ),
       ),
     )

@@ -18,9 +18,11 @@ kt_jvm_test(
     ],
     data = [
         "//:rules_kotlin_release",
+        "//src/main/kotlin:rules_kotlin_jars",
     ],
     jvm_flags = [
         "-D@rules_kotlin...rules_kotlin_release=$(rlocationpath //:rules_kotlin_release)",
+        "-D@rules_kotlin...rules_kotlin_jars=$(rlocationpath //src/main/kotlin:rules_kotlin_jars)",
     ],
     # Run through bazel_integration_test, which supplies Bazel and the workspace.
     tags = ["manual"],

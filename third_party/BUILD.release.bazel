@@ -13,13 +13,20 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@rules_java//java:defs.bzl", "java_binary")
 
 exports_files([
-    "empty.jar",
     "empty.jdeps",
     "java_stub_template.txt",
 ])
+
+copy_file(
+    name = "empty",
+    src = "empty-definately-not-binary-jar.txt",
+    out = "empty.jar",
+    visibility = ["//visibility:public"],
+)
 
 java_binary(
     name = "jarjar_runner",

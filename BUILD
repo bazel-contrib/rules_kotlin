@@ -16,7 +16,7 @@ load("//kotlin:lint.bzl", "ktlint_config")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//src/main/starlark/release:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive", "release_module")
 
 package(default_applicable_licenses = [":license"])
 
@@ -65,6 +65,12 @@ test_suite(
     ],
 )
 
+release_module(
+    name = "release_module",
+    assets = ["//src/main/kotlin:rules_kotlin_jars"],
+    template = "MODULE.release.bazel",
+)
+
 # Release target.
 release_archive(
     name = "rules_kotlin_release",
@@ -73,7 +79,7 @@ release_archive(
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
-        "MODULE.release.bazel": "MODULE.bazel",
+        ":release_module": "MODULE.bazel",
     },
     deps = [
         "//kotlin:pkg",
