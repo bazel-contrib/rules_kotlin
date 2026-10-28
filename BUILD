@@ -78,8 +78,8 @@ release_archive(
         "LICENSE",
     ],
     src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
         ":release_module": "MODULE.bazel",
+        "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
         "//kotlin:pkg",

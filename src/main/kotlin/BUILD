@@ -64,12 +64,12 @@ release_archive(
     extension = "tar.gz",
     package_dir = "",
     src_map = {
-        ":jdeps-gen.jar": "jdeps-gen.jar",
-        ":jdeps-gen-embeddable.jar": "jdeps-gen-embeddable.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar": "compiler.jar",
         "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
+        ":jdeps-gen-embeddable.jar": "jdeps-gen-embeddable.jar",
+        ":jdeps-gen.jar": "jdeps-gen.jar",
     },
 )
