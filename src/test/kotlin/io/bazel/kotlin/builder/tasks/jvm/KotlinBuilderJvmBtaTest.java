@@ -232,6 +232,56 @@ public class KotlinBuilderJvmBtaTest {
     }
 
     @Test
+    public void testKaptStubsFollowPassthroughFlags() {
+        // The pre-pass takes the pass-through flags of the main compile. With -jvm-target 17 the
+        // stub classes and the compiled classes both get the class file major version 61.
+        Dep autoValueAnnotations = Dep.fromLabel("auto_value_annotations");
+        Dep autoValue = Dep.fromLabel("auto_value");
+        AnnotationProcessor autoValueProcessor =
+                AnnotationProcessor.builder()
+                        .processClass("com.google.auto.value.processor.AutoValueProcessor")
+                        .processorPath(
+                                Dep.classpathOf(autoValueAnnotations, autoValue, KOTLIN_ANNOTATIONS)
+                                        .collect(Collectors.toSet()))
+                        .build();
+
+        ctx.runCompileTask(
+                c -> {
+                    c.useBuildToolsApi();
+                    c.compileKotlin();
+                    c.addPassthroughFlags("-jvm-target", "17", "-Xjdk-release=17");
+                    c.addAnnotationProcessors(autoValueProcessor);
+                    c.addDirectDependencies(autoValueAnnotations, KOTLIN_ANNOTATIONS, KOTLIN_STDLIB);
+                    c.addSource(
+                            "TestKtValue.kt",
+                            "package autovalue\n"
+                                    + "\n"
+                                    + "import com.google.auto.value.AutoValue\n"
+                                    + "\n"
+                                    + "@AutoValue\n"
+                                    + "abstract class TestKtValue {\n"
+                                    + "    abstract fun name(): String\n"
+                                    + "    fun builder(): Builder = AutoValue_TestKtValue.Builder()\n"
+                                    + "\n"
+                                    + "    @AutoValue.Builder\n"
+                                    + "    abstract class Builder {\n"
+                                    + "        abstract fun setName(name: String): Builder\n"
+                                    + "        abstract fun build(): TestKtValue\n"
+                                    + "    }\n"
+                                    + "}");
+                    c.outputJar();
+                    c.outputJdeps();
+                    c.generatedSourceJar();
+                    c.ktStubsJar();
+                    c.incrementalData();
+                });
+
+        assertThat(ctx.classFileMajorVersion(DirectoryType.INCREMENTAL_DATA, "autovalue/TestKtValue.class"))
+                .isEqualTo(61);
+        assertThat(ctx.classFileMajorVersion("autovalue/TestKtValue.class")).isEqualTo(61);
+    }
+
+    @Test
     public void testAbiJarGeneration() {
         // The abi jar is produced by the jvm-abi-gen compiler plugin configured as a typed
         // descriptor; the plugin must load in the compiler runtime the test harness configures

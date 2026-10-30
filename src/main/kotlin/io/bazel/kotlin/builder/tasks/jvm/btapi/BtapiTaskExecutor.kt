@@ -205,13 +205,12 @@ class BtapiTaskExecutor(
       context
         .executeCompilerTask(
           { out ->
-            // Like the legacy pre-pass, this compiles with the toolchain's base arguments only:
-            // the user's pass-through flags and the friend paths belong to the main compile.
+            // The pre-pass takes the pass-through flags and the friend paths of the main compile.
             invokeCompiler(
               context,
               compiler,
-              arguments = emptyList(),
-              friendPaths = emptyList(),
+              arguments = info.passthroughFlagsList,
+              friendPaths = info.friendPathsList,
               sources = inputs.kotlinSourcesList + inputs.javaSourcesList,
               descriptors = descriptors,
               destination = directories.generatedClasses,

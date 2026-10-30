@@ -113,7 +113,9 @@ private fun JvmCompilationTask.runKaptPlugin(
 ): JvmCompilationTask {
   return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
     val sources = (inputs.kotlinSourcesList + inputs.javaSourcesList).toTypedArray()
+    // The pre-pass takes the friend paths and the pass-through flags of the main compile.
     baseArgs()
+      .plus(codeGenArgs())
       .plus(
         plugins(
           options = inputs.stubsPluginOptionsList.filterNot { o -> o.startsWith(plugins.kapt.id) },

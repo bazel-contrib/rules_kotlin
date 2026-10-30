@@ -26,6 +26,7 @@ import org.junit.runners.JUnit4;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.google.common.truth.Truth.assertThat;
 import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_ANNOTATIONS;
 import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_STDLIB;
 
@@ -141,5 +142,40 @@ public class KotlinBuilderJvmKaptTest {
                 DirectoryType.JAVA_SOURCE_GEN,
                 "autovalue/a/AutoValue_TestKtValue.java",
                 "autovalue/b/AutoValue_TestAutoValue.java");
+    }
+
+    @Test
+    public void testKaptStubsFollowPassthroughFlags() {
+        // The pre-pass takes the pass-through flags of the main compile. With -jvm-target 17 the
+        // stub classes get the class file major version 61. The toolchain's target 11 would give 55.
+        ctx.runCompileTask(
+                ADD_AUTO_VALUE_PLUGIN,
+                c -> {
+                    c.addPassthroughFlags("-jvm-target", "17");
+                    c.addSource(
+                            "TestKtValue.kt",
+                            "package autovalue\n"
+                                    + "\n"
+                                    + "import com.google.auto.value.AutoValue\n"
+                                    + "\n"
+                                    + "@AutoValue\n"
+                                    + "abstract class TestKtValue {\n"
+                                    + "    abstract fun name(): String\n"
+                                    + "    fun builder(): Builder = AutoValue_TestKtValue.Builder()\n"
+                                    + "\n"
+                                    + "    @AutoValue.Builder\n"
+                                    + "    abstract class Builder {\n"
+                                    + "        abstract fun setName(name: String): Builder\n"
+                                    + "        abstract fun build(): TestKtValue\n"
+                                    + "    }\n"
+                                    + "}");
+                    c.generatedSourceJar();
+                    c.ktStubsJar();
+                    c.incrementalData();
+                }
+        );
+
+        assertThat(ctx.classFileMajorVersion(DirectoryType.INCREMENTAL_DATA, "autovalue/TestKtValue.class"))
+                .isEqualTo(61);
     }
 }
