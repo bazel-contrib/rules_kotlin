@@ -82,6 +82,57 @@ class KotlinBuilderBuildTest {
     assertThat(exitCode).isNotEqualTo(Status.SUCCESS.exit)
   }
 
+  @Test
+  fun buildCompilesWithoutClasspathAndDirectDependencies() {
+    // kt_jvm_library omits --classpath and --direct_dependencies when their lists are empty. A module with
+    // sources and no dependencies reaches that state under a toolchain without a stdlib.
+    val root = Files.createTempDirectory("KotlinBuilderBuildTest")
+    val source = Files.createFile(root.resolve("Empty.kt"))
+    val outputJar = root.resolve("empty.jar")
+    var exitCode = Status.ERROR.exit
+
+    WorkerContext.run(named = "test") {
+      doTask("build", sandboxDir = root) { taskContext ->
+        exitCode =
+          KotlinBuilder(jvmTaskExecutor()).build(
+            taskContext,
+            args =
+              listOf(
+                "--target_label",
+                "//some:target",
+                "--sources",
+                source.toString(),
+                "--output",
+                outputJar.toString(),
+                "--rule_kind",
+                "kt_jvm_library",
+                "--kotlin_module_name",
+                "some_module",
+                "--kotlin_api_version",
+                "2.0",
+                "--kotlin_language_version",
+                "2.0",
+                "--kotlin_jvm_target",
+                "11",
+                "--kotlin_debug_tags",
+                "--build_kotlin",
+                "true",
+                "--strict_kotlin_deps",
+                "off",
+                "--reduced_classpath_mode",
+                "off",
+                "--instrument_coverage",
+                "false",
+              ),
+          )
+        Status.SUCCESS
+      }
+    }
+
+    assertThat(exitCode).isEqualTo(Status.SUCCESS.exit)
+    assertThat(Files.exists(outputJar)).isTrue()
+  }
+
   private fun jvmTaskExecutor(): KotlinJvmTaskExecutor {
     val toolchain =
       KotlinToolchain.createToolchain(

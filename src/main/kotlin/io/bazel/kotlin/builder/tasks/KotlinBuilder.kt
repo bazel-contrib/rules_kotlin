@@ -305,8 +305,8 @@ class KotlinBuilder(
           { kotlinSourcesList += it },
           { javaSourcesList += it },
         )
-        classpathList += argMap.mandatory(KotlinBuilderFlags.CLASSPATH)
-        directDependenciesList += argMap.mandatory(KotlinBuilderFlags.DIRECT_DEPENDENCIES)
+        classpathList += argMap.optional(KotlinBuilderFlags.CLASSPATH).orEmpty()
+        directDependenciesList += argMap.optional(KotlinBuilderFlags.DIRECT_DEPENDENCIES).orEmpty()
         sourceJarsList += argMap.optional(KotlinBuilderFlags.SOURCE_JARS).orEmpty()
         processorsList += argMap.optional(KotlinBuilderFlags.PROCESSORS).orEmpty()
         processorpathsList += argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH).orEmpty()
