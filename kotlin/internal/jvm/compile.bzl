@@ -20,6 +20,7 @@ load(
 load(
     "@rules_java//java:defs.bzl",
     "JavaInfo",
+    "JavaPluginInfo",
     "java_common",
 )
 load("//kotlin/internal:btapi_runtime.bzl", "btapi_runtime_classpath")
@@ -1185,7 +1186,7 @@ def _run_kt_java_builder_actions(
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
             deps = compile_deps.java_deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
             java_toolchain = toolchains.java,
-            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
+            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins) + [ctx.attr._java_plugins[JavaPluginInfo]],
             javac_opts = javac_opts,
             neverlink = getattr(ctx.attr, "neverlink", False),
             strict_deps = toolchains.kt.experimental_strict_kotlin_deps,
