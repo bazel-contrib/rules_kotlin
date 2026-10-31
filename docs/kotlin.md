@@ -379,13 +379,13 @@ kt_jvm_library(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="kt_compiler_plugin-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="kt_compiler_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_compiler_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath. The plugin classpath is the transitive runtime classpath of these libraries. A neverlink library therefore contributes nothing to it, and neither does a library reachable only through a neverlink library.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_compiler_plugin-data"></a>data |  The files the plugin reads at compile time. An option value names one of them as `$(location <file>)`. The files and the runfiles of each listed target are inputs of the compilation.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_compiler_plugin-compile_phase"></a>compile_phase |  Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`   | Boolean | optional |  `True`  |
 | <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | required |  |
 | <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Each option key can have multiple values. Supports the following template values:<br><br>- `{generatedClasses}`: directory for generated class output - `{temp}`: temporary directory, discarded between invocations - `{generatedSources}`:  directory for generated source output - `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
 | <a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin in kapt stub generation.   | Boolean | optional |  `True`  |
-| <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. The plugin classpath is reshaded when this dialect differs from the dialect of the compiler that the toolchain runs.   | Boolean | optional |  `False`  |
+| <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. The plugin classpath is reshaded when this dialect differs from the dialect of the compiler that the toolchain runs. The aspect declares the reshaded copies for the libraries that deps, runtime_deps, exports or associates reach. A jar without a copy stays as it is.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_javac_options"></a>
@@ -535,11 +535,11 @@ kt_jvm_library(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="kt_ksp_plugin-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="kt_ksp_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_ksp_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath. The plugin classpath is the transitive runtime classpath of these libraries. A neverlink library therefore contributes nothing to it, and neither does a library reachable only through a neverlink library.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_ksp_plugin-generates_java"></a>generates_java |  Runs Java compilation action for plugin generating Java output.   | Boolean | optional |  `False`  |
 | <a id="kt_ksp_plugin-options"></a>options |  Processor options passed to the KSP processor via SymbolProcessorEnvironment.options. Each entry is a key-value pair available to the processor at processing time.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="kt_ksp_plugin-processor_class"></a>processor_class |  The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.   | String | required |  |
-| <a id="kt_ksp_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc dependencies, and will fail when running against a non-embeddable compiler.   | Boolean | optional |  `False`  |
+| <a id="kt_ksp_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. The rule reshades the plugin classpath into the CLI-distribution dialect, which it assumes runs the plugin. The aspect declares the reshaded copies for the libraries that deps, runtime_deps, exports or associates reach. A jar without a copy stays as it is.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_plugin_cfg"></a>
