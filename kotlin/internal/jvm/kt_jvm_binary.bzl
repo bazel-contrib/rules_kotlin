@@ -22,6 +22,7 @@ load(
     _write_launcher_action = "write_launcher_action",
 )
 load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
+load("//kotlin/internal/jvm:native_libs.bzl", "runtime_native_libraries")
 load(
     "//kotlin/internal/jvm:rule.bzl",
     _COMMON_OUTPUTS = "COMMON_OUTPUTS",
@@ -59,11 +60,13 @@ def _process_binary_launcher(context):
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
         jvm_flags = ctx.fragments.java.default_jvm_opts
     jvm_flags.extend(ctx.attr.jvm_flags)
+    native_libraries = runtime_native_libraries(ctx, providers.java)
     launcher_result = _write_launcher_action(
         ctx,
         providers.java.transitive_runtime_jars,
         ctx.attr.main_class,
         jvm_flags,
+        native_libraries,
     )
 
     # Java runtime files are needed in runfiles for the (Windows) launcher.
@@ -74,7 +77,8 @@ def _process_binary_launcher(context):
             executable = launcher_result.executable,
             transitive_files = depset(
                 order = "default",
-                transitive = [providers.java.transitive_runtime_jars, java_runtime.files],
+                transitive = [providers.java.transitive_runtime_jars, java_runtime.files, native_libraries],
+                direct = launcher_result.extra_runfiles,
             ),
         ),
         runfiles = None,
