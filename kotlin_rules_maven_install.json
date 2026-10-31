@@ -5,7 +5,7 @@
     "com.google.auto.value:auto-value-annotations": -1101276935,
     "com.google.code.findbugs:jsr305": 495355163,
     "com.google.errorprone:error_prone_annotations": -571311395,
-    "com.google.guava:guava": -704445974,
+    "com.google.guava:guava": 671676083,
     "org.apache.commons:commons-compress": -1310119682,
     "org.ow2.asm:asm": -1147174173,
     "repositories": 582576641
@@ -17,15 +17,15 @@
     "com.google.auto.value:auto-value:jar:sources": 1982175049,
     "com.google.code.findbugs:jsr305": 870839855,
     "com.google.code.findbugs:jsr305:jar:sources": -935881202,
-    "com.google.errorprone:error_prone_annotations": 98076041,
-    "com.google.errorprone:error_prone_annotations:jar:sources": -976208747,
-    "com.google.guava:failureaccess": -718864417,
-    "com.google.guava:failureaccess:jar:sources": -527872939,
-    "com.google.guava:guava": -1322848894,
-    "com.google.guava:guava:jar:sources": 1675478802,
+    "com.google.errorprone:error_prone_annotations": 652227016,
+    "com.google.errorprone:error_prone_annotations:jar:sources": -507624312,
+    "com.google.guava:failureaccess": 1715931538,
+    "com.google.guava:failureaccess:jar:sources": 1303858893,
+    "com.google.guava:guava": 713545847,
+    "com.google.guava:guava:jar:sources": 852714858,
     "com.google.guava:listenablefuture": 1079558157,
-    "com.google.j2objc:j2objc-annotations": 248818742,
-    "com.google.j2objc:j2objc-annotations:jar:sources": -378364028,
+    "com.google.j2objc:j2objc-annotations": -1008747351,
+    "com.google.j2objc:j2objc-annotations:jar:sources": -1518668002,
     "commons-codec:commons-codec": -1161719307,
     "commons-codec:commons-codec:jar:sources": 963281664,
     "commons-io:commons-io": -807333807,
@@ -34,10 +34,13 @@
     "org.apache.commons:commons-compress:jar:sources": 577133147,
     "org.apache.commons:commons-lang3": 2013343748,
     "org.apache.commons:commons-lang3:jar:sources": -1567774740,
-    "org.checkerframework:checker-qual": 628949150,
-    "org.checkerframework:checker-qual:jar:sources": -309007815,
+    "org.jspecify:jspecify": -109882726,
+    "org.jspecify:jspecify:jar:sources": 345277939,
     "org.ow2.asm:asm": -153858314,
     "org.ow2.asm:asm:jar:sources": 1372783843
+  },
+  "conflict_resolution": {
+    "com.google.errorprone:error_prone_annotations:2.23.0": "com.google.errorprone:error_prone_annotations:2.50.0"
   },
   "artifacts": {
     "com.google.auto.value:auto-value": {
@@ -63,24 +66,24 @@
     },
     "com.google.errorprone:error_prone_annotations": {
       "shasums": {
-        "jar": "ec6f39f068b6ff9ac323c68e28b9299f8c0a80ca512dccb1d4a70f40ac3ec054",
-        "sources": "5b4504609bb93d3c24b87cd839cf0bb7d878135d0a917a05081d0dc9b2a9973f"
+        "jar": "4667724877f1d37a689202da191e23efa7657c62eef93ccdac406eccfe5cdd0a",
+        "sources": "f7f5b870d5f18bcdcd9d8dc44d6ae3593cc299d32f888aeb29fefe87661473d7"
       },
-      "version": "2.23.0"
+      "version": "2.50.0"
     },
     "com.google.guava:failureaccess": {
       "shasums": {
-        "jar": "8a8f81cf9b359e3f6dfa691a1e776985c061ef2f223c9b2c80753e1b458e8064",
-        "sources": "dd3bfa5e2ec5bc5397efb2c3cef044c192313ff77089573667ff97a60c6978e0"
+        "jar": "cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb",
+        "sources": "6fef4dfd2eb9f961655f2a3c4ea87c023618d9fcbfb6b104c17862e5afe66b97"
       },
-      "version": "1.0.2"
+      "version": "1.0.3"
     },
     "com.google.guava:guava": {
       "shasums": {
-        "jar": "f4d85c3e4d411694337cb873abea09b242b664bb013320be6105327c45991537",
-        "sources": "0c17d911785e8a606d091aa6740d6d520f307749c2bddf6e35066d52fe0036e5"
+        "jar": "b530942257fb935f8b2cfaa5f8eb5bd59c555fd8e8d01b8ce98912e077ea606c",
+        "sources": "ab6a8934d352629e6d87087a79808b827b64ed18cff6c6b551be99cd8e03244c"
       },
-      "version": "33.0.0-jre"
+      "version": "33.7.2-jre"
     },
     "com.google.guava:listenablefuture": {
       "shasums": {
@@ -90,10 +93,10 @@
     },
     "com.google.j2objc:j2objc-annotations": {
       "shasums": {
-        "jar": "f02a95fa1a5e95edb3ed859fd0fb7df709d121a35290eff8b74dce2ab7f4d6ed",
-        "sources": "7413eed41f111453a08837f5ac680edded7faed466cbd35745e402e13f4cc3f5"
+        "jar": "84d3a150518485f8140ea99b8a985656749629f6433c92b80c75b36aba3b099b",
+        "sources": "295938307f4016b3f128f7347101b236ada1394808104519c9e93cd61b64602b"
       },
-      "version": "2.8"
+      "version": "3.1"
     },
     "commons-codec:commons-codec": {
       "shasums": {
@@ -123,12 +126,12 @@
       },
       "version": "3.14.0"
     },
-    "org.checkerframework:checker-qual": {
+    "org.jspecify:jspecify": {
       "shasums": {
-        "jar": "2f9f245bf68e4259d610894f2406dc1f6363dc639302bd566e8272e4f4541172",
-        "sources": "8308220bbdd4e12b49fa06a91de685faf9cc1a376464478c80845be3e87b7d4f"
+        "jar": "070d75f261fe4c5b8202508366715f7f2d4660f88c8ef7e6d3575e48c9683b66",
+        "sources": "230c491aac6d2a2b7e66b68d4331b1d2626f1bf3a372c33bbe2b077297e46c45"
       },
-      "version": "3.41.0"
+      "version": "1.0.1"
     },
     "org.ow2.asm:asm": {
       "shasums": {
@@ -140,12 +143,11 @@
   },
   "dependencies": {
     "com.google.guava:guava": [
-      "com.google.code.findbugs:jsr305",
       "com.google.errorprone:error_prone_annotations",
       "com.google.guava:failureaccess",
       "com.google.guava:listenablefuture",
       "com.google.j2objc:j2objc-annotations",
-      "org.checkerframework:checker-qual"
+      "org.jspecify:jspecify"
     ],
     "org.apache.commons:commons-compress": [
       "commons-codec:commons-codec",
@@ -308,37 +310,8 @@
       "org.apache.commons.lang3.tuple",
       "org.apache.commons.lang3.util"
     ],
-    "org.checkerframework:checker-qual": [
-      "org.checkerframework.checker.builder.qual",
-      "org.checkerframework.checker.calledmethods.qual",
-      "org.checkerframework.checker.compilermsgs.qual",
-      "org.checkerframework.checker.fenum.qual",
-      "org.checkerframework.checker.formatter.qual",
-      "org.checkerframework.checker.guieffect.qual",
-      "org.checkerframework.checker.i18n.qual",
-      "org.checkerframework.checker.i18nformatter.qual",
-      "org.checkerframework.checker.index.qual",
-      "org.checkerframework.checker.initialization.qual",
-      "org.checkerframework.checker.interning.qual",
-      "org.checkerframework.checker.lock.qual",
-      "org.checkerframework.checker.mustcall.qual",
-      "org.checkerframework.checker.nullness.qual",
-      "org.checkerframework.checker.optional.qual",
-      "org.checkerframework.checker.propkey.qual",
-      "org.checkerframework.checker.regex.qual",
-      "org.checkerframework.checker.signature.qual",
-      "org.checkerframework.checker.signedness.qual",
-      "org.checkerframework.checker.tainting.qual",
-      "org.checkerframework.checker.units.qual",
-      "org.checkerframework.common.aliasing.qual",
-      "org.checkerframework.common.initializedfields.qual",
-      "org.checkerframework.common.reflection.qual",
-      "org.checkerframework.common.returnsreceiver.qual",
-      "org.checkerframework.common.subtyping.qual",
-      "org.checkerframework.common.util.report.qual",
-      "org.checkerframework.common.value.qual",
-      "org.checkerframework.dataflow.qual",
-      "org.checkerframework.framework.qual"
+    "org.jspecify:jspecify": [
+      "org.jspecify.annotations"
     ],
     "org.ow2.asm:asm": [
       "org.objectweb.asm",
@@ -370,8 +343,8 @@
       "org.apache.commons:commons-compress:jar:sources",
       "org.apache.commons:commons-lang3",
       "org.apache.commons:commons-lang3:jar:sources",
-      "org.checkerframework:checker-qual",
-      "org.checkerframework:checker-qual:jar:sources",
+      "org.jspecify:jspecify",
+      "org.jspecify:jspecify:jar:sources",
       "org.ow2.asm:asm",
       "org.ow2.asm:asm:jar:sources"
     ],
@@ -399,8 +372,8 @@
       "org.apache.commons:commons-compress:jar:sources",
       "org.apache.commons:commons-lang3",
       "org.apache.commons:commons-lang3:jar:sources",
-      "org.checkerframework:checker-qual",
-      "org.checkerframework:checker-qual:jar:sources",
+      "org.jspecify:jspecify",
+      "org.jspecify:jspecify:jar:sources",
       "org.ow2.asm:asm",
       "org.ow2.asm:asm:jar:sources"
     ],
@@ -428,8 +401,8 @@
       "org.apache.commons:commons-compress:jar:sources",
       "org.apache.commons:commons-lang3",
       "org.apache.commons:commons-lang3:jar:sources",
-      "org.checkerframework:checker-qual",
-      "org.checkerframework:checker-qual:jar:sources",
+      "org.jspecify:jspecify",
+      "org.jspecify:jspecify:jar:sources",
       "org.ow2.asm:asm",
       "org.ow2.asm:asm:jar:sources"
     ]
