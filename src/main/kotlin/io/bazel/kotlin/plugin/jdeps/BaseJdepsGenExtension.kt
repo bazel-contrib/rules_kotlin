@@ -1,18 +1,26 @@
 package io.bazel.kotlin.plugin.jdeps
 
-import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.utils.jars.JarOwner
+import io.bazel.kotlin.builder.utils.jars.SourceDependencies
+import io.bazel.kotlin.builder.utils.jars.SourceDependenciesFile
+import io.bazel.kotlin.builder.utils.jars.jdepsOf
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import java.io.BufferedOutputStream
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 
 abstract class BaseJdepsGenExtension(
   protected val configuration: CompilerConfiguration,
 ) {
+  /**
+   * @param explicitClassesBySource the classes each analyzed source uses explicitly, by the
+   *   source's path.
+   * @param implicitClassesBySource the classes each analyzed source needs implicitly.
+   */
   protected fun onAnalysisCompleted(
-    explicitClassesCanonicalPaths: Set<String>,
-    implicitClassesCanonicalPaths: Set<String>,
+    explicitClassesBySource: Map<String, Set<String>>,
+    implicitClassesBySource: Map<String, Set<String>>,
   ) {
     val directDeps = configuration.getList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES)
     val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
@@ -21,17 +29,46 @@ abstract class BaseJdepsGenExtension(
     // Create mapping from canonical paths to original classpath paths
     val canonicalToClasspath = createCanonicalToClasspathMap(fullClasspath)
 
-    val explicitDeps = createDepsMap(explicitClassesCanonicalPaths, canonicalToClasspath)
+    val explicitDeps =
+      createDepsMap(explicitClassesBySource.values.flatten().toSet(), canonicalToClasspath)
 
     doWriteJdeps(
       directDeps,
       targetLabel,
       explicitDeps,
-      implicitClassesCanonicalPaths,
+      implicitClassesBySource.values.flatten().toSet(),
       canonicalToClasspath,
     )
+    configuration.get(JdepsGenConfigurationKeys.PER_SOURCE_OUTPUT)?.let { output ->
+      writeSourceDependencies(
+        Paths.get(output),
+        explicitClassesBySource,
+        implicitClassesBySource,
+        canonicalToClasspath,
+      )
+    }
 
     doStrictDeps(configuration, targetLabel, directDeps, explicitDeps)
+  }
+
+  /** Records the dependencies of the analyzed sources in the per-source output. */
+  private fun writeSourceDependencies(
+    output: Path,
+    explicitClassesBySource: Map<String, Set<String>>,
+    implicitClassesBySource: Map<String, Set<String>>,
+    canonicalToClasspath: Map<String, String>,
+  ) {
+    val analyzed = explicitClassesBySource.keys + implicitClassesBySource.keys
+    val dependencies =
+      analyzed.associateWith { source ->
+        SourceDependencies(
+          explicitJars =
+            createDepsMap(explicitClassesBySource[source].orEmpty(), canonicalToClasspath).keys,
+          implicitJars =
+            createDepsMap(implicitClassesBySource[source].orEmpty(), canonicalToClasspath).keys,
+        )
+      }
+    SourceDependenciesFile.update(output, dependencies)
   }
 
   /**
@@ -109,35 +146,9 @@ abstract class BaseJdepsGenExtension(
 
     // Build and write out deps.proto
     val jdepsOutput = configuration.getNotNull(JdepsGenConfigurationKeys.OUTPUT_JDEPS)
-
-    val rootBuilder = Deps.Dependencies.newBuilder()
-    rootBuilder.success = true
-    rootBuilder.ruleLabel = targetLabel
-
-    val unusedDeps = directDeps.subtract(explicitDeps.keys)
-    unusedDeps.forEach { jarPath ->
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.UNUSED
-      dependency.path = jarPath
-      rootBuilder.addDependency(dependency)
-    }
-
-    explicitDeps.forEach { (jarPath, _) ->
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.EXPLICIT
-      dependency.path = jarPath
-      rootBuilder.addDependency(dependency)
-    }
-
-    implicitDeps.keys.subtract(explicitDeps.keys).forEach {
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.IMPLICIT
-      dependency.path = it
-      rootBuilder.addDependency(dependency)
-    }
-
+    val jdeps = jdepsOf(targetLabel, directDeps, explicitDeps.keys, implicitDeps.keys)
     BufferedOutputStream(File(jdepsOutput).outputStream()).use {
-      it.write(rootBuilder.buildSorted().toByteArray())
+      it.write(jdeps.toByteArray())
     }
   }
 
@@ -202,12 +213,4 @@ abstract class BaseJdepsGenExtension(
     }
     return false
   }
-}
-
-private fun Deps.Dependencies.Builder.buildSorted(): Deps.Dependencies {
-  val sortedDeps = dependencyList.sortedBy { it.path }
-  sortedDeps.forEachIndexed { index, dep ->
-    setDependency(index, dep)
-  }
-  return build()
 }
