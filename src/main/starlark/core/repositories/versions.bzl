@@ -60,11 +60,11 @@ versions = struct(
         ],
     ),
     RULES_JVM_EXTERNAL = version(
-        version = "6.10",
-        sha256 = "e5f83b8f2678d2b26441e5eafefb1b061826608417b8d24e5e8e15e585eab1ba",
+        version = "7.2",
+        sha256 = "f1474ba3699f04ab1eab89381d64c9f906952c577524e9a9c8b3949b875bbaa0",
         strip_prefix_template = "rules_jvm_external-{version}",
         url_templates = [
-            "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
+            "https://github.com/bazel-contrib/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
         ],
     ),
     JARJAR = version(
