@@ -2,6 +2,7 @@ package io.bazel.kotlin.plugin.jdeps
 
 import io.bazel.kotlin.builder.utils.jars.SourceDependencies
 import io.bazel.kotlin.builder.utils.jars.SourceDependenciesFile
+import io.bazel.kotlin.plugin.jdeps.k2.SourceClasses
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import java.io.File
 import java.nio.file.Paths
@@ -10,35 +11,33 @@ abstract class BaseJdepsGenExtension(
   protected val configuration: CompilerConfiguration,
 ) {
   /**
-   * Records the dependencies of the analyzed sources in the output. Incremental compilation
-   * analyzes only the recompiled sources, possibly over several iterations: the output keeps the
-   * dependencies of the other sources.
+   * Appends the dependencies of the analyzed sources to the output, without reading it.
+   * Incremental compilation analyzes only the recompiled sources, possibly over several rounds:
+   * the builder merges the records of every round.
    *
-   * @param explicitClassesBySource the classes each analyzed source uses explicitly, by the
-   *   source's path.
-   * @param implicitClassesBySource the classes each analyzed source needs implicitly.
+   * @param classesBySource the classes each analyzed source uses, by the source's path.
    */
-  protected fun onAnalysisCompleted(
-    explicitClassesBySource: Map<String, Set<String>>,
-    implicitClassesBySource: Map<String, Set<String>>,
-  ) {
+  internal fun onAnalysisCompleted(classesBySource: Map<String, SourceClasses>) {
     val output = configuration.getNotNull(JdepsGenConfigurationKeys.OUTPUT)
     val fullClasspath = configuration.getList(JdepsGenConfigurationKeys.FULL_CLASSPATH)
 
     // Create mapping from canonical paths to original classpath paths
     val canonicalToClasspath = createCanonicalToClasspathMap(fullClasspath)
 
-    val analyzed = explicitClassesBySource.keys + implicitClassesBySource.keys
-    val dependencies =
-      analyzed.associateWith { source ->
-        SourceDependencies(
-          explicitJars =
-            createDepsMap(explicitClassesBySource[source].orEmpty(), canonicalToClasspath).keys,
-          implicitJars =
-            createDepsMap(implicitClassesBySource[source].orEmpty(), canonicalToClasspath).keys,
-        )
+    // Sources share most of their jars: resolve each jar once.
+    val classpathJars = HashMap<String, String>()
+
+    fun jarsOf(classes: Set<String>): Set<String> =
+      classes.mapNotNullTo(LinkedHashSet()) {
+        classpathJarOf(it, canonicalToClasspath, classpathJars)
       }
-    SourceDependenciesFile.update(Paths.get(output), dependencies)
+
+    SourceDependenciesFile.append(
+      Paths.get(output),
+      classesBySource.mapValues { (_, classes) ->
+        SourceDependencies(jarsOf(classes.explicit), jarsOf(classes.implicit))
+      },
+    )
   }
 
   /**
@@ -66,26 +65,24 @@ abstract class BaseJdepsGenExtension(
   }
 
   /**
-   * Returns a map of jars to classes loaded from those jars.
+   * The classpath entry of the jar a class is loaded from, or null if it is not loaded from a jar.
    * Uses the canonical-to-classpath mapping to preserve original classpath paths.
+   *
+   * @param classpathJars the classpath entries of the jars resolved so far, by the jar's path.
    */
-  private fun createDepsMap(
-    classes: Set<String>,
+  private fun classpathJarOf(
+    classPath: String,
     canonicalToClasspath: Map<String, String>,
-  ): Map<String, List<String>> {
-    val jarsToClasses = mutableMapOf<String, MutableList<String>>()
-    classes.forEach {
-      val parts = it.split("!/")
-      val jarPath = parts[0]
-      if (jarPath.endsWith(".jar")) {
-        // Canonicalize for lookup so K2's forward-slash paths match classpath entries on Windows.
-        val canonicalJarPath = canonicalizePath(jarPath)
-        // Map back to original classpath path
-        val classpathJarPath = canonicalToClasspath[canonicalJarPath] ?: jarPath
-        jarsToClasses.computeIfAbsent(classpathJarPath) { ArrayList() }.add(parts[1])
-      }
+    classpathJars: MutableMap<String, String>,
+  ): String? {
+    val jarPath = classPath.substringBefore("!/")
+    if (!jarPath.endsWith(".jar")) {
+      return null
     }
-    return jarsToClasses
+    return classpathJars.getOrPut(jarPath) {
+      // Canonicalize for lookup so K2's forward-slash paths match classpath entries on Windows.
+      canonicalToClasspath[canonicalizePath(jarPath)] ?: jarPath
+    }
   }
 
   private fun canonicalizePath(path: String): String {

@@ -11,9 +11,6 @@ internal class JdepsGenExtension2(
 ) : BaseJdepsGenExtension(configuration),
   ClassFileFactoryFinalizerExtension {
   override fun finalizeClassFactory(factory: ClassFileFactory) {
-    onAnalysisCompleted(
-      classUsageRecorder.explicitClassesBySource,
-      classUsageRecorder.implicitClassesBySource,
-    )
+    onAnalysisCompleted(classUsageRecorder.classesBySource)
   }
 }

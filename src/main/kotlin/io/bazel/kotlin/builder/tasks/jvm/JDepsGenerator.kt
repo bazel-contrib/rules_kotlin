@@ -46,9 +46,8 @@ object JDepsGenerator {
 
   /**
    * The file the jdeps plugin records the dependencies of each source in, see
-   * [io.bazel.kotlin.builder.utils.jars.SourceDependenciesFile]. The plugin keeps the dependencies
-   * of the sources it does not analyze, so the file is deleted: the compilation analyzes every
-   * source.
+   * [io.bazel.kotlin.builder.utils.jars.SourceDependenciesFile]. The plugin appends to it, so the
+   * file is deleted: the compilation analyzes every source.
    */
   internal fun newSourceDependencies(task: JvmCompilationTask): Path =
     Paths.get(task.directories.temp, "source_dependencies").also(Files::deleteIfExists)

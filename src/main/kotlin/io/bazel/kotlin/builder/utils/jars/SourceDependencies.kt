@@ -4,6 +4,7 @@ import com.google.devtools.build.lib.view.proto.Deps
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
 /**
  * The jdeps of a compilation: the direct dependencies no source uses, the jars the sources use
@@ -52,37 +53,44 @@ data class SourceDependencies(
 
 /**
  * The jars each source file of a compilation uses, by the source's path as the compiler reports
- * it. Incremental compilation recompiles some sources only: the jdeps plugin replaces the entries
- * of the sources it analyzed, so the file describes every source of the target.
+ * it. Incremental compilation recompiles some sources only, possibly over several rounds: the jdeps
+ * plugin appends a record for each source a round analyzes, without reading the file, and a
+ * source's last record replaces its earlier ones.
  *
- * One line per used jar: `explicit|implicit`, the jar, and the source, separated by tabs. A source
- * without dependencies has a line with the kind `none`.
+ * A record is a `source` line, then an `explicit` or `implicit` line for each jar the source uses:
+ * the kind and the path, separated by a tab.
  */
 object SourceDependenciesFile {
+  private const val SOURCE = "source"
   private const val EXPLICIT = "explicit"
   private const val IMPLICIT = "implicit"
-  private const val NONE = "none"
 
+  /** The dependencies of each source, from its last record. */
   fun read(path: Path): Map<String, SourceDependencies> {
     if (!Files.isRegularFile(path)) {
       return emptyMap()
     }
     val explicit = LinkedHashMap<String, MutableSet<String>>()
     val implicit = LinkedHashMap<String, MutableSet<String>>()
+    var source: String? = null
+
+    fun currentSource(line: String) = checkNotNull(source) { "$path: no source before: $line" }
     Files.readAllLines(path, StandardCharsets.UTF_8).forEach { line ->
-      val (kind, jar, source) = line.split('\t', limit = 3)
-      explicit.getOrPut(source) { linkedSetOf() }
-      implicit.getOrPut(source) { linkedSetOf() }
+      val (kind, value) = line.split('\t', limit = 2)
       when (kind) {
+        SOURCE -> {
+          explicit[value] = linkedSetOf()
+          implicit[value] = linkedSetOf()
+          source = value
+        }
+
         EXPLICIT -> {
-          explicit.getValue(source).add(jar)
+          explicit.getValue(currentSource(line)).add(value)
         }
 
         IMPLICIT -> {
-          implicit.getValue(source).add(jar)
+          implicit.getValue(currentSource(line)).add(value)
         }
-
-        NONE -> {}
 
         else -> {
           error("$path: unknown dependency kind in: $line")
@@ -94,30 +102,32 @@ object SourceDependenciesFile {
     }
   }
 
+  /** Writes a record for each source, replacing the file. */
   fun write(
     path: Path,
     dependencies: Map<String, SourceDependencies>,
   ) {
-    val lines =
-      dependencies.flatMap { (source, used) ->
-        if (used.explicitJars.isEmpty() && used.implicitJars.isEmpty()) {
-          listOf("$NONE\t\t$source")
-        } else {
-          used.explicitJars.map { "$EXPLICIT\t$it\t$source" } +
-            used.implicitJars.map { "$IMPLICIT\t$it\t$source" }
-        }
-      }
-    Files.write(path, lines, StandardCharsets.UTF_8)
+    Files.write(path, records(dependencies), StandardCharsets.UTF_8)
   }
 
-  /**
-   * Replaces the dependencies of the [analyzed] sources and keeps those of the other sources,
-   * which an incremental compilation did not recompile.
-   */
-  fun update(
+  /** Appends a record for each source, which replaces the source's earlier records. */
+  fun append(
     path: Path,
-    analyzed: Map<String, SourceDependencies>,
+    dependencies: Map<String, SourceDependencies>,
   ) {
-    write(path, read(path).filterKeys { it !in analyzed } + analyzed)
+    Files.write(
+      path,
+      records(dependencies),
+      StandardCharsets.UTF_8,
+      StandardOpenOption.CREATE,
+      StandardOpenOption.APPEND,
+    )
   }
+
+  private fun records(dependencies: Map<String, SourceDependencies>): List<String> =
+    dependencies.flatMap { (source, used) ->
+      listOf("$SOURCE\t$source") +
+        used.explicitJars.map { "$EXPLICIT\t$it" } +
+        used.implicitJars.map { "$IMPLICIT\t$it" }
+    }
 }

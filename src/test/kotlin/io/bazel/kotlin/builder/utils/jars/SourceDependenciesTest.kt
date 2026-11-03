@@ -70,7 +70,7 @@ class SourceDependenciesTest {
   }
 
   @Test
-  fun `an update replaces the analyzed sources and keeps the others`() {
+  fun `an appended record replaces the source's earlier records and keeps the others`() {
     val file = Files.createTempDirectory("SourceDependenciesTest").resolve("source_deps")
     SourceDependenciesFile.write(
       file,
@@ -80,7 +80,7 @@ class SourceDependenciesTest {
       ),
     )
 
-    SourceDependenciesFile.update(
+    SourceDependenciesFile.append(
       file,
       mapOf(
         "/src/A.kt" to SourceDependencies(emptySet(), emptySet()),
@@ -96,6 +96,31 @@ class SourceDependenciesTest {
         SourceDependencies(setOf("b.jar"), emptySet()),
         "/src/C.kt",
         SourceDependencies(setOf("c.jar"), emptySet()),
+      )
+  }
+
+  @Test
+  fun `rounds append to a missing file, and a source analyzed in consecutive rounds is replaced`() {
+    val file = Files.createTempDirectory("SourceDependenciesTest").resolve("source_deps")
+
+    SourceDependenciesFile.append(
+      file,
+      mapOf(
+        "/src/A.kt" to SourceDependencies(setOf("a.jar"), emptySet()),
+        "/src/B.kt" to SourceDependencies(setOf("b.jar"), setOf("c.jar")),
+      ),
+    )
+    SourceDependenciesFile.append(
+      file,
+      mapOf("/src/B.kt" to SourceDependencies(setOf("d.jar"), emptySet())),
+    )
+
+    assertThat(SourceDependenciesFile.read(file))
+      .containsExactly(
+        "/src/A.kt",
+        SourceDependencies(setOf("a.jar"), emptySet()),
+        "/src/B.kt",
+        SourceDependencies(setOf("d.jar"), emptySet()),
       )
   }
 

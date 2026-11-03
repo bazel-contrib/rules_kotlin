@@ -14,19 +14,25 @@ import org.jetbrains.kotlin.name.ClassId
 
 private const val ANONYMOUS = "<anonymous>"
 
+/** The classes one source uses. */
+internal class SourceClasses {
+  /** The classes the source uses explicitly. */
+  val explicit: MutableSet<String> = linkedSetOf()
+
+  /** The classes the source needs implicitly, e.g. for a supertype. */
+  val implicit: MutableSet<String> = linkedSetOf()
+}
+
 /**
  * The classes the analyzed sources use, by the path of the source using them. A usage outside a
  * source file is recorded under the empty path.
  */
 class ClassUsageRecorder {
-  internal val explicitClassesBySource = LinkedHashMap<String, MutableSet<String>>()
-  internal val implicitClassesBySource = LinkedHashMap<String, MutableSet<String>>()
+  internal val classesBySource = LinkedHashMap<String, SourceClasses>()
 
   /** Records an analyzed source, so that it is listed even if it uses no classes. */
-  internal fun recordSource(path: String) {
-    explicitClassesBySource.getOrPut(path) { linkedSetOf() }
-    implicitClassesBySource.getOrPut(path) { linkedSetOf() }
-  }
+  internal fun recordSource(path: String): SourceClasses =
+    classesBySource.getOrPut(path) { SourceClasses() }
 
   internal fun recordTypeRef(
     typeRef: FirTypeRef,
@@ -107,12 +113,11 @@ class ClassUsageRecorder {
     isExplicit: Boolean,
     context: CheckerContext,
   ) {
-    val source = context.containingFile?.path.orEmpty()
-    recordSource(source)
+    val classes = recordSource(context.containingFile?.path.orEmpty())
     if (isExplicit) {
-      explicitClassesBySource.getValue(source).add(path)
+      classes.explicit.add(path)
     } else {
-      implicitClassesBySource.getValue(source).add(path)
+      classes.implicit.add(path)
     }
   }
 }

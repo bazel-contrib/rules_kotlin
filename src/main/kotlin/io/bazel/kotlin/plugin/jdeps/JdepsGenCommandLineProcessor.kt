@@ -16,7 +16,7 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
       CliOption(
         "output",
         "<path>",
-        "Records the dependencies of each analyzed source in this file, keeping the other sources'",
+        "Appends the dependencies of each analyzed source to this file",
         required = true,
       )
     val FULL_CLASSPATH_OPTION: CliOption =
