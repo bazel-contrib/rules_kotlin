@@ -22,11 +22,6 @@ class ClassUsageRecorder {
   internal val explicitClassesBySource = LinkedHashMap<String, MutableSet<String>>()
   internal val implicitClassesBySource = LinkedHashMap<String, MutableSet<String>>()
 
-  internal val explicitClassesCanonicalPaths: Set<String>
-    get() = explicitClassesBySource.values.flatten().toSet()
-  internal val implicitClassesCanonicalPaths: Set<String>
-    get() = implicitClassesBySource.values.flatten().toSet()
-
   /** Records an analyzed source, so that it is listed even if it uses no classes. */
   internal fun recordSource(path: String) {
     explicitClassesBySource.getOrPut(path) { linkedSetOf() }

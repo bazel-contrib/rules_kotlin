@@ -20,6 +20,7 @@ import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.tasks.BtapiRuntime
 import io.bazel.kotlin.builder.tasks.JvmTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.emptyJdeps
+import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.newSourceDependencies
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.writeJdeps
 import io.bazel.kotlin.builder.tasks.jvm.createAbiJar
 import io.bazel.kotlin.builder.tasks.jvm.createCoverageInstrumentedJar
@@ -37,6 +38,7 @@ import io.bazel.kotlin.builder.tasks.jvm.stubs
 import io.bazel.kotlin.builder.tasks.toRuntime
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.utils.jars.SourceDependenciesFile
 import io.bazel.kotlin.compiler.CompilationUnit
 import io.bazel.kotlin.compiler.CompilerConfiguration
 import io.bazel.kotlin.compiler.CompilerPluginSpec
@@ -46,6 +48,7 @@ import io.bazel.kotlin.model.JvmCompilationTask.Inputs.PluginPhase
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.PrintStream
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 
@@ -112,11 +115,12 @@ class BtapiTaskExecutor(
 
     context.execute("compile classes") {
       preprocessedTask.apply {
+        val sourceDependencies = newSourceDependencies(this)
         val outputLines =
           try {
             context.execute("kotlinc") {
               if (compileKotlin) {
-                runKotlinCompiler(context, compiler, btapiRuntime)
+                runKotlinCompiler(context, compiler, btapiRuntime, sourceDependencies)
               } else {
                 if (outputs.jdeps.isNotEmpty()) {
                   writeJdeps(outputs.jdeps, emptyJdeps(info.label))
@@ -130,6 +134,12 @@ class BtapiTaskExecutor(
 
         outputLines.first.apply(context::printCompilerOutput)
         outputLines.second?.let { throw it }
+
+        if (compileKotlin && outputs.jdeps.isNotEmpty()) {
+          context.execute("write jdeps") {
+            writeJdeps(context, this, SourceDependenciesFile.read(sourceDependencies).values)
+          }
+        }
 
         if (outputs.jar.isNotEmpty()) {
           if (instrumentCoverage) {
@@ -229,10 +239,14 @@ class BtapiTaskExecutor(
     }
   }
 
+  /**
+   * @param sourceDependencies the file the jdeps plugin records the dependencies of each source in.
+   */
   private fun JvmCompilationTask.runKotlinCompiler(
     context: CompilationTaskContext,
     compiler: KotlinBtapiCompiler,
     runtime: BtapiRuntime,
+    sourceDependencies: Path,
   ): List<String> {
     val descriptors = mutableListOf<PluginDescriptor>()
 
@@ -242,13 +256,8 @@ class BtapiTaskExecutor(
           id = JDEPS_GEN_PLUGIN_ID,
           classpath = runtime.jdepsGenClasspath,
           options =
-            listOf(
-              "output=${outputs.jdeps}",
-              "target_label=${info.label}",
-            ) +
-              inputs.directDependenciesList.map { "direct_dependencies=$it" } +
-              inputs.classpathList.map { "full_classpath=$it" } +
-              listOf("strict_kotlin_deps=${info.strictKotlinDeps}"),
+            listOf("output=$sourceDependencies") +
+              inputs.classpathList.map { "full_classpath=$it" },
         ),
       )
     }

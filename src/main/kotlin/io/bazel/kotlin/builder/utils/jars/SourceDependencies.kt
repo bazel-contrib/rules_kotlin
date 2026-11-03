@@ -7,9 +7,9 @@ import java.nio.file.Path
 
 /**
  * The jdeps of a compilation: the direct dependencies no source uses, the jars the sources use
- * explicitly, and the ones they need only implicitly, e.g. for a supertype. The jdeps plugin and
- * the incremental compilation in the worker both write their jdeps with this, so that an
- * incremental compilation's jdeps are the bytes a full compilation writes.
+ * explicitly, and the ones they need only implicitly, e.g. for a supertype. The builder writes
+ * them from the dependencies of each source, see [SourceDependenciesFile], so that a compilation
+ * of some of the sources writes the bytes a compilation of all of them writes.
  */
 fun jdepsOf(
   label: String,

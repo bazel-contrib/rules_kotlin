@@ -12,17 +12,12 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
   companion object {
     val COMPILER_PLUGIN_ID = "io.bazel.kotlin.plugin.jdeps.JDepsGen"
 
-    val OUTPUT_JDEPS_FILE_OPTION: CliOption =
-      CliOption("output", "<path>", "Output path for generated jdeps", required = true)
-    val TARGET_LABEL_OPTION: CliOption =
-      CliOption("target_label", "<String>", "Label of target being analyzed", required = true)
-    val DIRECT_DEPENDENCIES_OPTION: CliOption =
+    val OUTPUT_OPTION: CliOption =
       CliOption(
-        "direct_dependencies",
-        "<List>",
-        "List of targets direct dependencies",
-        required = false,
-        allowMultipleOccurrences = true,
+        "output",
+        "<path>",
+        "Records the dependencies of each analyzed source in this file, keeping the other sources'",
+        required = true,
       )
     val FULL_CLASSPATH_OPTION: CliOption =
       CliOption(
@@ -32,15 +27,6 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
         required = false,
         allowMultipleOccurrences = true,
       )
-    val STRICT_KOTLIN_DEPS_OPTION: CliOption =
-      CliOption("strict_kotlin_deps", "<String>", "Report strict deps violations", required = true)
-    val PER_SOURCE_OUTPUT_OPTION: CliOption =
-      CliOption(
-        "per_source_output",
-        "<path>",
-        "Records the dependencies of each analyzed source in this file, keeping the other sources'",
-        required = false,
-      )
   }
 
   override val pluginId: String
@@ -48,12 +34,8 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
   override val pluginOptions: Collection<AbstractCliOption>
     get() =
       listOf(
-        OUTPUT_JDEPS_FILE_OPTION,
-        TARGET_LABEL_OPTION,
-        DIRECT_DEPENDENCIES_OPTION,
+        OUTPUT_OPTION,
         FULL_CLASSPATH_OPTION,
-        STRICT_KOTLIN_DEPS_OPTION,
-        PER_SOURCE_OUTPUT_OPTION,
       )
 
   override fun processOption(
@@ -62,19 +44,8 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
     configuration: CompilerConfiguration,
   ) {
     when (option) {
-      OUTPUT_JDEPS_FILE_OPTION -> {
-        configuration.put(JdepsGenConfigurationKeys.OUTPUT_JDEPS, value)
-      }
-
-      TARGET_LABEL_OPTION -> {
-        configuration.put(JdepsGenConfigurationKeys.TARGET_LABEL, value)
-      }
-
-      DIRECT_DEPENDENCIES_OPTION -> {
-        configuration.appendList(
-          JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
-          value,
-        )
+      OUTPUT_OPTION -> {
+        configuration.put(JdepsGenConfigurationKeys.OUTPUT, value)
       }
 
       FULL_CLASSPATH_OPTION -> {
@@ -82,17 +53,6 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
           JdepsGenConfigurationKeys.FULL_CLASSPATH,
           value,
         )
-      }
-
-      STRICT_KOTLIN_DEPS_OPTION -> {
-        configuration.put(
-          JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
-          value,
-        )
-      }
-
-      PER_SOURCE_OUTPUT_OPTION -> {
-        configuration.put(JdepsGenConfigurationKeys.PER_SOURCE_OUTPUT, value)
       }
 
       else -> {
