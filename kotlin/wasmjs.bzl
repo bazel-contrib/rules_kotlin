@@ -18,6 +18,8 @@ load(
     _KtWasmJsBinaryInfo = "KtWasmJsBinaryInfo",
     _KtWasmJsInfo = "KtWasmJsInfo",
 )
+load("//kotlin/internal/wasmjs:wasmjs.bzl", _kt_wasmjs_import = "kt_wasmjs_import")
 
 KtWasmJsInfo = _KtWasmJsInfo
 KtWasmJsBinaryInfo = _KtWasmJsBinaryInfo
+kt_wasmjs_import = _kt_wasmjs_import

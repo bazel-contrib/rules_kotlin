@@ -660,6 +660,34 @@ libraries they need, and the internal compiler plugins in the embeddable dialect
 
 Public Kotlin/WasmJs rule API.
 
+<a id="kt_wasmjs_import"></a>
+
+## kt_wasmjs_import
+
+<pre>
+load("@rules_kotlin//kotlin:wasmjs.bzl", "kt_wasmjs_import")
+
+kt_wasmjs_import(<a href="#kt_wasmjs_import-name">name</a>, <a href="#kt_wasmjs_import-deps">deps</a>, <a href="#kt_wasmjs_import-exported_compiler_plugins">exported_compiler_plugins</a>, <a href="#kt_wasmjs_import-exported_deps">exported_deps</a>, <a href="#kt_wasmjs_import-klib">klib</a>, <a href="#kt_wasmjs_import-neverlink">neverlink</a>,
+                 <a href="#kt_wasmjs_import-npm_packages">npm_packages</a>, <a href="#kt_wasmjs_import-source_jar">source_jar</a>)
+</pre>
+
+Imports a prebuilt Kotlin/WasmJs klib.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="kt_wasmjs_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="kt_wasmjs_import-deps"></a>deps |  Dependencies of the klib. They reach the link path of the dependents transitively.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_wasmjs_import-exported_compiler_plugins"></a>exported_compiler_plugins |  Compiler plugins that apply to the direct dependents of this target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_wasmjs_import-exported_deps"></a>exported_deps |  Dependencies of the klib that are also on the compiler library path of the direct dependents. They reach the link path of the dependents transitively.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_wasmjs_import-klib"></a>klib |  The klib. It is on the compiler library path of the direct dependents.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="kt_wasmjs_import-neverlink"></a>neverlink |  Whether this target is only on the compiler library path. A neverlink target, its runtime closure and its npm packages never reach a link. Use it for a library that the runtime host of the binary supplies.   | Boolean | optional |  `False`  |
+| <a id="kt_wasmjs_import-npm_packages"></a>npm_packages |  Bare import specifier to npm package files, for the npm packages that the klib needs at runtime, as its embedded `package.json` declares. The npm packages of the dependencies propagate automatically.   | Dictionary: String -> Label | optional |  `{}`  |
+| <a id="kt_wasmjs_import-source_jar"></a>source_jar |  The sources of the klib.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+
+
 <a id="KtWasmJsBinaryInfo"></a>
 
 ## KtWasmJsBinaryInfo
