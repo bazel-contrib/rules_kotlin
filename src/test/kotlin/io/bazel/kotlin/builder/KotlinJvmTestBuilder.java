@@ -179,9 +179,16 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
      * The class-file major version of a compiled class, read from the CLASSES output directory.
      */
     public final int classFileMajorVersion(String relativeClassPath) {
+        return classFileMajorVersion(DirectoryType.CLASSES, relativeClassPath);
+    }
+
+    /**
+     * The class-file major version of a class file in the given output directory.
+     */
+    public final int classFileMajorVersion(DirectoryType directoryType, String relativeClassPath) {
         try {
             byte[] bytes = java.nio.file.Files.readAllBytes(
-                    directory(DirectoryType.CLASSES).resolve(relativeClassPath));
+                    directory(directoryType).resolve(relativeClassPath));
             return ((bytes[6] & 0xFF) << 8) | (bytes[7] & 0xFF);
         } catch (java.io.IOException e) {
             throw new java.io.UncheckedIOException(e);
