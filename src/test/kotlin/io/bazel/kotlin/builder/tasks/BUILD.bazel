@@ -145,6 +145,22 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "Ksp2InvokerConcurrencyTest",
+    srcs = ["Ksp2InvokerConcurrencyTest.kt"],
+    resource_strip_prefix = "src/test/kotlin/io/bazel/kotlin/builder/tasks/kspConcurrencyResources",
+    resources = ["kspConcurrencyResources/META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider"],
+    deps = [
+        "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
+        "//kotlin/compiler:symbol-processing-aa",
+        "//kotlin/compiler:symbol-processing-api",
+        "//kotlin/compiler:symbol-processing-common-deps",
+        "//src/main/kotlin/io/bazel/kotlin/ksp2",
+        "@kotlin_rules_maven_test//:com_google_truth_truth",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
+kt_rules_test(
     name = "Ksp2TaskTest",
     srcs = ["Ksp2TaskTest.kt"],
     deps = [
@@ -230,6 +246,7 @@ test_suite(
         ":KotlinBuilderJvmKaptTest",
         ":KotlinBuilderJvmStrictDepsTest",
         ":KotlinJvmTaskExecutorTest",
+        ":Ksp2InvokerConcurrencyTest",
         ":Ksp2TaskTest",
         ":ModelDslTest",
         ":PluginsPayloadExpansionTest",

@@ -87,6 +87,9 @@ class Ksp2Invoker : Ksp2EntryPoint {
     val logger = KspGradleLogger(logLevel)
     val ksp = KotlinSymbolProcessing(kspConfig, processors, logger)
 
-    return ksp.execute().code
+    // KSP cleanup invalidates shared JAR file identities used by concurrent library scopes.
+    return synchronized(Ksp2Invoker::class.java) {
+      ksp.execute().code
+    }
   }
 }
