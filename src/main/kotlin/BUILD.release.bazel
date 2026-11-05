@@ -12,40 +12,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLIN_STDLIBS")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("//kotlin/compiler:compiler.bzl", "KOTLIN_STDLIBS")
+
+exports_files(["rules_kotlin.jar"])
 
 java_import(
     name = "worker",
-    jars = ["kotlin_worker.jar"],
+    jars = ["rules_kotlin.jar"],
 )
 
 java_import(
     name = "jdeps_merger_worker",
-    jars = ["jdeps_merger_worker.jar"],
+    jars = ["rules_kotlin.jar"],
 )
 
 java_import(
     name = "ksp2_worker",
-    jars = ["ksp2_worker.jar"],
+    jars = ["rules_kotlin.jar"],
 )
 
 java_import(
     name = "ksp2_invoker",
-    jars = ["ksp2_invoker.jar"],
+    jars = ["rules_kotlin.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "jdeps-gen",
-    jars = ["jdeps-gen.jar"],
+    jars = ["rules_kotlin.jar"],
     visibility = ["//visibility:public"],
 )
 
-# Embeddable-dialect plugin variants for the Build Tools API runtime override attributes.
+# Keep a distinct label for the Build Tools API runtime's dialect validation.
 java_import(
     name = "jdeps-gen-embeddable",
-    jars = ["jdeps-gen-embeddable.jar"],
+    jars = ["rules_kotlin.jar"],
     visibility = ["//visibility:public"],
 )
 
@@ -91,7 +93,7 @@ java_binary(
     ],
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdepsMain",
     visibility = ["//visibility:public"],
-    runtime_deps = [":jdeps_merger_worker"],
+    runtime_deps = [":jdeps_merger_worker"] + KOTLIN_STDLIBS,
 )
 
 java_binary(
@@ -102,5 +104,5 @@ java_binary(
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     visibility = ["//visibility:public"],
-    runtime_deps = [":ksp2_worker"],
+    runtime_deps = [":ksp2_worker"] + KOTLIN_STDLIBS,
 )

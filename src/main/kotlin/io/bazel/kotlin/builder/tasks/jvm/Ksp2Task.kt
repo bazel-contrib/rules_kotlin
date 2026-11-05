@@ -106,7 +106,16 @@ class Ksp2Task : Work {
           CacheEntry(
             URLClassLoader(
               processorClasspath.map { File(it).toURI().toURL() }.toTypedArray(),
-              ClassLoader.getSystemClassLoader(),
+              object : ClassLoader(ClassLoader.getSystemClassLoader()) {
+                override fun loadClass(
+                  name: String,
+                  resolve: Boolean,
+                ): Class<*> {
+                  // Load the bundled invoker alongside KSP, while sharing its entry point with the worker.
+                  if (name.startsWith("io.bazel.kotlin.ksp2.")) throw ClassNotFoundException(name)
+                  return super.loadClass(name, resolve)
+                }
+              },
             ),
             fingerprint,
           )
