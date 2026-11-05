@@ -40,6 +40,10 @@ _implicit_deps = {
         default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
         cfg = "exec",
     ),
+    "_java_plugins": attr.label(
+        default = Label("@bazel_tools//tools/jdk:java_plugins_flag_alias"),
+        providers = [JavaPluginInfo],
+    ),
     "_java_toolchain": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
     ),
