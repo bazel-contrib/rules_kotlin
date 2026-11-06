@@ -9,6 +9,7 @@ load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transi
 load(":java_plugin_flag_tests.bzl", "java_plugin_flag_tests")
 load(":jdeps_merge_inputs_tests.bzl", "jdeps_merge_inputs_tests")
 load(":mixed_mode_tests.bzl", "mixed_mode_tests")
+load(":plugin_classpath_tests.bzl", "plugin_classpath_tests")
 load(":plugin_dialect_tests.bzl", "plugin_dialect_tests")
 load(":stdlib_provider_tests.bzl", "stdlib_provider_tests")
 
@@ -115,6 +116,10 @@ deps_artifacts_tests(
 
 mixed_mode_tests(
     name = "mixed_mode_tests",
+)
+
+plugin_classpath_tests(
+    name = "plugin_classpath_tests",
 )
 
 plugin_dialect_tests(

@@ -29,17 +29,16 @@ load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
 load("//third_party:jarjar.bzl", "jarjar_action")
 
 _KtCompilerPluginClasspathInfo = provider(
-    doc = "JavaInfos of a Kotlin compiler plugin library and its reshaded variants.",
+    doc = "The reshaded copies of the runtime jars of a Kotlin compiler plugin library and of its dependencies.",
     fields = {
-        "infos": "list JavaInfos of a compiler library",
-        "reshaded_infos": "list JavaInfos of a compiler library, reshaded to the CLI-distribution compiler dialect",
-        "reshaded_infos_embeddable": "list JavaInfos of a compiler library, reshaded to the embeddable compiler dialect",
+        "reshaded": "depset of struct(original, reshaded): a runtime jar of a visited library and its copy in the CLI-distribution compiler dialect",
+        "reshaded_embeddable": "depset of struct(original, reshaded): a runtime jar of a visited library and its copy in the embeddable compiler dialect",
     },
 )
 
 def kt_compiler_deps_aspect_impl(target, ctx):
     """
-    Collects and reshades (if necessary) all jars in the plugin transitive closure.
+    Declares the reshaded copies of the runtime jars of every library the aspect visits.
 
     Args:
         target: Target of the rule being inspected
@@ -49,82 +48,58 @@ def kt_compiler_deps_aspect_impl(target, ctx):
     """
     transitive_infos = [
         t[_KtCompilerPluginClasspathInfo]
-        for d in ["deps", "runtime_deps", "exports"]
+        for d in ["deps", "runtime_deps", "exports", "associates"]
         for t in getattr(ctx.rule.attr, d, [])
         if _KtCompilerPluginClasspathInfo in t
     ]
-    reshaded_infos = []
-    reshaded_infos_embeddable = []
-    infos = [
-        i
-        for t in transitive_infos
-        for i in t.infos
-    ]
-    if JavaInfo in target:
-        ji = target[JavaInfo]
-        infos.append(ji)
-        reshaded_infos.append(
-            _reshade_kotlinc_jars(
-                target = target,
-                ctx = ctx,
-                rules_file = ctx.file._kotlin_compiler_reshade_rules,
-                output_infix = "reshaded",
-                jars = ji.runtime_output_jars,
-                deps = [
-                    i
-                    for t in transitive_infos
-                    for i in t.reshaded_infos
-                ],
-            ),
-        )
-        reshaded_infos_embeddable.append(
-            _reshade_kotlinc_jars(
-                target = target,
-                ctx = ctx,
-                rules_file = ctx.file._kotlin_compiler_embeddable_reshade_rules,
-                output_infix = "embeddable_reshaded",
-                jars = ji.runtime_output_jars,
-                deps = [
-                    i
-                    for t in transitive_infos
-                    for i in t.reshaded_infos_embeddable
-                ],
-            ),
-        )
-
+    jars = target[JavaInfo].runtime_output_jars if JavaInfo in target else []
     return [
         _KtCompilerPluginClasspathInfo(
-            infos = [java_common.merge(infos)],
-            reshaded_infos = reshaded_infos,
-            reshaded_infos_embeddable = reshaded_infos_embeddable,
+            reshaded = depset(
+                _reshade_kotlinc_jars(target, ctx, ctx.file._kotlin_compiler_reshade_rules, "reshaded", jars),
+                transitive = [t.reshaded for t in transitive_infos],
+            ),
+            reshaded_embeddable = depset(
+                _reshade_kotlinc_jars(target, ctx, ctx.file._kotlin_compiler_embeddable_reshade_rules, "embeddable_reshaded", jars),
+                transitive = [t.reshaded_embeddable for t in transitive_infos],
+            ),
         ),
     ]
 
-def _reshade_kotlinc_jars(target, ctx, rules_file, output_infix, jars, deps):
-    # No jars to reshade — just propagate transitive deps (e.g. sourceless libraries).
-    if not jars:
-        return java_common.merge(deps) if deps else java_common.merge([])
-
-    reshaded = [
-        jarjar_action(
-            actions = ctx.actions,
-            jarjar = ctx.executable._jarjar,
-            rules = rules_file,
-            input = jar,
-            output = ctx.actions.declare_file(
-                "%s_%s_%s" % (target.label.name, output_infix, jar.basename),
+def _reshade_kotlinc_jars(target, ctx, rules_file, output_infix, jars):
+    """Declares a jarjar action per jar and pairs each jar with its copy."""
+    return [
+        struct(
+            original = jar,
+            reshaded = jarjar_action(
+                actions = ctx.actions,
+                jarjar = ctx.executable._jarjar,
+                rules = rules_file,
+                input = jar,
+                output = ctx.actions.declare_file(
+                    "%s_%s_%s" % (target.label.name, output_infix, jar.basename),
+                ),
             ),
         )
         for jar in jars
     ]
 
-    # JavaInfo only takes a single jar, so create many and merge them.
-    return java_common.merge(
-        [
-            JavaInfo(output_jar = jar, compile_jar = jar, deps = deps)
-            for jar in reshaded
-        ],
-    )
+def _reshaded_classpath(classpath, infos, field):
+    """The plugin classpath with every jar replaced by its copy in the dialect of the running compiler.
+
+    A jar without a copy belongs to no library the aspect visited, and it stays as it is.
+
+    Args:
+        classpath: depset of the original jars
+        infos: the _KtCompilerPluginClasspathInfo of the plugin deps
+        field: the field of the info that holds the copies in the dialect of the running compiler
+    Returns:
+        depset of the copies, in the order of the classpath
+    """
+    copy_of = {}
+    for pair in depset(transitive = [getattr(info, field) for info in infos]).to_list():
+        copy_of.setdefault(pair.original, pair.reshaded)
+    return depset([copy_of.get(jar, jar) for jar in classpath.to_list()])
 
 def _expand_location_with_data_deps(ctx):
     return lambda targets: ctx.expand_location(targets, ctx.attr.data)
@@ -157,22 +132,17 @@ def kt_compiler_plugin_impl(ctx):
     """
     plugin_id = ctx.attr.id
 
-    # Select the plugin jars matching the dialect of the compiler that runs them: a matching
-    # dialect loads the original jars, a mismatched dialect loads the jars reshaded to the
-    # compiler dialect.
-    if ctx.attr.target_embedded_compiler:
-        field = "infos" if _runs_embedded_compiler(ctx) else "reshaded_infos"
-    else:
-        field = "reshaded_infos_embeddable" if _runs_embedded_compiler(ctx) else "infos"
-
+    # The plugin classpath is the runtime classpath of the deps, as Bazel defines it. The dialect of
+    # the plugin can differ from the dialect of the compiler that runs it. The rule then replaces
+    # every jar with its copy in the compiler dialect.
     deps = ctx.attr.deps
-    info = java_common.merge([
-        i
-        for d in deps
-        for i in getattr(d[_KtCompilerPluginClasspathInfo], field)
-    ])
-
-    classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
+    classpath = depset(transitive = [d[JavaInfo].transitive_runtime_jars for d in deps])
+    if ctx.attr.target_embedded_compiler:
+        copies = None if _runs_embedded_compiler(ctx) else "reshaded"
+    else:
+        copies = "reshaded_embeddable" if _runs_embedded_compiler(ctx) else None
+    if copies:
+        classpath = _reshaded_classpath(classpath, [d[_KtCompilerPluginClasspathInfo] for d in deps], copies)
 
     options = plugin_common.resolve_plugin_options(ctx.attr.options, _expand_location_with_data_deps(ctx))
 
@@ -212,16 +182,14 @@ def kt_ksp_plugin_impl(ctx):
         The list of providers exposing the KSP plugin configuration.
     """
     deps = ctx.attr.deps
+    classpath = depset(transitive = [d[JavaInfo].transitive_runtime_jars for d in deps])
     if ctx.attr.target_embedded_compiler:
-        info = java_common.merge([
-            i
-            for d in deps
-            for i in d[_KtCompilerPluginClasspathInfo].reshaded_infos
-        ])
+        # The rule assumes the CLI-distribution compiler: a plugin of the embeddable dialect takes
+        # the copies in the CLI-distribution dialect.
+        classpath = _reshaded_classpath(classpath, [d[_KtCompilerPluginClasspathInfo] for d in deps], "reshaded")
+        info = java_common.merge([JavaInfo(output_jar = jar, compile_jar = jar) for jar in classpath.to_list()])
     else:
         info = java_common.merge([dep[JavaInfo] for dep in deps])
-
-    classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
     return [
         DefaultInfo(files = classpath),
@@ -244,7 +212,7 @@ def kt_ksp_plugin_impl(ctx):
 
 _kt_compiler_deps_aspect = aspect(
     implementation = kt_compiler_deps_aspect_impl,
-    attr_aspects = ["deps", "runtime_deps", "exports"],
+    attr_aspects = ["deps", "runtime_deps", "exports", "associates"],
     attrs = {
         "_jarjar": attr.label(
             executable = True,
@@ -310,7 +278,9 @@ kt_jvm_library(
             cfg = "exec",
         ),
         "deps": attr.label_list(
-            doc = "The list of libraries to be added to the compiler's plugin classpath",
+            doc = """The list of libraries to be added to the compiler's plugin classpath. The plugin classpath
+            is the transitive runtime classpath of these libraries. A neverlink library therefore contributes
+            nothing to it, and neither does a library reachable only through a neverlink library.""",
             providers = [JavaInfo],
             cfg = "exec",
             aspects = [_kt_compiler_deps_aspect],
@@ -338,7 +308,9 @@ Supports the following template values:
         ),
         "target_embedded_compiler": attr.bool(
             doc = """Plugin was compiled against the embeddable kotlin compiler. The plugin classpath is
-            reshaded when this dialect differs from the dialect of the compiler that the toolchain runs.""",
+            reshaded when this dialect differs from the dialect of the compiler that the toolchain runs. The
+            aspect declares the reshaded copies for the libraries that deps, runtime_deps, exports or
+            associates reach. A jar without a copy stays as it is.""",
             default = False,
         ),
         "_jarjar": attr.label(
@@ -385,7 +357,9 @@ kt_jvm_library(
 """,
     attrs = {
         "deps": attr.label_list(
-            doc = "The list of libraries to be added to the compiler's plugin classpath",
+            doc = """The list of libraries to be added to the compiler's plugin classpath. The plugin classpath
+            is the transitive runtime classpath of these libraries. A neverlink library therefore contributes
+            nothing to it, and neither does a library reachable only through a neverlink library.""",
             providers = [JavaInfo],
             cfg = "exec",
             aspects = [_kt_compiler_deps_aspect],
@@ -404,8 +378,10 @@ kt_jvm_library(
             mandatory = True,
         ),
         "target_embedded_compiler": attr.bool(
-            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
-            dependencies, and will fail when running against a non-embeddable compiler.""",
+            doc = """Plugin was compiled against the embeddable kotlin compiler. The rule reshades the plugin classpath
+            into the CLI-distribution dialect, which it assumes runs the plugin. The aspect declares the reshaded
+            copies for the libraries that deps, runtime_deps, exports or associates reach. A jar without a copy
+            stays as it is.""",
             default = False,
         ),
         "_kotlin_compiler_reshade_rules": attr.label(
