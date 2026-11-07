@@ -53,6 +53,11 @@ def suite(name, **tests):
     for test_name, test in tests.items():
         test(case(test_name))
 
+        # Each test fn calls case.claim() exactly once, creating an
+        # analysis_test named `test_name` (see _claim/case); collect it so the
+        # aggregate test_suite actually wraps every generated case.
+        test_targets.append(":" + test_name)
+
     native.test_suite(
         name = name,
         tests = test_targets,

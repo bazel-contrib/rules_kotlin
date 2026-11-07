@@ -1,4 +1,7 @@
 load(":dep_hygiene_test.bzl", "dep_hygiene_test_suite")
+load(":kapt_stage_test.bzl", kapt_stage_test_suite = "test_suite")
+load(":ksp_stage_test.bzl", ksp_stage_test_suite = "test_suite")
+load(":parity_test.bzl", parity_test_suite = "test_suite")
 load(":runner_test.bzl", "runner_test_suite")
 
 runner_test_suite(name = "runner_tests")
@@ -6,3 +9,16 @@ runner_test_suite(name = "runner_tests")
 # Dep-hygiene gate (design criterion 5): the kt_jvm_library load graph must
 # contain NO @rules_android. See dep_hygiene_test.bzl.
 dep_hygiene_test_suite(name = "dep_hygiene_tests")
+
+# us-shared-processing-parity: THE integration test for the KAPT/KSP/remaining-compile shared
+# helper extraction. See parity_test.bzl.
+parity_test_suite(name = "it_shared_kapt_ksp_pipeline_parity")
+
+# us-kapt-stage: THE integration test for exposing CompilePreparationProcessor + KaptProcessor as
+# replaceable pipeline stages. See kapt_stage_test.bzl.
+kapt_stage_test_suite(name = "it_kapt_stage_composition_and_replacement")
+
+# us-ksp-stage: THE integration test for exposing KspProcessor as its own replaceable pipeline
+# stage, completing the CompilePreparationProcessor -> KaptProcessor -> KspProcessor ->
+# JvmCompileProcessor chain. See ksp_stage_test.bzl.
+ksp_stage_test_suite(name = "it_ksp_stage_composition_and_replacement")

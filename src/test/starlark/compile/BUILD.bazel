@@ -1,6 +1,10 @@
 load(":phase_aggregation_test.bzl", phase_aggregation_test_suite = "test_suite")
 load(":phase_compile_test.bzl", phase_compile_test_suite = "test_suite")
-load(":phase_composition_test.bzl", phase_composition_test_suite = "test_suite")
+load(
+    ":phase_composition_test.bzl",
+    phase_composition_stable_shape_test_suite = "stable_shape_test_suite",
+    phase_composition_test_suite = "test_suite",
+)
 load(":phase_preprocessors_test.bzl", phase_preprocessors_test_suite = "test_suite")
 load(":rule_tests.bzl", "test_suite")
 
@@ -22,4 +26,10 @@ phase_aggregation_test_suite(
 
 phase_composition_test_suite(
     name = "phase_composition_tests",
+)
+
+# Pins the new shared-helper exports (compile.prepare_compile_inputs/phase_kapt/phase_ksp/
+# run_remaining_compile) and their stable-shape struct contract when a phase's gate is unmet.
+phase_composition_stable_shape_test_suite(
+    name = "phase_composition_stable_shape_tests",
 )

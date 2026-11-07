@@ -1,6 +1,11 @@
-"""Locks the `_phase_kapt`/`_phase_ksp` struct contract in kotlin/internal/jvm/compile.bzl by asserting a real kt_jvm_library's KAPT/KSP actions generate exactly the declared src and class jars."""
+"""Locks the `_phase_kapt`/`_phase_ksp` struct contract in kotlin/internal/jvm/compile.bzl by asserting a real kt_jvm_library's KAPT/KSP actions generate exactly the declared src and class jars,
+AND that those artifacts actually reach their documented consumers (producer->consumer edges), not
+merely that they exist: the gensrc jar must be a Kotlin-compile source jar, the class jar must
+reach the KotlinFoldJarsRuntime fold, and -- for KAPT -- the neverlink stub JavaInfo wrapping the
+stub jar must reach the Javac pass compiling the Java half."""
 
 load("@rules_java//java:defs.bzl", "java_plugin")
+load("@rules_testing//lib:truth.bzl", "matching")
 load("//kotlin:core.bzl", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
 load("//src/test/starlark:case.bzl", "Want", "suite")
@@ -12,12 +17,44 @@ def _kapt_contract(env, got):
     got_target.action_generating(env.ctx.file.gensrc_jar.short_path)
     got_target.action_generating(env.ctx.file.class_jar.short_path)
 
+    # The gensrc jar is folded into generated_src_jars, a KotlinCompile source jar.
+    kt_compile = got_target.action_named("KotlinCompile")
+    kt_compile.inputs().contains_at_least_predicates([
+        matching.file_basename_equals(env.ctx.file.gensrc_jar.basename),
+    ])
+
+    # The gensrc jar also reaches the Javac pass compiling the Java half, alongside the neverlink
+    # stub JavaInfo wrapping the KAPT stub jar (_run_kt_java_builder_actions' kt_stubs_for_java).
+    javac = got_target.action_named("Javac")
+    javac.inputs().contains_at_least_predicates([
+        matching.file_basename_equals(env.ctx.file.gensrc_jar.basename),
+        matching.file_basename_equals(env.ctx.file.stub_jar.basename),
+    ])
+
+    # The class jar is folded into the final runtime jar.
+    fold = got_target.action_named("KotlinFoldJarsRuntime")
+    fold.inputs().contains_at_least_predicates([
+        matching.file_basename_equals(env.ctx.file.class_jar.basename),
+    ])
+
 def _ksp_contract(env, got):
     got_target = env.expect.that_target(got)
 
     # The KSP action must generate exactly the gensrc and class jars _phase_ksp declares.
     got_target.action_generating(env.ctx.file.gensrc_jar.short_path)
     got_target.action_generating(env.ctx.file.class_jar.short_path)
+
+    # The gensrc jar is folded into generated_src_jars, a KotlinCompile source jar.
+    kt_compile = got_target.action_named("KotlinCompile")
+    kt_compile.inputs().contains_at_least_predicates([
+        matching.file_basename_equals(env.ctx.file.gensrc_jar.basename),
+    ])
+
+    # The class jar is folded into the final runtime jar.
+    fold = got_target.action_named("KotlinFoldJarsRuntime")
+    fold.inputs().contains_at_least_predicates([
+        matching.file_basename_equals(env.ctx.file.class_jar.basename),
+    ])
 
 def _test_kapt_phase_contract(test):
     # Real AutoValue processor, just enough to exercise the KAPT action path.
@@ -45,6 +82,10 @@ def _test_kapt_phase_contract(test):
             "gensrc_jar": Want(
                 attr = attr.label(allow_single_file = True),
                 value = got + "-kapt-gensrc.jar",
+            ),
+            "stub_jar": Want(
+                attr = attr.label(allow_single_file = True),
+                value = got + "-kapt-generated-stub.jar",
             ),
         },
     )

@@ -460,10 +460,11 @@ def test_jvm():
 def _library_processors_test_impl(ctx):
     env = unittest.begin(ctx)
 
-    # The kt_jvm_library chain is declared statically: collect deps, then compile.
+    # The kt_jvm_library chain is declared statically: collect deps, then prepare, run KAPT, then
+    # KSP, then compile.
     asserts.equals(
         env,
-        ["DepsProcessor", "JvmCompileProcessor"],
+        ["DepsProcessor", "CompilePreparationProcessor", "KaptProcessor", "KspProcessor", "JvmCompileProcessor"],
         LIBRARY_PROCESSORS.keys(),
     )
 
@@ -477,7 +478,7 @@ def _binary_processors_test_impl(ctx):
     # The kt_jvm_binary chain adds a launcher phase after the compile phase.
     asserts.equals(
         env,
-        ["DepsProcessor", "JvmCompileProcessor", "LauncherProcessor"],
+        ["DepsProcessor", "CompilePreparationProcessor", "KaptProcessor", "KspProcessor", "JvmCompileProcessor", "LauncherProcessor"],
         BINARY_PROCESSORS.keys(),
     )
 
@@ -491,7 +492,7 @@ def _test_processors_test_impl(ctx):
     # The kt_jvm_junit_test chain adds a test-launcher phase after the compile phase.
     asserts.equals(
         env,
-        ["DepsProcessor", "JvmCompileProcessor", "TestLauncherProcessor"],
+        ["DepsProcessor", "CompilePreparationProcessor", "KaptProcessor", "KspProcessor", "JvmCompileProcessor", "TestLauncherProcessor"],
         TEST_PROCESSORS.keys(),
     )
 

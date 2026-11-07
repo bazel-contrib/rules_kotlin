@@ -19,11 +19,14 @@ load(
     "//kotlin/internal/jvm:common.bzl",
     _expand_env = "expand_env",
     _infer_test_class = "infer_test_class",
+    _kapt_processor = "kapt_processor",
+    _ksp_processor = "ksp_processor",
+    _make_compile_processor = "make_compile_processor",
+    _make_prepare_processor = "make_prepare_processor",
     _make_providers = "make_providers",
     _process_deps = "process_deps",
     _write_launcher_action = "write_launcher_action",
 )
-load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
 load(
     "//kotlin/internal/jvm:rule.bzl",
     _COMMON_OUTPUTS = "COMMON_OUTPUTS",
@@ -58,15 +61,6 @@ _ATTRS = _utils.add_dicts(_attrs.runnable_common_attr, {
         default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),
     ),
 })
-
-def _process_test_compile(context):
-    """Run the JVM compile engine for the test with rule_kind "kt_jvm_test"."""
-    ctx = context.ctx
-    return _ProviderInfo(
-        name = "JvmCompileProcessor",
-        value = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_test"),
-        runfiles = None,
-    )
 
 def _process_test_launcher(context):
     """Build the coverage-instrumented test launcher and collect its runfiles."""
@@ -128,7 +122,10 @@ def finalize(context):
 
 PROCESSORS = dict(
     DepsProcessor = _process_deps,
-    JvmCompileProcessor = _process_test_compile,
+    CompilePreparationProcessor = _make_prepare_processor("kt_jvm_test"),
+    KaptProcessor = _kapt_processor,
+    KspProcessor = _ksp_processor,
+    JvmCompileProcessor = _make_compile_processor(),
     TestLauncherProcessor = _process_test_launcher,
 )
 

@@ -67,6 +67,7 @@ kt_jvm_library(
     name = "ksp_kotlin_resources",
     srcs = ["coffee/CoffeeAppModel.kt"],
     plugins = [":moshi"],
+    visibility = ["//src/test/starlark/pipeline:__pkg__"],
     deps = [
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven_test//:com_squareup_moshi_moshi_kotlin",
@@ -172,6 +173,7 @@ kt_jvm_library(
     ],
     kotlinc_opts = ":jvm11_opts",
     plugins = [":autoservice"],
+    visibility = ["//src/test/starlark/pipeline:__pkg__"],
     deps = ["@kotlin_rules_maven_test//:dev_zacsweers_autoservice_auto_service_ksp"],
 )
 
@@ -360,6 +362,7 @@ kt_jvm_library(
         ":autovalue",
         ":autoservice",
     ],
+    visibility = ["//src/test/starlark/pipeline:__pkg__"],
     deps = [
         ":generated_lib",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
