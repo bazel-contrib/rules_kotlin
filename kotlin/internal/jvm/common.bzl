@@ -168,10 +168,6 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
                 jar.short_path.replace("../", "external/")
                 for jar in rjars.to_list()
             ]))
-            jvm_flags_list.extend([
-                "-ea",
-                "-Dbazel.test_suite=" + main_class,
-            ])
             _create_windows_exe_launcher(
                 ctx,
                 executable = executable,
