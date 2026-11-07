@@ -44,14 +44,21 @@ public class KotlinBuilderJvmBasicTest {
                 ctx.outputJdeps();
             };
 
+    /**
+     * SHA-256 digest (lowercase hex) of the file at {@code path}.
+     */
     private static String hashDep(String path) {
         try {
-            //noinspection UnstableApiUsage
-            return com.google.common.hash.Hashing.sha256()
-                    .hashBytes(Files.readAllBytes(Paths.get(path)))
-                    .toString();
+            StringBuilder sb = new StringBuilder();
+            for (byte b : java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(Files.readAllBytes(Paths.get(path)))) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
 
