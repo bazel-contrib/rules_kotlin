@@ -1,0 +1,5 @@
+common --enable_platform_specific_config
+common --java_runtime_version=remotejdk_17
+common --tool_java_runtime_version=remotejdk_17
+startup --windows_enable_symlinks
+common --enable_runfiles

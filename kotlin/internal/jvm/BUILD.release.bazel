@@ -13,6 +13,8 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 exports_files([
     "kotlin-compiler-embeddable-reshade.jarjar",
@@ -29,6 +31,25 @@ bzl_library(
     deps = [
         "//third_party:bzl",
         "@bazel_skylib//lib:sets",
+        "@bazel_skylib//lib:shell",
         "@bazel_skylib//rules:common_settings",
+        "@rules_cc//cc/common",
     ],
+)
+
+cc_binary(
+    name = "native_java_launcher",
+    srcs = ["native_java_launcher.cc"],
+    copts = select({
+        "@platforms//os:windows": ["/std:c++17"],
+        "//conditions:default": ["-std=c++17"],
+    }),
+    visibility = ["//visibility:public"],
+    deps = [":native_java_launcher_lib"],
+)
+
+cc_library(
+    name = "native_java_launcher_lib",
+    hdrs = ["native_java_launcher.h"],
+    deps = ["@rules_cc//cc/runfiles"],
 )

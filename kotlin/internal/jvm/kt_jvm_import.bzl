@@ -13,6 +13,7 @@
 # limitations under the License.
 """kt_jvm_import rule and implementation."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load(
     "//kotlin/internal:defs.bzl",
@@ -21,6 +22,7 @@ load(
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
 )
+load("//kotlin/internal/jvm:native_libs.bzl", "collect_native_libraries")
 load("//kotlin/internal/utils:utils.bzl", _utils = "utils")
 
 _ATTRS = {
@@ -28,7 +30,7 @@ _ATTRS = {
         doc = """Compile and runtime dependencies""",
         default = [],
         mandatory = False,
-        providers = [JavaInfo],
+        providers = [[JavaInfo], [CcInfo]],
     ),
     "exported_compiler_plugins": attr.label_list(
         doc = """\
@@ -73,7 +75,7 @@ DEPRECATED - please use `jar` and `srcjar` attributes.""",
         doc = """Additional runtime deps.""",
         default = [],
         mandatory = False,
-        providers = [JavaInfo],
+        providers = [[JavaInfo], [CcInfo]],
     ),
     "srcjar": attr.label(
         doc = """The sources for the class jar.""",
@@ -153,7 +155,7 @@ def kt_jvm_import_impl(ctx):
             runfiles = ctx.runfiles(
                 # Append class jar with the optional sources jar
                 files = [artifact.class_jar] + [artifact.source_jar] if artifact.source_jar else [],
-            ).merge_all([d[DefaultInfo].default_runfiles for d in ctx.attr.deps]),
+            ).merge_all([d[DefaultInfo].default_runfiles for d in ctx.attr.deps + ctx.attr.runtime_deps + getattr(ctx.attr, "exports", [])]),
         ),
         JavaInfo(
             output_jar = artifact.class_jar,
@@ -161,7 +163,8 @@ def kt_jvm_import_impl(ctx):
             source_jar = artifact.source_jar,
             runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps if JavaInfo in dep],
             deps = [dep[JavaInfo] for dep in ctx.attr.deps if JavaInfo in dep],
-            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
+            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", []) if JavaInfo in d],
+            native_libraries = collect_native_libraries(ctx.attr.deps, ctx.attr.runtime_deps, getattr(ctx.attr, "exports", [])),
             neverlink = getattr(ctx.attr, "neverlink", False),
         ),
         kt_info,
