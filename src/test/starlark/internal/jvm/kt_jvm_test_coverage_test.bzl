@@ -7,6 +7,7 @@ load("//kotlin:jvm.bzl", "kt_jvm_test")
 
 _WINDOWS = Label("//src/test/starlark/internal/jvm:windows_x86_64")
 _WINDOWS_CC = Label("//src/test/starlark/internal/jvm:windows_cc_toolchain")
+_WINDOWS_TEST = Label("//src/test/starlark/internal/jvm:windows_test_toolchain")
 
 def _windows_coverage_test_suite_flag_impl(env, target):
     action = env.expect.that_target(target).action_named("JavaLauncherMaker")
@@ -32,7 +33,7 @@ def _windows_coverage_test_suite_flag_test(name):
         target = name + "_subject",
         config_settings = {
             "//command_line_option:collect_code_coverage": True,
-            "//command_line_option:extra_toolchains": [str(_WINDOWS_CC)],
+            "//command_line_option:extra_toolchains": [str(_WINDOWS_CC), str(_WINDOWS_TEST)],
             "//command_line_option:platforms": [str(_WINDOWS)],
         },
     )

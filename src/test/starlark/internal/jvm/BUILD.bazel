@@ -66,3 +66,12 @@ toolchain(
     toolchain = ":windows_cc_toolchain_impl",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
+
+# Without this, the default test toolchain demands an exec platform matching
+# the Windows target platform, which does not exist on the Linux/macOS hosts.
+toolchain(
+    name = "windows_test_toolchain",
+    target_compatible_with = ["@platforms//os:windows"],
+    toolchain = "@bazel_tools//tools/test:empty_toolchain",
+    toolchain_type = "@bazel_tools//tools/test:default_test_toolchain_type",
+)
