@@ -23,7 +23,7 @@ internal class QualifiedAccessChecker(
     // track function's owning class
     val resolvedCallableSymbol = expression.toResolvedCallableSymbol()
     resolvedCallableSymbol?.containerSource?.binaryClass()?.let {
-      classUsageRecorder.recordClass(it)
+      classUsageRecorder.recordClass(it, context)
     }
 
     // track return type
