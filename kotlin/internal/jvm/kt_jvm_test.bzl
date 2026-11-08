@@ -47,10 +47,6 @@ load(
 )
 
 _ATTRS = _utils.add_dicts(_attrs.runnable_common_attr, {
-    "_kover_lcov_template": attr.label(
-        default = Label("//kotlin/internal/jvm:kover_lcov.sh.tpl"),
-        allow_single_file = True,
-    ),
     "env": attr.string_dict(
         doc = "Specifies additional environment variables to set when the target is executed by bazel test. Subject to $(location) and \"Make variable\" substitution.",
         default = {},
@@ -66,6 +62,10 @@ _ATTRS = _utils.add_dicts(_attrs.runnable_common_attr, {
     "_bazel_test_runner": attr.label(
         default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
         allow_files = True,
+    ),
+    "_kover_lcov_template": attr.label(
+        default = Label("//kotlin/internal/jvm:kover_lcov.sh.tpl"),
+        allow_single_file = True,
     ),
     "_lcov_merger": attr.label(
         default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),

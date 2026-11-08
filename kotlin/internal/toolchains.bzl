@@ -188,15 +188,14 @@ _kt_toolchain = rule(
             doc = """Kover agent Jar target used for code coverage, only used if experimental_kover_enabled is true.""",
             allow_single_file = True,
         ),
-        "experimental_kover_enabled": attr.bool(
-            doc = """Use kover for code coverage.""",
-            default = False,
-        ),
         "experimental_kover_cli": attr.label(
             doc = "Kover CLI JAR matching the agent version for JVM LCOV reporting.",
             allow_single_file = True,
         ),
-        "kover_lcov_writer": attr.label(allow_single_file = True, cfg = "exec"),
+        "experimental_kover_enabled": attr.bool(
+            doc = """Use kover for code coverage.""",
+            default = False,
+        ),
         "experimental_kover_exclude": attr.string_list(
             doc = """List of exclusions to use when generating kover reports.""",
         ),
@@ -344,6 +343,7 @@ _kt_toolchain = rule(
             doc = "Compiler options for kotlinc",
             providers = [KotlincOptions],
         ),
+        "kover_lcov_writer": attr.label(allow_single_file = True, cfg = "exec"),
         "ksp2": attr.label(
             doc = "the KSP2 worker executable",
             default = Label("//src/main/kotlin:ksp2"),
