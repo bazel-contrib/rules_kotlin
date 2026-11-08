@@ -6,5 +6,4 @@ define_kt_toolchain(
     name = "kotlin_toolchain",
     experimental_kover_agent = "@maven//:org_jetbrains_kotlinx_kover_jvm_agent",
     experimental_kover_enabled = True,
-    supports_path_mapping = True,
 )

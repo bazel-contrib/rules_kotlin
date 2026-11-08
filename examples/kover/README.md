@@ -40,12 +40,13 @@ register_toolchains("//:kotlin_toolchain")
 ## Running coverage
 
 From `examples/kover` with Bazel 9.3.2 on Linux or macOS, run the same coverage test with output path
-mapping disabled and enabled. The example toolchain opts into mapping, and the sandboxed
-compile strategy lets Bazel apply it.
+mapping disabled and enabled. Use `--modify_execution_info` to opt the sandboxed
+`KotlinCompile` actions into path mapping for this run.
 
 ```sh
 for mode in off strip; do
   bazel coverage --experimental_output_paths="$mode" --strategy=KotlinCompile=sandboxed \
+    --modify_execution_info=KotlinCompile=+supports-path-mapping \
     --incompatible_enable_proto_toolchain_resolution --@@protobuf+//bazel/toolchains:prefer_prebuilt_protoc=true \
     --nocache_test_results --run_under=//app:check_report //app:greeter_test || exit 1
 done
