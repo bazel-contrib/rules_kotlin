@@ -154,7 +154,14 @@ def _process_test_launcher(context):
     )
 
 def finalize(context):
-    """Assemble the kt_jvm_test providers: DefaultInfo with the launcher plus TestEnvironment."""
+    """Assemble the kt_jvm_test providers: DefaultInfo with the launcher plus TestEnvironment.
+
+    Args:
+        context: The processing pipeline context.
+
+    Returns:
+        The kt_jvm_test providers.
+    """
     ctx = context.ctx
     launcher = context.outputs["TestLauncherProcessor"]
     compiled = context.outputs["JvmCompileProcessor"]
