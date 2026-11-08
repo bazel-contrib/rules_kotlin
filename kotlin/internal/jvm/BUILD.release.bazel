@@ -14,7 +14,6 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 exports_files([
     "kotlin-compiler-embeddable-reshade.jarjar",
@@ -37,19 +36,22 @@ bzl_library(
     ],
 )
 
-cc_binary(
+# Kotlin binaries and tests depend on this on every platform. Only Windows needs it: elsewhere the
+# shell launcher sets java.library.path itself.
+alias(
     name = "native_java_launcher",
-    srcs = ["native_java_launcher.cc"],
-    copts = select({
-        "@platforms//os:windows": ["/std:c++17"],
-        "//conditions:default": ["-std=c++17"],
+    actual = select({
+        "@platforms//os:windows": ":native_java_launcher_windows",
+        "//conditions:default": ":no_native_java_launcher",
     }),
     visibility = ["//visibility:public"],
-    deps = [":native_java_launcher_lib"],
 )
 
-cc_library(
-    name = "native_java_launcher_lib",
-    hdrs = ["native_java_launcher.h"],
+cc_binary(
+    name = "native_java_launcher_windows",
+    srcs = ["native_java_launcher.cc"],
+    target_compatible_with = ["@platforms//os:windows"],
     deps = ["@rules_cc//cc/runfiles"],
 )
+
+filegroup(name = "no_native_java_launcher")

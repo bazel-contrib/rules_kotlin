@@ -29,7 +29,6 @@ load(
     _JavacOptions = "JavacOptions",
     _KotlincOptions = "KotlincOptions",
 )
-load("//kotlin/internal/jvm:native_libs.bzl", "native_libraries_aspect")
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 _implicit_deps = {
@@ -100,9 +99,9 @@ _runnable_implicit_deps = utils.add_dicts(
             executable = True,
         ),
         "_native_java_launcher": attr.label(
+            doc = "Windows only: runs java.exe with java.library.path resolved from runfiles.",
             default = Label("//kotlin/internal/jvm:native_java_launcher"),
             cfg = "target",
-            executable = True,
         ),
         "_windows_constraint": attr.label(
             default = "@platforms//os:windows",
@@ -134,13 +133,12 @@ _common_attr = utils.add_dicts(
             allow_files = True,
         ),
         "deps": attr.label_list(
-            aspects = [native_libraries_aspect],
             doc = """A list of dependencies of this rule.See general comments about `deps` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
             providers = [
-                [CcInfo],
                 [JavaInfo],
                 [_KtJvmInfo],
+                [CcInfo],
             ],
             allow_files = False,
         ),
@@ -202,11 +200,11 @@ _common_attr = utils.add_dicts(
             allow_files = True,
         ),
         "runtime_deps": attr.label_list(
-            aspects = [native_libraries_aspect],
             doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
         appear on the runtime classpath, but unlike them, not on the compile-time classpath.""",
             default = [],
             allow_files = False,
+            providers = [[JavaInfo], [CcInfo]],
         ),
         "srcs": attr.label_list(
             doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin

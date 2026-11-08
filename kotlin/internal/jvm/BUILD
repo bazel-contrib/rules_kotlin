@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,10 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 exports_files([
@@ -28,7 +27,6 @@ release_archive(
         "kotlin-compiler-embeddable-reshade.jarjar",
         "kotlin-compiler-reshade.jarjar",
         "native_java_launcher.cc",
-        "native_java_launcher.h",
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
@@ -50,20 +48,22 @@ bzl_library(
     ],
 )
 
-cc_binary(
+# Kotlin binaries and tests depend on this on every platform. Only Windows needs it: elsewhere the
+# shell launcher sets java.library.path itself.
+alias(
     name = "native_java_launcher",
-    srcs = ["native_java_launcher.cc"],
-    copts = select({
-        "@platforms//os:windows": ["/std:c++17"],
-        "//conditions:default": ["-std=c++17"],
+    actual = select({
+        "@platforms//os:windows": ":native_java_launcher_windows",
+        "//conditions:default": ":no_native_java_launcher",
     }),
     visibility = ["//visibility:public"],
-    deps = [":native_java_launcher_lib"],
 )
 
-cc_library(
-    name = "native_java_launcher_lib",
-    hdrs = ["native_java_launcher.h"],
-    visibility = ["//src/test:__subpackages__"],
+cc_binary(
+    name = "native_java_launcher_windows",
+    srcs = ["native_java_launcher.cc"],
+    target_compatible_with = ["@platforms//os:windows"],
     deps = ["@rules_cc//cc/runfiles"],
 )
+
+filegroup(name = "no_native_java_launcher")

@@ -48,7 +48,6 @@ load(
     "//kotlin/internal/jvm:jvm_deps.bzl",
     _jvm_deps_utils = "jvm_deps_utils",
 )
-load("//kotlin/internal/jvm:native_libs.bzl", "collect_native_libraries")
 load(
     "//kotlin/internal/jvm:kover.bzl",
     _is_kover_enabled = "is_kover_enabled",
@@ -1310,10 +1309,14 @@ def _export_only_providers(ctx, actions, attr, outputs):
     java = JavaInfo(
         output_jar = toolchains.kt.empty_jar,
         compile_jar = toolchains.kt.empty_jar,
-        deps = [d[JavaInfo] for d in attr.deps if JavaInfo in d],
-        exports = [d[JavaInfo] for d in getattr(attr, "exports", []) if JavaInfo in d],
-        runtime_deps = [d[JavaInfo] for d in getattr(attr, "runtime_deps", []) if JavaInfo in d],
-        native_libraries = collect_native_libraries(attr.deps, getattr(attr, "runtime_deps", []), getattr(attr, "exports", [])),
+        deps = _jvm_deps_utils.java_infos(attr.deps),
+        exports = _jvm_deps_utils.java_infos(getattr(attr, "exports", [])),
+        runtime_deps = _jvm_deps_utils.java_infos(getattr(attr, "runtime_deps", [])),
+        native_libraries = _jvm_deps_utils.native_libraries(
+            attr.deps,
+            getattr(attr, "runtime_deps", []),
+            getattr(attr, "exports", []),
+        ),
         neverlink = getattr(attr, "neverlink", False),
         jdeps = output_jdeps,
     )

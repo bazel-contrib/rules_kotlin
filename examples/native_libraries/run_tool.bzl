@@ -1,16 +1,16 @@
-"""Runs the JNI binary as a build tool, outside its runfiles workspace."""
+"""Runs a binary as a build tool, where its working directory is the execroot."""
 
-def _run_native_impl(ctx):
+def _run_tool_impl(ctx):
     output = ctx.actions.declare_file(ctx.label.name + ".txt")
     ctx.actions.run(
-        executable = ctx.attr.tool[DefaultInfo].files_to_run,
+        executable = ctx.executable.tool,
         arguments = [output.path],
         outputs = [output],
-        mnemonic = "TestNativeTool",
+        mnemonic = "RunNativeTool",
     )
     return [DefaultInfo(files = depset([output]))]
 
-run_native = rule(
-    implementation = _run_native_impl,
+run_tool = rule(
+    implementation = _run_tool_impl,
     attrs = {"tool": attr.label(executable = True, cfg = "exec")},
 )

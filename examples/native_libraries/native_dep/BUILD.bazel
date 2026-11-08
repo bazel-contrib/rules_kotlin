@@ -1,7 +1,6 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 
-package(default_visibility = ["//visibility:public"])
-
+# System.loadLibrary("native") looks for the platform's own file name.
 cc_binary(
     name = "libnative.so",
     srcs = ["native.cc"],
@@ -33,4 +32,5 @@ alias(
         "@platforms//os:windows": ":native.dll",
         "//conditions:default": ":libnative.so",
     }),
+    visibility = ["//visibility:public"],
 )

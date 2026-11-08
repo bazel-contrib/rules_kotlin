@@ -14,12 +14,20 @@
 """Utilities for assembling JVM compile and runtime dependency sets."""
 
 load("@bazel_skylib//lib:sets.bzl", _sets = "sets")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "@rules_java//java:defs.bzl",
     "JavaInfo",
 )
 load("//kotlin/internal/jvm:associates.bzl", _associate_utils = "associate_utils")
-load("//kotlin/internal/jvm:native_libs.bzl", "collect_native_libraries")
+
+def _java_infos(targets):
+    # Native (CcInfo-only) deps have no JavaInfo; they reach JavaInfo through native_libraries.
+    return [t[JavaInfo] for t in targets if JavaInfo in t]
+
+def _native_libraries(*attrs):
+    """Collects the CcInfo of deps for JavaInfo.native_libraries, as rules_java does."""
+    return [t[CcInfo] for targets in attrs for t in targets if CcInfo in t]
 
 def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
@@ -30,7 +38,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
     )
     dep_infos = (
         deps_java_infos +
-        [d[JavaInfo] for d in deps if JavaInfo in d] +
+        _java_infos(deps) +
         associates.dep_infos +
         [toolchains.kt.jvm_stdlibs]
     )
@@ -93,16 +101,18 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         java_deps = dep_infos
 
     return struct(
-        native_libraries = collect_native_libraries(deps, runtime_deps, exports),
         module_name = associates.module_name,
         deps = dep_infos,
         java_deps = java_deps,
-        exports = [d[JavaInfo] for d in exports if JavaInfo in d],
+        exports = _java_infos(exports),
         associate_jars = associates.jars,
         compile_jars = compile_jars,
-        runtime_deps = [d[JavaInfo] for d in runtime_deps if JavaInfo in d],
+        runtime_deps = _java_infos(runtime_deps),
+        native_libraries = _native_libraries(deps, runtime_deps, exports),
     )
 
 jvm_deps_utils = struct(
+    java_infos = _java_infos,
     jvm_deps = _jvm_deps,
+    native_libraries = _native_libraries,
 )

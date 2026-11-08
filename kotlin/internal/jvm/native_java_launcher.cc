@@ -1,96 +1,146 @@
 // Copyright 2026 The Bazel Authors. All rights reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
-// You may obtain a copy at https://www.apache.org/licenses/LICENSE-2.0
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-// The Windows Bazel launcher resolves the JVM and classpath, but does not
-// expand runfiles in JVM flags. Act as its java.exe, adding the native search
-// path before the original arguments so user JVM flags still take precedence.
-#include "native_java_launcher.h"
+// Windows only. Bazel's Windows Java launcher passes JVM flags through
+// unexpanded, so unlike the Unix stub script it cannot point java.library.path
+// into the runfiles. For a kt_jvm_binary or kt_jvm_test with native libraries
+// it runs this program in place of java.exe instead. This program resolves the
+// runfiles named by
+//   -Drules_kotlin.java=<java.exe>
+//   -Drules_kotlin.native_library=<library>  (once per library)
+// and runs java.exe with -Djava.library.path=<the libraries' directories>
+// followed by its own command line, unchanged, so that a java.library.path the
+// user passes still wins.
 
-#ifdef _WIN32
-#include <process.h>
 #include <windows.h>
-#else
-#include <unistd.h>
-#endif
 
-#ifdef _WIN32
-static std::wstring Wide(const std::string &value) {
-  const int size =
-      MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, value.data(),
-                          static_cast<int>(value.size()), nullptr, 0);
-  if (!size && !value.empty())
-    throw std::runtime_error("invalid UTF-8 path");
-  std::wstring result(size, L'\0');
-  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, value.data(),
-                      static_cast<int>(value.size()), result.data(), size);
+#include <cstdio>
+#include <cwchar>
+#include <memory>
+#include <string>
+
+#include "rules_cc/cc/runfiles/runfiles.h"
+
+using rules_cc::cc::runfiles::Runfiles;
+
+namespace {
+
+std::string Utf8(const std::wstring& s) {
+  if (s.empty()) return std::string();
+  const int size = WideCharToMultiByte(CP_UTF8, 0, s.data(), (int)s.size(),
+                                       nullptr, 0, nullptr, nullptr);
+  std::string result(size, '\0');
+  WideCharToMultiByte(CP_UTF8, 0, s.data(), (int)s.size(), &result[0], size,
+                      nullptr, nullptr);
   return result;
 }
 
-#endif
+std::wstring Wide(const std::string& s) {
+  if (s.empty()) return std::wstring();
+  const int size =
+      MultiByteToWideChar(CP_UTF8, 0, s.data(), (int)s.size(), nullptr, 0);
+  std::wstring result(size, L'\0');
+  MultiByteToWideChar(CP_UTF8, 0, s.data(), (int)s.size(), &result[0], size);
+  return result;
+}
 
-#ifdef _WIN32
-int wmain(int argc, wchar_t **argv) {
-#else
-int main(int argc, char **argv) {
-#endif
-  try {
-#ifdef _WIN32
-    std::wstring executable(32768, L'\0');
-    const DWORD length =
-        GetModuleFileNameW(nullptr, executable.data(), executable.size());
-    if (!length || length == executable.size())
-      throw std::runtime_error("cannot locate launcher");
-    executable.resize(length);
-#else
-    const fs::path executable = argv[0];
-#endif
-    const auto config = ReadConfig(executable);
-    // The outer Java launcher sets JAVA_RUNFILES even in manifest-only mode.
-    const std::string root = Env("JAVA_RUNFILES");
-    const std::string outer =
-        root.size() >= 9 && root.substr(root.size() - 9) == ".runfiles"
-            ? root.substr(0, root.size() - 9)
-            : "";
-    std::string error;
-    std::unique_ptr<Runfiles> runfiles(Runfiles::Create(
-        outer, Env("RUNFILES_MANIFEST_FILE"),
-        Env("RUNFILES_DIR").empty() ? root : Env("RUNFILES_DIR"), &error));
-    if (!runfiles)
-      throw std::runtime_error(error);
-    const std::string java = Resolve(*runfiles, config.at("java_bin_path"));
-    const std::string flag =
-        NativeLibraryPath(*runfiles, config.at("native_libraries"),
-#ifdef _WIN32
-                          ';'
-#else
-                          ':'
-#endif
-        );
-#ifdef _WIN32
-    std::vector<std::wstring> arguments = {Quote(Wide(java)),
-                                           Quote(Wide(flag))};
-    for (int i = 1; i < argc; ++i)
-      arguments.push_back(Quote(argv[i]));
-    std::vector<const wchar_t *> pointers;
-    for (const auto &arg : arguments)
-      pointers.push_back(arg.c_str());
-    pointers.push_back(nullptr);
-    const auto result = _wspawnv(_P_WAIT, Wide(java).c_str(), pointers.data());
-    if (result == -1)
-      throw std::runtime_error("cannot start Java");
-    return static_cast<int>(result);
-#else
-    std::vector<const char *> arguments = {java.c_str(), flag.c_str()};
-    for (int i = 1; i < argc; ++i)
-      arguments.push_back(argv[i]);
-    arguments.push_back(nullptr);
-    execv(java.c_str(), const_cast<char *const *>(arguments.data()));
-    throw std::runtime_error("cannot start Java");
-#endif
-  } catch (const std::exception &error) {
-    std::cerr << "Kotlin native launcher: " << error.what() << '\n';
-    return 1;
+int Fail(const std::wstring& message) {
+  fwprintf(stderr, L"rules_kotlin native_java_launcher: %ls\n",
+           message.c_str());
+  return 1;
+}
+
+bool StartsWith(const std::wstring& s, const std::wstring& prefix) {
+  return s.compare(0, prefix.size(), prefix) == 0;
+}
+
+// Skips the program name, which ends at its closing quote if it starts with
+// one, otherwise at the first space or tab.
+const wchar_t* SkipProgramName(const wchar_t* command_line) {
+  if (*command_line == L'"') {
+    const wchar_t* end = wcschr(command_line + 1, L'"');
+    return end ? end + 1 : L"";
   }
+  while (*command_line && *command_line != L' ' && *command_line != L'\t') {
+    ++command_line;
+  }
+  return command_line;
+}
+
+}  // namespace
+
+int wmain(int argc, wchar_t** argv) {
+  const std::wstring java_flag = L"-Drules_kotlin.java=";
+  const std::wstring library_flag = L"-Drules_kotlin.native_library=";
+
+  // Bazel's launcher exports RUNFILES_MANIFEST_FILE, or RUNFILES_DIR as
+  // <launcher>.runfiles. Without a runfiles tree that directory may not exist,
+  // but the runfiles library then finds <launcher>.runfiles_manifest.
+  const wchar_t* runfiles_dir = _wgetenv(L"RUNFILES_DIR");
+  std::wstring launcher = runfiles_dir ? runfiles_dir : L"";
+  const std::wstring suffix = L".runfiles";
+  if (launcher.size() > suffix.size() &&
+      launcher.compare(launcher.size() - suffix.size(), suffix.size(),
+                       suffix) == 0) {
+    launcher.resize(launcher.size() - suffix.size());
+  }
+  std::string error;
+  std::unique_ptr<Runfiles> runfiles(Runfiles::Create(Utf8(launcher), &error));
+  if (!runfiles) return Fail(Wide(error));
+
+  std::wstring java;
+  std::wstring library_path;
+  for (int i = 1; i < argc; ++i) {
+    const std::wstring arg = argv[i];
+    const bool is_java = StartsWith(arg, java_flag);
+    if (!is_java && !StartsWith(arg, library_flag)) continue;
+    const std::wstring name =
+        arg.substr((is_java ? java_flag : library_flag).size());
+    const std::wstring path = Wide(runfiles->Rlocation(Utf8(name)));
+    if (path.empty() ||
+        GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES) {
+      return Fail(L"cannot find " + name + L" in the runfiles");
+    }
+    if (is_java) {
+      java = path;
+      continue;
+    }
+    const std::wstring dir = path.substr(0, path.find_last_of(L"/\\"));
+    if ((L";" + library_path + L";").find(L";" + dir + L";") ==
+        std::wstring::npos) {
+      library_path += (library_path.empty() ? L"" : L";") + dir;
+    }
+  }
+  if (java.empty()) return Fail(L"missing " + java_flag);
+
+  // Windows paths contain no quotes, and neither of these ends in a backslash,
+  // so plain quoting suffices. The rest of the command line was escaped by
+  // Bazel's launcher and is passed on as is.
+  std::wstring command_line = L"\"" + java + L"\" \"-Djava.library.path=" +
+                              library_path + L"\"" +
+                              SkipProgramName(GetCommandLineW());
+  STARTUPINFOW startup_info = {sizeof(startup_info)};
+  PROCESS_INFORMATION process = {};
+  if (!CreateProcessW(nullptr, &command_line[0], nullptr, nullptr,
+                      /* bInheritHandles */ TRUE, 0, nullptr, nullptr,
+                      &startup_info, &process)) {
+    return Fail(L"cannot run " + java);
+  }
+  WaitForSingleObject(process.hProcess, INFINITE);
+  DWORD exit_code = 1;
+  GetExitCodeProcess(process.hProcess, &exit_code);
+  CloseHandle(process.hThread);
+  CloseHandle(process.hProcess);
+  return (int)exit_code;
 }

@@ -14,7 +14,7 @@
 """Shared helpers for the Kotlin/JVM processing pipelines."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_skylib//lib:shell.bzl", _shell = "shell")
+load("@bazel_skylib//lib:shell.bzl", "shell")
 load(
     "//kotlin/internal:defs.bzl",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
@@ -38,11 +38,14 @@ def process_deps(context):
         runfiles = None,
     )
 
-def _runfile_path(ctx, artifact):
-    return paths.normalize(ctx.workspace_name + "/" + artifact.short_path)
-
 def _artifact_short_path(artifact):
     return artifact.short_path
+
+def _runfiles_path(ctx, file):
+    """The path of a file relative to the runfiles root, e.g. _main/pkg/f or repo+/pkg/f."""
+    if file.short_path.startswith("../"):
+        return file.short_path[3:]
+    return ctx.workspace_name + "/" + file.short_path
 
 def make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), executable = None, *additional_providers):
     files = [ctx.outputs.jar]
@@ -83,12 +86,13 @@ def _is_absolute_target_platform_path(ctx, path):
         return len(path) > 2 and path[1] == ":"
     return path.startswith("/")
 
-def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, main_class, jvm_flags_for_launcher, runfiles_enabled, coverage_main_class = None):
+def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, main_class, jvm_flags_for_launcher, runfiles_enabled, coverage_main_class = None, native_flags = []):
     """Create a Windows exe launcher using the launcher_maker tool."""
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
 
-    # Tokenize JVM flags for Windows launcher (handles quoted arguments properly)
-    tokenized_jvm_flags = []
+    # Tokenize JVM flags for Windows launcher (handles quoted arguments properly).
+    # native_flags hold Windows paths, which tokenizing would mangle.
+    tokenized_jvm_flags = list(native_flags)
     for flag in jvm_flags_for_launcher:
         tokenized_jvm_flags.extend(ctx.tokenize(flag))
 
@@ -123,7 +127,7 @@ def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, ma
         mnemonic = "JavaLauncherMaker",
     )
 
-def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, is_test = False):
+def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries = depset(), is_test = False):
     """Writes out a launcher shell script for a java target.
 
     Args:
@@ -131,12 +135,12 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, i
       rjars: All of the runtime jars required to launch this java target.
       main_class: the main class to launch.
       jvm_flags: The flags that should be passed to the jvm.
-      native_libraries: Shared libraries needed at runtime.
+      native_libraries: JavaInfo.transitive_native_libraries, put on java.library.path.
       is_test: Whether this is a test target (enables security manager for test runner).
 
     Returns:
       A struct with:
-        - extra_runfiles: Additional launcher runfiles (coverage metadata and native JVM helper)
+        - extra_runfiles: Files the launcher needs at runtime (coverage metadata, native libraries)
         - executable: The declared executable file (only set on Windows, None otherwise)
     """
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
@@ -147,39 +151,35 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, i
         java_bin_path = ctx.workspace_name + "/" + java_bin_path
     java_bin_path = paths.normalize(java_bin_path)
 
-    native_runfiles = []
-    if native_libraries:
-        if is_windows(ctx):
-            native_java = ctx.actions.declare_file(ctx.label.name + "-native-java.exe")
-            launch_info = ctx.actions.args().use_param_file("%s", use_always = True).set_param_file_format("multiline")
-            launch_info.add(java_bin_path, format = "java_bin_path=%s")
-            launch_info.add_joined(
-                [_runfile_path(ctx, f) for f in native_libraries.to_list()],
-                join_with = "\t",
-                format_joined = "native_libraries=%s",
-            )
-            ctx.actions.run(
-                executable = find_launcher_maker(ctx),
-                inputs = [ctx.executable._native_java_launcher],
-                outputs = [native_java],
-                arguments = [ctx.executable._native_java_launcher.path, launch_info, native_java.path],
-                toolchain = get_launcher_maker_toolchain_for_action(),
-                mnemonic = "KotlinNativeLauncher",
-            )
-            java_bin_path = _runfile_path(ctx, native_java)
-            native_runfiles.append(native_java)
-        else:
-            # Resolve the library paths through the shell launcher's runfiles lookup.
-            dirs = {paths.dirname(_runfile_path(ctx, f)): _runfile_path(ctx, f) for f in native_libraries.to_list()}
-            native_path = ":".join(["$(dirname \"$(rlocation %s)\")" % _shell.quote(f) for f in dirs.values()])
-            jvm_flags = ['-Djava.library.path="' + native_path + '"'] + jvm_flags
-
     # Following rules_java: enable security manager for tests on Java 17-23
     # See https://github.com/bazelbuild/rules_java/blob/7ff9193af58807c9b77f3b7cd56063c9b8a9f028/java/bazel/rules/bazel_java_binary.bzl#L78-L81
     _java_runtime_version = getattr(java_runtime, "version", 0)
     jvm_flags_list = [ctx.expand_location(f, ctx.attr.data) for f in jvm_flags]
     if is_test and _java_runtime_version >= 17 and _java_runtime_version < 24:
         jvm_flags_list.append("-Djava.security.manager=allow")
+
+    # Only the dynamic library is loaded at runtime, never an interface (import) library.
+    native_files = [lib.dynamic_library for lib in native_libraries.to_list() if lib.dynamic_library]
+
+    # Precede the user's jvm_flags, so that a java.library.path among them still wins.
+    native_flags = []
+    if native_files and is_windows(ctx):
+        # Bazel's Windows launcher passes JVM flags through unexpanded, so it can't point
+        # java.library.path into the runfiles. It runs this helper in place of java.exe instead,
+        # which resolves the paths below and then starts java.exe with java.library.path set.
+        native_java_launcher = ctx.attr._native_java_launcher[DefaultInfo].files_to_run.executable
+        native_flags = ["-Drules_kotlin.java=" + java_bin_path] + [
+            "-Drules_kotlin.native_library=" + _runfiles_path(ctx, f)
+            for f in native_files
+        ]
+        java_bin_path = _runfiles_path(ctx, native_java_launcher)
+        native_files = native_files + [native_java_launcher]
+    elif native_files:
+        library_dirs = {paths.dirname(_runfiles_path(ctx, f)): None for f in native_files}
+        native_flags = ["-Djava.library.path=" + ":".join([
+            "\"${JAVA_RUNFILES}\"" + shell.quote("/" + d)
+            for d in library_dirs
+        ])]
 
     # Windows: use native exe launcher with explicitly declared executable
     if is_windows(ctx):
@@ -214,8 +214,9 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, i
                 jvm_flags_for_launcher = jvm_flags_list,
                 runfiles_enabled = runfiles_enabled,
                 coverage_main_class = main_class,
+                native_flags = native_flags,
             )
-            return struct(extra_runfiles = [jacoco_metadata_file] + native_runfiles, executable = executable)
+            return struct(extra_runfiles = [jacoco_metadata_file] + native_files, executable = executable)
 
         _create_windows_exe_launcher(
             ctx,
@@ -225,11 +226,12 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, i
             main_class = main_class,
             jvm_flags_for_launcher = jvm_flags_list,
             runfiles_enabled = runfiles_enabled,
+            native_flags = native_flags,
         )
-        return struct(extra_runfiles = native_runfiles, executable = executable)
+        return struct(extra_runfiles = native_files, executable = executable)
 
     # Unix: use shell script template
-    jvm_flags_str = " ".join(jvm_flags_list)
+    jvm_flags_str = " ".join(native_flags + jvm_flags_list)
     template = ctx.attr.java_stub_template.files.to_list()[0]
 
     # Construct JAVABIN substitution with ${JAVA_RUNFILES}/ prefix for relative paths
@@ -269,7 +271,7 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, i
             },
             is_executable = True,
         )
-        return struct(extra_runfiles = [jacoco_metadata_file], executable = None)
+        return struct(extra_runfiles = [jacoco_metadata_file] + native_files, executable = None)
 
     classpath = ctx.configuration.host_path_separator.join(
         ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
@@ -294,7 +296,7 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries, i
         },
         is_executable = True,
     )
-    return struct(extra_runfiles = [], executable = None)
+    return struct(extra_runfiles = native_files, executable = None)
 
 _SPLIT_STRINGS = [
     "src/test/java/",
