@@ -92,9 +92,8 @@ def _process_test_launcher(context):
     child = None
 
     if ctx.configuration.coverage_enabled:
-        if _is_kover_enabled(ctx) and ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_cli:
-            if is_windows(ctx):
-                fail("Kover LCOV reporting currently requires a Unix JVM test launcher")
+        # ponytail: Windows keeps the agent-only report until the LCOV wrapper has a .bat/exe twin.
+        if _is_kover_enabled(ctx) and ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_cli and not is_windows(ctx):
             child, coverage_runfiles = _create_kover_lcov_launcher(ctx, providers)
         elif _is_kover_enabled(ctx):
             kover_agent_file = _get_kover_agent_file(ctx)

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 child="$(dirname "$0")"/%child%
-if [[ -z "${COVERAGE_DIR:-}" || ! -s %sources% ]]; then
+if [[ -z "${COVERAGE_DIR:-}" || ! -s "${COVERAGE_MANIFEST:-}" ]]; then
   exec "$child" "$@"
 fi
 
@@ -15,4 +15,4 @@ printf 'report.file=%s\n' "$raw" > "$TEST_TMPDIR/kover.args"
 
 test -s "$raw"
 %java% -jar %cli% %metadata% "$raw" --xml "$xml"
-exec %java% -cp %writer% io.bazel.kotlin.coverage.KoverLcov "$xml" %sources% "$COVERAGE_MANIFEST" "$COVERAGE_DIR/kover.dat"
+exec %java% -cp %writer% io.bazel.kotlin.coverage.KoverLcov "$xml" "$COVERAGE_MANIFEST" "$COVERAGE_DIR/kover.dat"

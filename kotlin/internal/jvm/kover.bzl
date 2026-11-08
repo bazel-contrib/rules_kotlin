@@ -159,10 +159,6 @@ def _write_metadata(ctx, name, instrumented_files, runtime_jars, report_path = N
     ctx.actions.write(metadata, args)
     return metadata
 
-def _source_paths(src):
-    # The merger matches exec paths; the reporter reads sources from runfiles.
-    return [src.path, src.short_path]
-
 def create_kover_lcov_launcher(ctx, providers):
     """Write the Unix test wrapper that reports Kover line coverage to Bazel.
 
@@ -178,11 +174,6 @@ def create_kover_lcov_launcher(ctx, providers):
     sources = providers.instrumented_files.instrumented_files
     jars = providers.java.transitive_runtime_jars
     metadata = _write_metadata(ctx, ctx.label.name, sources, jars)
-    source_map = ctx.actions.declare_file(ctx.label.name + "-kover_sources.txt")
-    args = ctx.actions.args()
-    args.set_param_file_format("multiline")
-    args.add_all(sources, map_each = _source_paths)
-    ctx.actions.write(source_map, args)
 
     child = ctx.actions.declare_file(ctx.label.name + ".kover-jvm")
     java = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
@@ -195,12 +186,11 @@ def create_kover_lcov_launcher(ctx, providers):
             "%cli%": shell.quote(toolchain.experimental_kover_cli.short_path),
             "%java%": shell.quote(java.java_executable_runfiles_path),
             "%metadata%": shell.quote("@" + metadata.short_path),
-            "%sources%": shell.quote(source_map.short_path),
             "%writer%": shell.quote(toolchain.kover_lcov_writer.short_path),
         },
         is_executable = True,
     )
     return child, depset(
-        [child, agent, metadata, source_map, toolchain.experimental_kover_cli, toolchain.kover_lcov_writer],
+        [child, agent, metadata, toolchain.experimental_kover_cli, toolchain.kover_lcov_writer],
         transitive = [sources, jars],
     )

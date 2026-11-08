@@ -343,7 +343,10 @@ _kt_toolchain = rule(
             doc = "Compiler options for kotlinc",
             providers = [KotlincOptions],
         ),
-        "kover_lcov_writer": attr.label(allow_single_file = True, cfg = "exec"),
+        "kover_lcov_writer": attr.label(
+            default = Label("//kotlin/internal/jvm:kover_lcov_writer"),
+            allow_single_file = True,
+        ),
         "ksp2": attr.label(
             doc = "the KSP2 worker executable",
             default = Label("//src/main/kotlin:ksp2"),
@@ -536,7 +539,6 @@ def define_kt_toolchain(
         experimental_kover_enabled = experimental_kover_enabled,
         experimental_kover_agent = experimental_kover_agent,
         experimental_kover_cli = experimental_kover_cli,
-        kover_lcov_writer = Label("//kotlin/internal/jvm:kover_lcov_writer") if experimental_kover_cli != None else None,
         experimental_kover_exclude = experimental_kover_exclude,
         experimental_kover_exclude_annotation = experimental_kover_exclude_annotation,
         experimental_kover_exclude_inherited_from = experimental_kover_exclude_inherited_from,
