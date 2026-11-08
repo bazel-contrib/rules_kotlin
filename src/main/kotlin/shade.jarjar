@@ -1,1 +1,2 @@
 rule com.google.common.** io.bazel.kotlin.builder.guava.@1
+zap kotlin.**
