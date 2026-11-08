@@ -978,6 +978,8 @@ def _kt_jvm_produce_output_jar_actions(
         source_attributes = ["srcs"],
         dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
         extensions = ["kt", "java"],
+        # Kover reads the uninstrumented classes of these jars when reporting.
+        metadata_files = [output_jar] if _is_kover_enabled(ctx) and ctx.coverage_instrumented() else [],
     )
 
     return struct(

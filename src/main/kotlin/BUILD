@@ -35,8 +35,8 @@ alias(
 )
 
 alias(
-    name = "kover_lcov",
-    actual = "//src/main/kotlin/io/bazel/kotlin/coverage:kover_lcov_deploy.jar",
+    name = "kover_lcov_merger",
+    actual = "//src/main/kotlin/io/bazel/kotlin/coverage:kover_lcov_merger",
     visibility = ["//visibility:public"],
 )
 

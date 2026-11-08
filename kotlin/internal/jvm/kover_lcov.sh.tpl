@@ -1,18 +1,13 @@
 #!/usr/bin/env bash
+# Runs the test with the Kover agent writing to $COVERAGE_DIR. Bazel's LCOV merger step converts it.
 set -euo pipefail
 
 child="$(dirname "$0")"/%child%
-if [[ -z "${COVERAGE_DIR:-}" || ! -s "${COVERAGE_MANIFEST:-}" ]]; then
+# Skip the agent when nothing this test runs is instrumented.
+if [[ -z "${COVERAGE_DIR:-}" ]] || ! grep -qE '\.(kt|java)$' "${COVERAGE_MANIFEST:-/dev/null}"; then
   exec "$child" "$@"
 fi
 
-raw="$TEST_TMPDIR/kover.ic"
-xml="$TEST_TMPDIR/kover.xml"
-agent=%agent%
-printf 'report.file=%s\n' "$raw" > "$TEST_TMPDIR/kover.args"
-"$child" "--jvm_flag=-Xbootclasspath/a:$agent" \
-  "--jvm_flag=-javaagent:$agent=file:$TEST_TMPDIR/kover.args" "$@"
-
-test -s "$raw"
-%java% -jar %cli% %metadata% "$raw" --xml "$xml"
-exec %java% -cp %writer% io.bazel.kotlin.coverage.KoverLcov "$xml" "$COVERAGE_MANIFEST" "$COVERAGE_DIR/kover.dat"
+printf 'report.file=%s\n' "$COVERAGE_DIR/kover.ic" > "$TEST_TMPDIR/kover.args"
+exec "$child" "--jvm_flag=-Xbootclasspath/a:"%agent% \
+  "--jvm_flag=-javaagent:"%agent%"=file:$TEST_TMPDIR/kover.args" "$@"

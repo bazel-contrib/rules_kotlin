@@ -43,7 +43,7 @@ class KoverLcovTest {
       )
     val output = File(tmp.root, "kover.dat")
 
-    KoverLcov.main(arrayOf(xml.path, manifest.path, output.path))
+    KoverLcov.convert(xml.toPath(), manifest.toPath(), output.toPath())
 
     assertEquals(
       "SF:src/demo/first/Same.kt\nDA:7,1\nend_of_record\n" +

@@ -68,7 +68,8 @@ _ATTRS = _utils.add_dicts(_attrs.runnable_common_attr, {
         allow_single_file = True,
     ),
     "_lcov_merger": attr.label(
-        default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),
+        cfg = "exec",
+        default = Label("//src/main/kotlin:kover_lcov_merger"),
     ),
 })
 
@@ -90,11 +91,12 @@ def _process_test_launcher(context):
     coverage_inputs = []
     coverage_jvm_flags = []
     child = None
+    instrumented_files = providers.instrumented_files
 
     if ctx.configuration.coverage_enabled:
         # The LCOV wrapper is a shell script, so Windows keeps the agent-only report.
         if _is_kover_enabled(ctx) and ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_cli and not is_windows(ctx):
-            child, coverage_runfiles = _create_kover_lcov_launcher(ctx, providers)
+            child, coverage_runfiles, instrumented_files = _create_kover_lcov_launcher(ctx, providers)
         elif _is_kover_enabled(ctx):
             kover_agent_file = _get_kover_agent_file(ctx)
             kover_args_file, coverage_runfiles = _create_kover_agent_files(
@@ -142,6 +144,7 @@ def _process_test_launcher(context):
         name = "TestLauncherProcessor",
         value = struct(
             executable = launcher_result.executable,
+            instrumented_files = instrumented_files,
             transitive_files = depset(
                 order = "default",
                 transitive = [runtime_jars, coverage_runfiles, depset(launcher_result.coverage_metadata), java_runtime.files],
@@ -154,9 +157,10 @@ def finalize(context):
     """Assemble the kt_jvm_test providers: DefaultInfo with the launcher plus TestEnvironment."""
     ctx = context.ctx
     launcher = context.outputs["TestLauncherProcessor"]
+    compiled = context.outputs["JvmCompileProcessor"]
     return _make_providers(
         ctx,
-        context.outputs["JvmCompileProcessor"],
+        struct(java = compiled.java, kt = compiled.kt, instrumented_files = launcher.instrumented_files),
         context.outputs["DepsProcessor"],
         launcher.transitive_files,
         launcher.executable,

@@ -126,7 +126,6 @@ def _kotlin_toolchain_impl(ctx):
         experimental_kover_enabled = ctx.attr.experimental_kover_enabled,
         experimental_kover_agent = ctx.file.experimental_kover_agent,
         experimental_kover_cli = ctx.file.experimental_kover_cli,
-        kover_lcov_writer = ctx.file.kover_lcov_writer,
         experimental_kover_exclude = ctx.attr.experimental_kover_exclude,
         experimental_kover_exclude_annotation = ctx.attr.experimental_kover_exclude_annotation,
         experimental_kover_exclude_inherited_from = ctx.attr.experimental_kover_exclude_inherited_from,
@@ -342,10 +341,6 @@ _kt_toolchain = rule(
         "kotlinc_options": attr.label(
             doc = "Compiler options for kotlinc",
             providers = [KotlincOptions],
-        ),
-        "kover_lcov_writer": attr.label(
-            default = Label("//src/main/kotlin:kover_lcov"),
-            allow_single_file = True,
         ),
         "ksp2": attr.label(
             doc = "the KSP2 worker executable",

@@ -54,10 +54,11 @@ records an executable line as covered (1) or missed (0). Bazel sums those counts
 in the combined report. The integration suite checks the combined report against
 `expected_coverage.dat`.
 
-The Unix JVM test launcher runs the matching Kover CLI after the test exits
-successfully. It writes raw coverage and XML in the test's private temporary
-directory and emits `$COVERAGE_DIR/kover.dat` for Bazel. The test target only
-depends on its application code and test libraries.
+The Unix JVM test launcher points the Kover agent at `$COVERAGE_DIR`. Bazel's
+LCOV merger step for `kt_jvm_test` runs the matching Kover CLI in-process,
+converts its report to `kover.dat`, then merges as usual, so Kover adds no JVM
+launches per test. The test target only depends on its application code and
+test libraries.
 
 This prototype reports line coverage. Android local tests and the Windows JVM
 launcher do not implement this conversion. Omitting `experimental_kover_cli`

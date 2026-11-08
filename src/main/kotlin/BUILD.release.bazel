@@ -25,10 +25,19 @@ java_import(
     jars = ["jdeps_merger_worker.jar"],
 )
 
-filegroup(
-    name = "kover_lcov",
-    srcs = ["kover_lcov.jar"],
+java_binary(
+    name = "kover_lcov_merger",
+    main_class = "io.bazel.kotlin.coverage.KoverLcov",
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        ":kover_lcov",
+        "@remote_coverage_tools//:all_lcov_merger_lib",
+    ],
+)
+
+java_import(
+    name = "kover_lcov",
+    jars = ["kover_lcov.jar"],
 )
 
 java_import(
