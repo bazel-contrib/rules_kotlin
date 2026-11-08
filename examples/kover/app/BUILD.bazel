@@ -1,0 +1,17 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+
+kt_jvm_library(
+    name = "greeter",
+    srcs = ["Greeter.kt"],
+    visibility = ["//visibility:public"],
+)
+
+kt_jvm_test(
+    name = "greeter_test",
+    srcs = ["GreeterTest.kt"],
+    test_class = "app.GreeterTest",
+    deps = [
+        ":greeter",
+        "@maven//:junit_junit",
+    ],
+)

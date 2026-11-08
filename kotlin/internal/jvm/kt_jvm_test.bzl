@@ -25,6 +25,14 @@ load(
 )
 load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
 load(
+    "//kotlin/internal/jvm:kover.bzl",
+    _create_kover_agent_actions = "create_kover_agent_actions",
+    _create_kover_metadata_action = "create_kover_metadata_action",
+    _get_kover_agent_file = "get_kover_agent_file",
+    _get_kover_jvm_flags = "get_kover_jvm_flags",
+    _is_kover_enabled = "is_kover_enabled",
+)
+load(
     "//kotlin/internal/jvm:rule.bzl",
     _COMMON_OUTPUTS = "COMMON_OUTPUTS",
     _COMMON_TOOLCHAINS = "COMMON_TOOLCHAINS",
@@ -72,12 +80,30 @@ def _process_test_launcher(context):
     """Build the coverage-instrumented test launcher and collect its runfiles."""
     ctx = context.ctx
     providers = context.outputs["JvmCompileProcessor"]
-    runtime_jars = depset(ctx.files._bazel_test_runner, transitive = [providers.java.transitive_runtime_jars])
 
     coverage_runfiles = []
+    coverage_inputs = []
+    coverage_jvm_flags = []
+
     if ctx.configuration.coverage_enabled:
-        jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
-        coverage_runfiles = jacocorunner.files.to_list()
+        if _is_kover_enabled(ctx):
+            kover_agent_file = _get_kover_agent_file(ctx)
+            kover_output_file, kover_args_file = _create_kover_agent_actions(ctx, ctx.attr.name)
+            kover_output_metadata_file = _create_kover_metadata_action(
+                ctx,
+                ctx.attr.name,
+                ctx.attr.deps + ctx.attr.associates,
+                kover_output_file,
+            )
+            flags = _get_kover_jvm_flags(kover_agent_file, kover_args_file)
+
+            # add Kover agent jvm_flag, inputs and outputs
+            coverage_jvm_flags = flags
+            coverage_inputs = [depset([kover_agent_file])]
+            coverage_runfiles = [kover_args_file, kover_output_metadata_file]
+        else:
+            jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
+            coverage_runfiles = jacocorunner.files.to_list()
 
     test_class = _infer_test_class(ctx)
 
@@ -85,7 +111,13 @@ def _process_test_launcher(context):
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
         jvm_flags = ctx.fragments.java.default_jvm_opts
 
-    jvm_flags.extend(ctx.attr.jvm_flags)
+    jvm_flags.extend(coverage_jvm_flags + ctx.attr.jvm_flags)
+
+    runtime_jars = depset(
+        ctx.files._bazel_test_runner,
+        transitive = [providers.java.transitive_runtime_jars] + coverage_inputs,
+    )
+
     launcher_result = _write_launcher_action(
         ctx,
         runtime_jars,
