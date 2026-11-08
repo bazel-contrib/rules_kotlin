@@ -1,0 +1,62 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("//kotlin:core.bzl", "define_kt_toolchain")
+load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load(":coverage_fixture.bzl", "coverage_fixture")
+
+define_kt_toolchain(
+    name = "toolchain",
+    experimental_kover_agent = "@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kover_jvm_agent",
+    experimental_kover_enabled = True,
+    experimental_kover_exclude = [
+        "kotlin.*",
+        "kover.Generated",
+    ],
+    experimental_multiplex_sandboxing = True,
+    supports_path_mapping = True,
+)
+
+kt_jvm_library(
+    name = "subject",
+    testonly = True,
+    srcs = ["Subject.kt"],
+)
+
+kt_jvm_test(
+    name = "exercise_test",
+    srcs = ["ExerciseTest.kt"],
+    tags = ["manual"],
+    test_class = "kover.ExerciseTest",
+    deps = [
+        ":subject",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
+java_binary(
+    name = "kover_cli",
+    testonly = True,
+    main_class = "kotlinx.kover.cli.MainKt",
+    runtime_deps = ["@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kover_cli"],
+)
+
+coverage_fixture(
+    name = "fixture",
+    testonly = True,
+    test = ":exercise_test",
+)
+
+kt_jvm_test(
+    name = "report_test",
+    size = "small",
+    srcs = ["KoverReportTest.kt"],
+    data = [
+        ":fixture",
+        ":kover_cli",
+    ],
+    jvm_flags = [
+        "-Dfixture=$(rootpath :fixture)",
+        "-Dcli=$(rootpath :kover_cli)",
+    ],
+    test_class = "kover.KoverReportTest",
+    deps = ["@kotlin_rules_maven_test//:junit_junit"],
+)
