@@ -112,7 +112,8 @@ class Ksp2Task : Work {
                   name: String,
                   resolve: Boolean,
                 ): Class<*> {
-                  // Load the bundled invoker alongside KSP, while sharing its entry point with the worker.
+                  // The child classloader must load Ksp2Invoker so it can resolve the KSP runtime jars
+                  // supplied as action inputs. Its entry point stays shared with the worker.
                   if (name.startsWith("io.bazel.kotlin.ksp2.")) throw ClassNotFoundException(name)
                   return super.loadClass(name, resolve)
                 }
