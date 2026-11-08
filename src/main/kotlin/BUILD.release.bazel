@@ -25,6 +25,12 @@ java_import(
     jars = ["jdeps_merger_worker.jar"],
 )
 
+filegroup(
+    name = "kover_lcov",
+    srcs = ["kover_lcov.jar"],
+    visibility = ["//visibility:public"],
+)
+
 java_import(
     name = "ksp2_worker",
     jars = ["ksp2_worker.jar"],

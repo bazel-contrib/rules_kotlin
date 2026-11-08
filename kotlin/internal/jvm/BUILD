@@ -1,5 +1,4 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_java//java:defs.bzl", "java_library")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
@@ -22,16 +21,9 @@ exports_files([
     "kotlin-compiler-reshade.jarjar",
 ])
 
-java_library(
-    name = "kover_lcov_writer",
-    srcs = ["KoverLcov.java"],
-    visibility = ["//visibility:public"],
-)
-
 release_archive(
     name = "pkg",
     srcs = glob(["*.bzl"]) + [
-        "KoverLcov.java",
         "kotlin-compiler-embeddable-reshade.jarjar",
         "kotlin-compiler-reshade.jarjar",
         "kover_lcov.sh.tpl",

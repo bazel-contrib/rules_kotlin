@@ -35,6 +35,12 @@ alias(
 )
 
 alias(
+    name = "kover_lcov",
+    actual = "//src/main/kotlin/io/bazel/kotlin/coverage:kover_lcov_deploy.jar",
+    visibility = ["//visibility:public"],
+)
+
+alias(
     name = "ksp2",
     actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2",
     visibility = ["//visibility:public"],
@@ -57,6 +63,7 @@ release_archive(
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/coverage:kover_lcov_deploy.jar": "kover_lcov.jar",
         "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },

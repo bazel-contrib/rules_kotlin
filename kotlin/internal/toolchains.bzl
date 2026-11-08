@@ -344,7 +344,7 @@ _kt_toolchain = rule(
             providers = [KotlincOptions],
         ),
         "kover_lcov_writer": attr.label(
-            default = Label("//kotlin/internal/jvm:kover_lcov_writer"),
+            default = Label("//src/main/kotlin:kover_lcov"),
             allow_single_file = True,
         ),
         "ksp2": attr.label(
