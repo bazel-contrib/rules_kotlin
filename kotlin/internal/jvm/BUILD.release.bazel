@@ -41,14 +41,15 @@ bzl_library(
 alias(
     name = "native_java_launcher",
     actual = select({
-        "@platforms//os:windows": ":native_java_launcher_windows",
+        "@platforms//os:windows": ":native_java",
         "//conditions:default": ":no_native_java_launcher",
     }),
     visibility = ["//visibility:public"],
 )
 
+# A short name: it is part of the object file paths, which cl.exe can't open past 259 characters.
 cc_binary(
-    name = "native_java_launcher_windows",
+    name = "native_java",
     srcs = ["native_java_launcher.cc"],
     target_compatible_with = ["@platforms//os:windows"],
     deps = ["@rules_cc//cc/runfiles"],
