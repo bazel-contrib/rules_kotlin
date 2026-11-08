@@ -67,8 +67,8 @@ public final class KoverLcov {
     }
   }
 
-  // ponytail: sources whose directory doesn't end in their package path are dropped, as with
-  // Bazel's JaCoCo runner; have the builder emit an explicit source->package map if that matters.
+  // Sources whose directory doesn't end in their package path are dropped, as with Bazel's JaCoCo
+  // runner. Supporting them would need the builder to emit an explicit source-to-package map.
   private static String execPath(List<String> manifest, String sourcePath) {
     for (String execPath : manifest) {
       if (execPath.equals(sourcePath) || execPath.endsWith("/" + sourcePath)) {
