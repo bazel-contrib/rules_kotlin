@@ -39,17 +39,27 @@ register_toolchains("//:kotlin_toolchain")
 
 ## Running coverage
 
-```sh
-bazel coverage //app:greeter_test
-```
-
-Kover produces two output files alongside each test target:
-
-- `<target>-kover_report.ic` — raw binary coverage data
-- `<target>-kover_metadata.txt` — arguments file for the Kover CLI to generate a report
-
-To generate a human-readable report, pass the metadata file to the Kover CLI:
+From `examples/kover` with Bazel 9.3.2 on Linux or macOS, run the same coverage test with output path
+mapping disabled and enabled. The example toolchain opts into mapping, and the sandboxed
+compile strategy lets Bazel apply it.
 
 ```sh
-java -jar kover-cli.jar report @bazel-bin/app/greeter_test-kover_metadata.txt
+for mode in off strip; do
+  bazel coverage --experimental_output_paths="$mode" --strategy=KotlinCompile=sandboxed \
+    --incompatible_enable_proto_toolchain_resolution --@@protobuf+//bazel/toolchains:prefer_prebuilt_protoc=true \
+    --nocache_test_results --run_under=//app:check_report //app:greeter_test || exit 1
+done
 ```
+
+To inspect the mapping, add `--execution_log_json_file=/tmp/kover-$mode.json` inside
+the loop. In the `KotlinCompile` spawn for `//app:greeter`, the `--flagfile` path
+uses `bazel-out/cfg/bin` in strip mode and the configuration directory in off mode.
+
+The wrapper runs Kover CLI 0.8.3 in the test's runfiles workspace after the JVM exits.
+The argument file contains one argument per line. Source and JAR paths are relative
+to that workspace, including files from external repositories. The wrapper checks that
+the XML records a covered line in `Greeter.greet` and saves `greeter.xml` and
+`greeter_test-kover_report.ic` under `bazel-testlogs/app/greeter_test/test.outputs/`.
+
+Plain `bazel coverage //app:greeter_test` runs the agent. Use the example wrapper
+to keep its binary report after Bazel discards the test sandbox.

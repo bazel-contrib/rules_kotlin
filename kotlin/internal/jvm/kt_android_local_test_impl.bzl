@@ -145,7 +145,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         if _is_kover_enabled(ctx):
             kover_agent_file = _get_kover_agent_file(ctx)
             kover_output_file, kover_args_file = _create_kover_agent_actions(ctx, ctx.attr.name)
-            kover_output_metadata_file = _create_kover_metadata_action(
+            report_runfiles = _create_kover_metadata_action(
                 ctx,
                 ctx.attr.name,
                 ctx.attr.deps + ctx.attr.associates,
@@ -155,7 +155,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
             flags = _get_kover_jvm_flags(kover_agent_file, kover_args_file)
             jvm_flags.extend(flags)
 
-            transitive.extend([depset([kover_agent_file]), depset([kover_args_file]), depset([kover_output_metadata_file])])
+            transitive.extend([depset([kover_agent_file, kover_args_file]), report_runfiles])
 
             java_start_class = ctx.attr.main_class
             coverage_start_class = None
