@@ -1,0 +1,12 @@
+load("@rules_java//java:defs.bzl", "java_test")
+
+java_test(
+    name = "KoverLcovTest",
+    size = "small",
+    srcs = ["KoverLcovTest.java"],
+    test_class = "io.bazel.kotlin.coverage.KoverLcovTest",
+    deps = [
+        "//kotlin/internal/jvm:kover_lcov_writer",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)

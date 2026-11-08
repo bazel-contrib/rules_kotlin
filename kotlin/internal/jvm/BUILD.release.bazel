@@ -13,11 +13,19 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_java//java:defs.bzl", "java_library")
 
 exports_files([
+    "kover_lcov.sh.tpl",
     "kotlin-compiler-embeddable-reshade.jarjar",
     "kotlin-compiler-reshade.jarjar",
 ])
+
+java_library(
+    name = "kover_lcov_writer",
+    srcs = ["KoverLcov.java"],
+    visibility = ["//visibility:public"],
+)
 
 bzl_library(
     name = "jvm",
@@ -29,6 +37,7 @@ bzl_library(
     deps = [
         "//third_party:bzl",
         "@bazel_skylib//lib:sets",
+        "@bazel_skylib//lib:shell",
         "@bazel_skylib//rules:common_settings",
     ],
 )

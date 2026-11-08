@@ -1,6 +1,4 @@
-load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 kt_jvm_library(
     name = "greeter",
@@ -18,16 +16,12 @@ kt_jvm_test(
     ],
 )
 
-java_binary(
-    name = "kover_cli",
-    main_class = "kotlinx.kover.cli.MainKt",
-    tags = ["manual"],
-    runtime_deps = ["@maven//:org_jetbrains_kotlinx_kover_cli"],
-)
-
-sh_binary(
-    name = "check_report",
-    srcs = ["check_report.sh"],
-    data = [":kover_cli"],
-    tags = ["manual"],
+kt_jvm_test(
+    name = "empty_name_test",
+    srcs = ["EmptyNameTest.kt"],
+    test_class = "app.EmptyNameTest",
+    deps = [
+        ":greeter",
+        "@maven//:junit_junit",
+    ],
 )

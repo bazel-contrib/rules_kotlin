@@ -613,7 +613,8 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_kover_agent">experimental_kover_agent</a>, <a href="#define_kt_toolchain-experimental_kover_exclude">experimental_kover_exclude</a>,
                     <a href="#define_kt_toolchain-experimental_kover_exclude_annotation">experimental_kover_exclude_annotation</a>, <a href="#define_kt_toolchain-experimental_kover_exclude_inherited_from">experimental_kover_exclude_inherited_from</a>,
                     <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>, <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>,
-                    <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
+                    <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>,
+                    <a href="#define_kt_toolchain-experimental_kover_cli">experimental_kover_cli</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -661,5 +662,6 @@ libraries they need, and the internal compiler plugins in the embeddable dialect
 | <a id="define_kt_toolchain-exec_compatible_with"></a>exec_compatible_with |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-target_compatible_with"></a>target_compatible_with |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-target_settings"></a>target_settings |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-experimental_kover_cli"></a>experimental_kover_cli |  Kover CLI JAR matching the agent. Enables LCOV line reporting for Unix JVM tests.   |  `None` |
 
 

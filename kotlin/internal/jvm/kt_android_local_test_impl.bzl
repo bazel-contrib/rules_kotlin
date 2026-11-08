@@ -78,8 +78,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:kover.bzl",
-    _create_kover_agent_actions = "create_kover_agent_actions",
-    _create_kover_metadata_action = "create_kover_metadata_action",
+    _create_kover_agent_files = "create_kover_agent_files",
     _get_kover_agent_file = "get_kover_agent_file",
     _get_kover_jvm_flags = "get_kover_jvm_flags",
     _is_kover_enabled = "is_kover_enabled",
@@ -144,18 +143,15 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
     if ctx.configuration.coverage_enabled:
         if _is_kover_enabled(ctx):
             kover_agent_file = _get_kover_agent_file(ctx)
-            kover_output_file, kover_args_file = _create_kover_agent_actions(ctx, ctx.attr.name)
-            report_runfiles = _create_kover_metadata_action(
+            kover_args_file, kover_runfiles = _create_kover_agent_files(
                 ctx,
-                ctx.attr.name,
                 ctx.attr.deps + ctx.attr.associates,
-                kover_output_file,
             )
 
             flags = _get_kover_jvm_flags(kover_agent_file, kover_args_file)
             jvm_flags.extend(flags)
 
-            transitive.extend([depset([kover_agent_file, kover_args_file]), report_runfiles])
+            transitive.extend([depset([kover_agent_file]), kover_runfiles])
 
             java_start_class = ctx.attr.main_class
             coverage_start_class = None

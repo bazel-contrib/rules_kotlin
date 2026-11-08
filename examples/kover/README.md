@@ -17,15 +17,17 @@ define_kt_toolchain(
     name = "kotlin_toolchain",
     experimental_kover_enabled = True,
     experimental_kover_agent = "@maven//:org_jetbrains_kotlinx_kover_jvm_agent",
+    experimental_kover_cli = "@maven//:org_jetbrains_kotlinx_kover_cli",
 )
 ```
 
-Add the Kover JVM agent to your Maven dependencies:
+Use the same version of the agent and CLI in your toolchain:
 
 ```starlark
 maven.install(
     artifacts = [
         "org.jetbrains.kotlinx:kover-jvm-agent:0.8.3",
+        "org.jetbrains.kotlinx:kover-cli:0.8.3",
         ...
     ],
 )
@@ -39,28 +41,24 @@ register_toolchains("//:kotlin_toolchain")
 
 ## Running coverage
 
-From `examples/kover` with Bazel 9.3.2 on Linux or macOS, run the same coverage test with output path
-mapping disabled and enabled. Use `--modify_execution_info` to opt the sandboxed
-`KotlinCompile` actions into path mapping for this run.
+From `examples/kover` on Linux or macOS:
 
 ```sh
-for mode in off strip; do
-  bazel coverage --experimental_output_paths="$mode" --strategy=KotlinCompile=sandboxed \
-    --modify_execution_info=KotlinCompile=+supports-path-mapping \
-    --incompatible_enable_proto_toolchain_resolution --@@protobuf+//bazel/toolchains:prefer_prebuilt_protoc=true \
-    --nocache_test_results --run_under=//app:check_report //app:greeter_test || exit 1
-done
+bazel coverage --combined_report=lcov //app:all
+cat bazel-testlogs/app/greeter_test/coverage.dat
+diff expected_coverage.dat bazel-out/_coverage/_coverage_report.dat
 ```
 
-To inspect the mapping, add `--execution_log_json_file=/tmp/kover-$mode.json` inside
-the loop. In the `KotlinCompile` spawn for `//app:greeter`, the `--flagfile` path
-uses `bazel-out/cfg/bin` in strip mode and the configuration directory in off mode.
+The two tests exercise different returns in `Greeter.greet`. Each per-test report
+records an executable line as covered (1) or missed (0). Bazel sums those counts
+in the combined report. The integration suite checks the combined report against
+`expected_coverage.dat`.
 
-The wrapper runs Kover CLI 0.8.3 in the test's runfiles workspace after the JVM exits.
-The argument file contains one argument per line. Source and JAR paths are relative
-to that workspace, including files from external repositories. The wrapper checks that
-the XML records a covered line in `Greeter.greet` and saves `greeter.xml` and
-`greeter_test-kover_report.ic` under `bazel-testlogs/app/greeter_test/test.outputs/`.
+The Unix JVM test launcher runs the matching Kover CLI after the test exits
+successfully. It writes raw coverage and XML in the test's private temporary
+directory and emits `$COVERAGE_DIR/kover.dat` for Bazel. The test target only
+depends on its application code and test libraries.
 
-Plain `bazel coverage //app:greeter_test` runs the agent. Use the example wrapper
-to keep its binary report after Bazel discards the test sandbox.
+This prototype reports line coverage. Android local tests and the Windows JVM
+launcher do not implement this conversion. Omitting `experimental_kover_cli`
+retains the existing agent-only behavior.
