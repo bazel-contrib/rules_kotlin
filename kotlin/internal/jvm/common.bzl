@@ -160,6 +160,19 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, native_libraries = 
 
     # Only the dynamic library is loaded at runtime, never an interface (import) library.
     native_files = [lib.dynamic_library for lib in native_libraries.to_list() if lib.dynamic_library]
+    if is_windows(ctx):
+        # When the toolchain copies DLLs next to binaries, as MSVC's does, cc_binary leaves its own
+        # DLL out of CcInfo, so JavaInfo never sees a cc_binary(linkshared = True). Take the DLLs
+        # that the dependencies bring into the runfiles too.
+        dlls = depset(transitive = [
+            d[DefaultInfo].default_runfiles.files
+            for d in ctx.attr.deps + ctx.attr.runtime_deps
+            if d[DefaultInfo].default_runfiles
+        ])
+        native_files = list({
+            f: None
+            for f in native_files + [f for f in dlls.to_list() if f.extension.lower() == "dll"]
+        })
 
     # Precede the user's jvm_flags, so that a java.library.path among them still wins.
     native_flags = []
