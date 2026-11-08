@@ -14,6 +14,7 @@
 
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 load("//kotlin/compiler:compiler.bzl", "KOTLIN_STDLIBS")
+load("//third_party:jarjar.bzl", "jar_jar")
 
 exports_files(["rules_kotlin.jar"])
 
@@ -44,10 +45,11 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
-# Keep a distinct label for the Build Tools API runtime's dialect validation.
-java_import(
+# Derive the BTAPI plugin on demand so the release only ships the distribution dialect.
+jar_jar(
     name = "jdeps-gen-embeddable",
-    jars = ["rules_kotlin.jar"],
+    input_jar = "rules_kotlin.jar",
+    rules = "//kotlin/internal/jvm:kotlin-compiler-embeddable-reshade.jarjar",
     visibility = ["//visibility:public"],
 )
 

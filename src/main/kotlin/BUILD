@@ -1,4 +1,4 @@
-load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("//third_party:jarjar.bzl", "jar_jar")
 
@@ -7,16 +7,17 @@ exports_files(
     visibility = ["//src:__subpackages__"],
 )
 
-java_import(
+jar_jar(
     name = "jdeps-gen",
-    jars = ["//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar"],
+    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
+    rules = "shade.jarjar",
     visibility = ["//visibility:public"],
 )
 
-# K2 uses the same plugin bytecode; retain the label for Build Tools API dialect validation.
-java_import(
+jar_jar(
     name = "jdeps-gen-embeddable",
-    jars = ["//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar"],
+    input_jar = ":jdeps-gen.jar",
+    rules = "//kotlin/internal/jvm:kotlin-compiler-embeddable-reshade.jarjar",
     visibility = ["//visibility:public"],
 )
 
