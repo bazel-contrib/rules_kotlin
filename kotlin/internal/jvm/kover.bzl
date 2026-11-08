@@ -164,7 +164,15 @@ def _source_paths(src):
     return [src.path, src.short_path]
 
 def create_kover_lcov_launcher(ctx, providers):
-    """Write the Unix test wrapper that reports Kover line coverage to Bazel."""
+    """Write the Unix test wrapper that reports Kover line coverage to Bazel.
+
+    Args:
+        ctx: The test rule context.
+        providers: The JVM compilation providers for the test.
+
+    Returns:
+        The child JVM launcher file and the runfiles required by the wrapper.
+    """
     toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
     agent = get_kover_agent_file(ctx)
     sources = providers.instrumented_files.instrumented_files
