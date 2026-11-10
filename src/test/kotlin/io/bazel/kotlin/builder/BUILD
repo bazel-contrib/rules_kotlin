@@ -22,7 +22,6 @@ _COMMON_DEPS = [
     "//src/main/protobuf:deps_java_proto",
     "@kotlin_rules_maven_test//:com_google_truth_truth",
     "@kotlin_rules_maven_test//:junit_junit",
-    "@kotlin_rules_maven//:com_google_guava_guava",
     "@kotlin_rules_maven//:com_google_code_findbugs_jsr305",
 ]
 

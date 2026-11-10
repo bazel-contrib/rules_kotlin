@@ -15,11 +15,11 @@
  */
 package io.bazel.kotlin
 
-import com.google.common.hash.Hashing
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -126,8 +126,13 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
     )
   }
 
+  /**
+   * Validates the current jar's SHA-256 digest (lowercase hex) matches [expected].
+   */
   protected fun validateFileSha256(expected: String) {
-    val result = Hashing.sha256().hashBytes(Files.readAllBytes(currentFile.toPath())).toString()
+    val result = MessageDigest.getInstance("SHA-256")
+      .digest(Files.readAllBytes(currentFile.toPath()))
+      .joinToString("") { "%02x".format(it) }
     assertEquals(expected, result, "file $currentFile did not hash as expected")
   }
 

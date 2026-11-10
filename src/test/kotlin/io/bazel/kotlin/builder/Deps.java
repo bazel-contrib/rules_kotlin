@@ -16,8 +16,6 @@
 package io.bazel.kotlin.builder;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.utils.BazelRunFiles;
 
 import javax.annotation.Nullable;
@@ -34,7 +32,7 @@ public final class Deps {
     @AutoValue
     public abstract static class Dep {
         public static Builder builder() {
-            return new AutoValue_Deps_Dep.Builder().runtimeDeps(ImmutableList.of());
+            return new AutoValue_Deps_Dep.Builder().runtimeDeps(List.of());
         }
 
         /**
@@ -51,7 +49,7 @@ public final class Deps {
             return Dep.builder()
                     .label(label)
                     .compileJars(
-                            ImmutableList.of(compileJar.getAbsolutePath()))
+                            List.of(compileJar.getAbsolutePath()))
                     .build();
         }
 
@@ -70,16 +68,18 @@ public final class Deps {
             // jvm properties do not allow slashes or :.
             String key = label.replaceAll("/", ".").replaceAll(":", ".");
             Properties properties = System.getProperties();
-            Preconditions.checkArgument(properties.containsKey(key),
-                    String.format("Unable to find %s in properties:\n%s", key,
-                            properties.keySet()
-                                    .stream()
-                                    .map(Object::toString)
-                                    .collect(Collectors.joining("\n"))));
+            if (!properties.containsKey(key)) {
+                throw new IllegalArgumentException(
+                        String.format("Unable to find %s in properties:\n%s", key,
+                                properties.keySet()
+                                        .stream()
+                                        .map(Object::toString)
+                                        .collect(Collectors.joining("\n"))));
+            }
             return Dep.builder()
                     .label(label)
                     .compileJars(
-                            ImmutableList.of(
+                            List.of(
                                     BazelRunFiles.resolveVerifiedFromProperty(key).getPath()))
                     .build();
         }
@@ -99,7 +99,9 @@ public final class Deps {
         public abstract String jdeps();
 
         public final String singleCompileJar() {
-            Preconditions.checkState(compileJars().size() == 1);
+            if (compileJars().size() != 1) {
+                throw new IllegalStateException();
+            }
             return compileJars().get(0);
         }
 

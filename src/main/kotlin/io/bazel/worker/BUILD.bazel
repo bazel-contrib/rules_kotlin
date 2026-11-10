@@ -14,6 +14,5 @@ kt_bootstrap_library(
         "@kotlin_rules_maven//:com_google_auto_value_auto_value",
         "@kotlin_rules_maven//:com_google_code_findbugs_jsr305",
         "@kotlin_rules_maven//:com_google_errorprone_error_prone_annotations",
-        "@kotlin_rules_maven//:com_google_guava_guava",
     ],
 )

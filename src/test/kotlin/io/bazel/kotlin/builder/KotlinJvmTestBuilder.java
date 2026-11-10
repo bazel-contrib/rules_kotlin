@@ -16,8 +16,6 @@
  */
 package io.bazel.kotlin.builder;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
@@ -217,11 +215,11 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
                     return Dep.builder()
                             .label(task.getInfo().getLabel())
-                            .compileJars(ImmutableList.of(
+                            .compileJars(List.of(
                                     outputs.getAbijar().isEmpty() ? outputs.getJar() : outputs.getAbijar()
                             ))
                             .jdeps(outputs.getJdeps())
-                            .runtimeDeps(ImmutableList.copyOf(task.getInputs().getClasspathList()))
+                            .runtimeDeps(List.copyOf(task.getInputs().getClasspathList()))
                             .sourceJar(outputs.getSrcjar())
                             .build();
                 });
@@ -267,7 +265,9 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public void addAnnotationProcessors(AnnotationProcessor... annotationProcessors) {
-            Preconditions.checkState(inputs.build().getProcessorsList().isEmpty(), "processors already set");
+            if (!inputs.build().getProcessorsList().isEmpty()) {
+                throw new IllegalStateException("processors already set");
+            }
             HashSet<String> processorClasses = new HashSet<>();
             inputs.addAllProcessorpaths(
                     Stream.of(annotationProcessors)
