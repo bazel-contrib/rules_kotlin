@@ -26,8 +26,8 @@ load(
 load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
 load(
     "//kotlin/internal/jvm:kover.bzl",
-    _create_kover_agent_actions = "create_kover_agent_actions",
-    _create_kover_metadata_action = "create_kover_metadata_action",
+    _create_kover_agent_files = "create_kover_agent_files",
+    _create_kover_lcov_launcher = "create_kover_lcov_launcher",
     _get_kover_agent_file = "get_kover_agent_file",
     _get_kover_jvm_flags = "get_kover_jvm_flags",
     _is_kover_enabled = "is_kover_enabled",
@@ -39,6 +39,7 @@ load(
     _RUNNABLE_COMMON_TOOLCHAINS = "RUNNABLE_COMMON_TOOLCHAINS",
 )
 load("//kotlin/internal/utils:utils.bzl", _utils = "utils")
+load("//src/main/starlark/core/compile:common.bzl", "is_windows")
 load(
     "//src/main/starlark/core/pipeline:pipeline.bzl",
     _ProviderInfo = "ProviderInfo",
@@ -62,8 +63,13 @@ _ATTRS = _utils.add_dicts(_attrs.runnable_common_attr, {
         default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
         allow_files = True,
     ),
+    "_kover_lcov_template": attr.label(
+        default = Label("//kotlin/internal/jvm:kover_lcov.sh.tpl"),
+        allow_single_file = True,
+    ),
     "_lcov_merger": attr.label(
-        default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),
+        cfg = "exec",
+        default = Label("//src/main/kotlin:kover_lcov_merger"),
     ),
 })
 
@@ -81,29 +87,30 @@ def _process_test_launcher(context):
     ctx = context.ctx
     providers = context.outputs["JvmCompileProcessor"]
 
-    coverage_runfiles = []
+    coverage_runfiles = depset()
     coverage_inputs = []
     coverage_jvm_flags = []
+    child = None
+    instrumented_files = providers.instrumented_files
 
     if ctx.configuration.coverage_enabled:
-        if _is_kover_enabled(ctx):
+        # The LCOV wrapper is a shell script, so Windows keeps the agent-only report.
+        if _is_kover_enabled(ctx) and ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_cli and not is_windows(ctx):
+            child, coverage_runfiles, instrumented_files = _create_kover_lcov_launcher(ctx, providers)
+        elif _is_kover_enabled(ctx):
             kover_agent_file = _get_kover_agent_file(ctx)
-            kover_output_file, kover_args_file = _create_kover_agent_actions(ctx, ctx.attr.name)
-            kover_output_metadata_file = _create_kover_metadata_action(
+            kover_args_file, coverage_runfiles = _create_kover_agent_files(
                 ctx,
-                ctx.attr.name,
                 ctx.attr.deps + ctx.attr.associates,
-                kover_output_file,
             )
             flags = _get_kover_jvm_flags(kover_agent_file, kover_args_file)
 
             # add Kover agent jvm_flag, inputs and outputs
             coverage_jvm_flags = flags
             coverage_inputs = [depset([kover_agent_file])]
-            coverage_runfiles = [kover_args_file, kover_output_metadata_file]
         else:
             jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
-            coverage_runfiles = jacocorunner.files.to_list()
+            coverage_runfiles = jacocorunner.files
 
     test_class = _infer_test_class(ctx)
 
@@ -127,6 +134,7 @@ def _process_test_launcher(context):
             "-Dbazel.test_suite=%s" % test_class,
         ] + jvm_flags,
         is_test = True,
+        unix_executable = child,
     )
 
     # Get java runtime files from toolchain for runfiles (needed for Windows launcher)
@@ -136,21 +144,30 @@ def _process_test_launcher(context):
         name = "TestLauncherProcessor",
         value = struct(
             executable = launcher_result.executable,
+            instrumented_files = instrumented_files,
             transitive_files = depset(
                 order = "default",
-                transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.coverage_metadata), java_runtime.files],
+                transitive = [runtime_jars, coverage_runfiles, depset(launcher_result.coverage_metadata), java_runtime.files],
             ),
         ),
         runfiles = None,
     )
 
 def finalize(context):
-    """Assemble the kt_jvm_test providers: DefaultInfo with the launcher plus TestEnvironment."""
+    """Assemble the kt_jvm_test providers: DefaultInfo with the launcher plus TestEnvironment.
+
+    Args:
+        context: The processing pipeline context.
+
+    Returns:
+        The kt_jvm_test providers.
+    """
     ctx = context.ctx
     launcher = context.outputs["TestLauncherProcessor"]
+    compiled = context.outputs["JvmCompileProcessor"]
     return _make_providers(
         ctx,
-        context.outputs["JvmCompileProcessor"],
+        struct(java = compiled.java, kt = compiled.kt, instrumented_files = launcher.instrumented_files),
         context.outputs["DepsProcessor"],
         launcher.transitive_files,
         launcher.executable,

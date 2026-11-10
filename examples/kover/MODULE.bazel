@@ -1,5 +1,6 @@
 module(name = "kover-example")
 
+bazel_dep(name = "protobuf", version = "33.4")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_kotlin", version = "2.2.0")
 local_path_override(
@@ -14,6 +15,7 @@ maven.install(
     name = "maven",
     artifacts = [
         "junit:junit:4.13.2",
+        "org.jetbrains.kotlinx:kover-cli:0.8.3",
         "org.jetbrains.kotlinx:kover-jvm-agent:0.8.3",
     ],
     repositories = [

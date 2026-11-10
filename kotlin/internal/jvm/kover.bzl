@@ -20,21 +20,14 @@
 # How to use?
 #
 # Supply the version of Kover agent via toolchain (typically from jvm_rules_extrenal),
-# and enable Kover. Then run `bazel coverage //your/kotlin/test_target`. Output files
-# are created in working module directory (along test/library explicity outputs).
+# and enable Kover. For Unix JVM tests, also supply a matching CLI JAR to produce LCOV.
 #
 #
 # Notes :
 #
-# 1. Because Bazel test/coverage are 'terminal' and actions or aspects can't reuse the output
-#    of these, the generation of the report is done outside bazel (typically
-#    from Bazel wrapper). The logic here will generate both raw output (*.ic file) and
-#    a metadata file ready to provide to Kover CLI, so that one can generate report simply by
-#    running : `java -jar kover-cli.jar report @path_to_metadat_file <options>`
-#
-#    We could possibly generate the report by hijacking test runner shell script template
-#    and injecting this command to executed after tests are run. This is rather hacky
-#    and is likely to require changes to Bazel project.
+# 1. With the CLI configured, the test wrapper writes the raw report to $COVERAGE_DIR, and the
+#    test's LCOV merger converts it to LCOV in-process. Agent-only toolchains retain their
+#    raw-report setup.
 #
 # 2. For mixed sourceset, disabling JaCoCo instrumenation is required. To do this properly,
 #    one should add an extra parameter to java_common.compile() API, which require modifying both
@@ -50,6 +43,7 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     _paths = "paths",
 )
+load("@bazel_skylib//lib:shell.bzl", "shell")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load(
     "//kotlin/internal:defs.bzl",
@@ -90,73 +84,34 @@ def get_kover_jvm_flags(kover_agent_file, kover_args_file):
     ]
     return jvm_args
 
-def _source_to_kover_arg(src):
-    return "--src\n%s" % _paths.dirname(src.short_path)
+def _source_dir(src):
+    return _paths.dirname(src.short_path) or "."
 
-def _classfile_to_kover_arg(classfile):
-    return "--classfiles\n%s" % classfile.short_path
+def _exec_source_dir(src):
+    return _paths.dirname(src.path) or "."
 
-def _exclude_to_kover_arg(exclude):
-    return "--exclude\n%s" % exclude
+def _runfiles_path(file):
+    return file.short_path
 
-def _exclude_annotation_to_kover_arg(exclude_annotation):
-    return "--excludeAnnotation\n%s" % exclude_annotation
+def _exec_jar_path(file):
+    return file.path if file.extension == "jar" else None
 
-def _exclude_inherited_from_to_kover_arg(exclude_inherited_from):
-    return "--excludeInheritedFrom\n%s" % exclude_inherited_from
-
-def create_kover_agent_actions(ctx, name):
-    """Generate the actions needed to emit Kover code coverage metadata file.
-
-    Creates the properly populated arguments input file needed by Kover agent.
+def create_kover_agent_files(ctx, deps):
+    """Write the agent settings and CLI metadata for an agent-only toolchain.
 
     Args:
-        ctx: The rule context.
-        name: The name of the target.
+        ctx: The test rule context.
+        deps: The targets whose sources and runtime JARs the CLI needs.
 
     Returns:
-        A tuple of (kover_output_file, kover_args_file).
+        The agent settings file and a depset of the required runfiles.
     """
+    name = ctx.label.name
+    args_file = ctx.actions.declare_file(name + "-kover.args.txt")
 
-    # declare code coverage raw data binary output file
-    binary_output_name = "%s-kover_report.ic" % name
-    kover_output_file = ctx.actions.declare_file(binary_output_name)
-
-    # Declare an initial output without relying on a shell command so this also
-    # works on Windows. The Kover agent replaces it when the test runs.
-    ctx.actions.write(kover_output_file, "")
-
-    # declare args file - https://kotlin.github.io/kotlinx-kover/jvm-agent/#kover-jvm-arguments-file
-    kover_args_file = ctx.actions.declare_file(
-        "%s-kover.args.txt" % name,
-    )
-    ctx.actions.write(
-        kover_args_file,
-        "report.file=%s" % kover_output_file.short_path,
-    )
-
-    return kover_output_file, kover_args_file
-
-def create_kover_metadata_action(
-        ctx,
-        name,
-        deps,
-        kover_output_file):
-    """Generate kover metadata file needed for invoking kover CLI to generate report.
-
-    More info at: https://kotlin.github.io/kotlinx-kover/cli/
-
-    Args:
-        ctx: The rule context.
-        name: The name of the target.
-        deps: The dependencies to collect coverage for.
-        kover_output_file: The Kover output file.
-
-    Returns:
-        The kover output metadata file.
-    """
-    metadata_output_name = "%s-kover_metadata.txt" % name
-    kover_output_metadata_file = ctx.actions.declare_file(metadata_output_name)
+    # The JVM creates the report at test time, beside the settings file in runfiles.
+    report_path = args_file.short_path.removesuffix("-kover.args.txt") + "-kover_report.ic"
+    ctx.actions.write(args_file, "report.file=" + report_path)
 
     instrumented_files = depset(transitive = [
         dep[InstrumentedFilesInfo].instrumented_files
@@ -169,39 +124,92 @@ def create_kover_metadata_action(
         if JavaInfo in dep
     ])
 
+    metadata = _write_metadata(ctx, name, instrumented_files, runtime_jars, report_path)
+    return args_file, depset([args_file, metadata], transitive = [instrumented_files, runtime_jars])
+
+def _write_metadata(ctx, name, instrumented_files, runtime_jars, report_path = None, cli = None):
+    # With a CLI, this is the LCOV merger's `.kover` file: the CLI JAR's exec path, then its arguments.
+    metadata = ctx.actions.declare_file(name + (".kover" if cli else "-kover_metadata.txt"))
+
+    # The CLI reads one literal argument per line.
     args = ctx.actions.args()
+    args.set_param_file_format("multiline")
+    if cli:
+        args.add(cli)
     args.add("report")
-    args.add(kover_output_file.short_path)
+    if report_path:
+        args.add(report_path)
     args.add("--title")
     args.add("Code-Coverage Analysis: %s" % ctx.label)
-    args.add_joined(
+    args.add_all(
         instrumented_files,
-        join_with = "\n",
-        map_each = _source_to_kover_arg,
+        before_each = "--src",
+        map_each = _exec_source_dir if cli else _source_dir,
         uniquify = True,
     )
-    args.add_joined(
+    args.add_all(
         runtime_jars,
-        join_with = "\n",
-        map_each = _classfile_to_kover_arg,
+        before_each = "--classfiles",
+        map_each = _exec_jar_path if cli else _runfiles_path,
         uniquify = True,
     )
-    args.add_joined(
+    args.add_all(
         ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude,
-        join_with = "\n",
-        map_each = _exclude_to_kover_arg,
+        before_each = "--exclude",
     )
-    args.add_joined(
+    args.add_all(
         ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude_annotation,
-        join_with = "\n",
-        map_each = _exclude_annotation_to_kover_arg,
+        before_each = "--excludeAnnotation",
     )
-    args.add_joined(
+    args.add_all(
         ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude_inherited_from,
-        join_with = "\n",
-        map_each = _exclude_inherited_from_to_kover_arg,
+        before_each = "--excludeInheritedFrom",
     )
 
-    ctx.actions.write(kover_output_metadata_file, args)
+    ctx.actions.write(metadata, args)
+    return metadata
 
-    return kover_output_metadata_file
+def create_kover_lcov_launcher(ctx, providers):
+    """Write the Unix test wrapper that runs the test under the Kover agent.
+
+    The agent writes its raw report to $COVERAGE_DIR. The test's LCOV merger converts it, finding
+    the `.kover` report arguments (Kover CLI JAR first) through the coverage manifest.
+
+    Args:
+        ctx: The test rule context.
+        providers: The JVM compilation providers for the test.
+
+    Returns:
+        The child JVM launcher file, the runfiles required by the wrapper, and the test's
+        InstrumentedFilesInfo.
+    """
+    agent = get_kover_agent_file(ctx)
+    cli = ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_cli
+
+    # Libraries publish their class JARs as coverage metadata, so the CLI only reads instrumented code.
+    report_args = _write_metadata(
+        ctx,
+        ctx.label.name,
+        providers.instrumented_files.instrumented_files,
+        providers.instrumented_files.metadata_files,
+        cli = cli,
+    )
+
+    child = ctx.actions.declare_file(ctx.label.name + ".kover-jvm")
+    ctx.actions.expand_template(
+        template = ctx.file._kover_lcov_template,
+        output = ctx.outputs.executable,
+        substitutions = {
+            "%agent%": shell.quote(agent.short_path),
+            "%child%": shell.quote(child.basename),
+        },
+        is_executable = True,
+    )
+    instrumented_files = coverage_common.instrumented_files_info(
+        ctx,
+        source_attributes = ["srcs"],
+        dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
+        extensions = ["kt", "java"],
+        metadata_files = [cli, report_args],
+    )
+    return child, depset([child, agent]), instrumented_files

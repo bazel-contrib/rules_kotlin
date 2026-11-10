@@ -119,7 +119,7 @@ def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, ma
         mnemonic = "JavaLauncherMaker",
     )
 
-def write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
+def write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False, unix_executable = None):
     """Writes out a launcher shell script for a java target.
 
     Args:
@@ -128,6 +128,7 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
       main_class: the main class to launch.
       jvm_flags: The flags that should be passed to the jvm.
       is_test: Whether this is a test target (enables security manager for test runner).
+      unix_executable: Optional output when a coverage wrapper is the test executable.
 
     Returns:
       A struct with:
@@ -245,7 +246,7 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
 
     ctx.actions.expand_template(
         template = template,
-        output = ctx.outputs.executable,
+        output = unix_executable or ctx.outputs.executable,
         substitutions = {
             "%classpath%": classpath,
             "%java_start_class%": main_class,

@@ -1,11 +1,13 @@
 package io.bazel.kotlin.test
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.Predicate
 import kotlin.io.path.exists
+import kotlin.io.path.readText
 
 private fun nullBazelRcPath() =
   if (System.getProperty("os.name").lowercase().contains("windows")) "NUL" else "/dev/null"
@@ -139,6 +141,13 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
                   "--combined_report=lcov",
                   *coverageTargets,
                 ).onFailThrow()
+                val expected = workspace.resolve("expected_coverage.dat")
+                if (expected.exists()) {
+                  assertEquals(
+                    expected.readText().trim(),
+                    workspace.resolve("bazel-out/_coverage/_coverage_report.dat").readText().trim(),
+                  )
+                }
               }
             }
           }

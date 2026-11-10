@@ -15,3 +15,13 @@ kt_jvm_test(
         "@maven//:junit_junit",
     ],
 )
+
+kt_jvm_test(
+    name = "empty_name_test",
+    srcs = ["EmptyNameTest.kt"],
+    test_class = "app.EmptyNameTest",
+    deps = [
+        ":greeter",
+        "@maven//:junit_junit",
+    ],
+)

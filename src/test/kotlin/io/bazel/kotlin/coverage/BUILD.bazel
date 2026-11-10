@@ -1,0 +1,12 @@
+load("//kotlin:jvm.bzl", "kt_jvm_test")
+
+kt_jvm_test(
+    name = "KoverLcovTest",
+    size = "small",
+    srcs = ["KoverLcovTest.kt"],
+    test_class = "io.bazel.kotlin.coverage.KoverLcovTest",
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/coverage:kover_lcov_lib",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)

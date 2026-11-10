@@ -18,6 +18,10 @@ bazel_dep(name = "bazel_lib", version = "3.1.0")
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
+# Bazel's own LCOV merger, which the Kover-aware merger runs in-process.
+remote_coverage_tools = use_extension("@bazel_tools//tools/test:extensions.bzl", "remote_coverage_tools_extension")
+use_repo(remote_coverage_tools, "remote_coverage_tools")
+
 rules_kotlin_extensions = use_extension(
     "//src/main/starlark/core/repositories:bzlmod_setup.bzl",
     "rules_kotlin_extensions",

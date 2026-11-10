@@ -16,6 +16,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 exports_files([
+    "kover_lcov.sh.tpl",
     "kotlin-compiler-embeddable-reshade.jarjar",
     "kotlin-compiler-reshade.jarjar",
 ])
@@ -25,6 +26,7 @@ release_archive(
     srcs = glob(["*.bzl"]) + [
         "kotlin-compiler-embeddable-reshade.jarjar",
         "kotlin-compiler-reshade.jarjar",
+        "kover_lcov.sh.tpl",
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
@@ -39,6 +41,7 @@ bzl_library(
         "//src/main/starlark/core/pipeline",
         "//third_party:bzl",
         "@bazel_skylib//lib:sets",
+        "@bazel_skylib//lib:shell",
         "@bazel_skylib//rules:common_settings",
         "@rules_java//java:rules",
     ],

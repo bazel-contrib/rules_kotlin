@@ -17,15 +17,17 @@ define_kt_toolchain(
     name = "kotlin_toolchain",
     experimental_kover_enabled = True,
     experimental_kover_agent = "@maven//:org_jetbrains_kotlinx_kover_jvm_agent",
+    experimental_kover_cli = "@maven//:org_jetbrains_kotlinx_kover_cli",
 )
 ```
 
-Add the Kover JVM agent to your Maven dependencies:
+Use the same version of the agent and CLI in your toolchain:
 
 ```starlark
 maven.install(
     artifacts = [
         "org.jetbrains.kotlinx:kover-jvm-agent:0.8.3",
+        "org.jetbrains.kotlinx:kover-cli:0.8.3",
         ...
     ],
 )
@@ -39,17 +41,25 @@ register_toolchains("//:kotlin_toolchain")
 
 ## Running coverage
 
-```sh
-bazel coverage //app:greeter_test
-```
-
-Kover produces two output files alongside each test target:
-
-- `<target>-kover_report.ic` — raw binary coverage data
-- `<target>-kover_metadata.txt` — arguments file for the Kover CLI to generate a report
-
-To generate a human-readable report, pass the metadata file to the Kover CLI:
+From `examples/kover` on Linux or macOS:
 
 ```sh
-java -jar kover-cli.jar report @bazel-bin/app/greeter_test-kover_metadata.txt
+bazel coverage --combined_report=lcov //app:all
+cat bazel-testlogs/app/greeter_test/coverage.dat
+diff expected_coverage.dat bazel-out/_coverage/_coverage_report.dat
 ```
+
+The two tests exercise different returns in `Greeter.greet`. Each per-test report
+records an executable line as covered (1) or missed (0). Bazel sums those counts
+in the combined report. The integration suite checks the combined report against
+`expected_coverage.dat`.
+
+The Unix JVM test launcher points the Kover agent at `$COVERAGE_DIR`. Bazel's
+LCOV merger step for `kt_jvm_test` runs the matching Kover CLI in-process,
+converts its report to `kover.dat`, then merges as usual, so Kover adds no JVM
+launches per test. The test target only depends on its application code and
+test libraries.
+
+This prototype reports line coverage. Android local tests and the Windows JVM
+launcher do not implement this conversion. Omitting `experimental_kover_cli`
+retains the existing agent-only behavior.

@@ -125,6 +125,7 @@ def _kotlin_toolchain_impl(ctx):
         jacocorunner = ctx.attr.jacocorunner,
         experimental_kover_enabled = ctx.attr.experimental_kover_enabled,
         experimental_kover_agent = ctx.file.experimental_kover_agent,
+        experimental_kover_cli = ctx.file.experimental_kover_cli,
         experimental_kover_exclude = ctx.attr.experimental_kover_exclude,
         experimental_kover_exclude_annotation = ctx.attr.experimental_kover_exclude_annotation,
         experimental_kover_exclude_inherited_from = ctx.attr.experimental_kover_exclude_inherited_from,
@@ -184,6 +185,10 @@ _kt_toolchain = rule(
         ),
         "experimental_kover_agent": attr.label(
             doc = """Kover agent Jar target used for code coverage, only used if experimental_kover_enabled is true.""",
+            allow_single_file = True,
+        ),
+        "experimental_kover_cli": attr.label(
+            doc = "Kover CLI JAR matching the agent version for JVM LCOV reporting.",
             allow_single_file = True,
         ),
         "experimental_kover_enabled": attr.bool(
@@ -461,7 +466,8 @@ def define_kt_toolchain(
         jacocorunner = None,
         exec_compatible_with = None,
         target_compatible_with = None,
-        target_settings = None):
+        target_settings = None,
+        experimental_kover_cli = None):
     """Define the Kotlin toolchain.
 
     The legacy invocation runs the compiler of the bundled CLI distribution. When the Build Tools
@@ -472,6 +478,7 @@ def define_kt_toolchain(
 
     Args:
         name: the toolchain name.
+        experimental_kover_cli: Kover CLI JAR matching the agent. Enables LCOV line reporting for Unix JVM tests.
         experimental_build_tools_api: `True` enables the Build Tools API compilation for the
             toolchain. Unset, it is `True` when `btapi_runtime` is set and `False` otherwise.
             `False` keeps the legacy invocation until the build setting turns the Build Tools
@@ -526,6 +533,7 @@ def define_kt_toolchain(
         btapi_runtime = btapi_runtime,
         experimental_kover_enabled = experimental_kover_enabled,
         experimental_kover_agent = experimental_kover_agent,
+        experimental_kover_cli = experimental_kover_cli,
         experimental_kover_exclude = experimental_kover_exclude,
         experimental_kover_exclude_annotation = experimental_kover_exclude_annotation,
         experimental_kover_exclude_inherited_from = experimental_kover_exclude_inherited_from,

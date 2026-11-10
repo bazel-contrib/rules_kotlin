@@ -1,0 +1,30 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
+
+kt_bootstrap_library(
+    name = "kover_lcov_lib",
+    srcs = ["KoverLcov.kt"],
+    visibility = ["//src:__subpackages__"],
+)
+
+# Released as src/main/kotlin/kover_lcov.jar; bundles the Kotlin stdlib.
+java_binary(
+    name = "kover_lcov",
+    create_executable = False,
+    visibility = ["//src:__subpackages__"],
+    runtime_deps = [
+        ":kover_lcov_lib",
+        "//kotlin/compiler:kotlin-stdlib",
+    ],
+)
+
+java_binary(
+    name = "kover_lcov_merger",
+    main_class = "io.bazel.kotlin.coverage.KoverLcov",
+    visibility = ["//src:__subpackages__"],
+    runtime_deps = [
+        ":kover_lcov_lib",
+        "//kotlin/compiler:kotlin-stdlib",
+        "@remote_coverage_tools//:all_lcov_merger_lib",
+    ],
+)
