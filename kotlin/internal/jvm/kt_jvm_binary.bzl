@@ -64,6 +64,7 @@ def _process_binary_launcher(context):
         providers.java.transitive_runtime_jars,
         ctx.attr.main_class,
         jvm_flags,
+        native_libraries = providers.java.transitive_native_libraries,
     )
 
     # Java runtime files are needed in runfiles for the (Windows) launcher.
@@ -73,6 +74,7 @@ def _process_binary_launcher(context):
         value = struct(
             executable = launcher_result.executable,
             transitive_files = depset(
+                launcher_result.extra_runfiles,
                 order = "default",
                 transitive = [providers.java.transitive_runtime_jars, java_runtime.files],
             ),

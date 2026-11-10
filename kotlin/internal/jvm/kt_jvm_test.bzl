@@ -126,6 +126,7 @@ def _process_test_launcher(context):
             "-ea",
             "-Dbazel.test_suite=%s" % test_class,
         ] + jvm_flags,
+        native_libraries = providers.java.transitive_native_libraries,
         is_test = True,
     )
 
@@ -138,7 +139,7 @@ def _process_test_launcher(context):
             executable = launcher_result.executable,
             transitive_files = depset(
                 order = "default",
-                transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.coverage_metadata), java_runtime.files],
+                transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.extra_runfiles), java_runtime.files],
             ),
         ),
         runfiles = None,

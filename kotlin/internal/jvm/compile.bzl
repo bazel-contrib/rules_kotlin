@@ -77,9 +77,6 @@ def find_java_runtime_toolchain(ctx, target):
         return ctx.toolchains[_JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime
     return target[java_common.JavaRuntimeInfo]
 
-def _java_info(target):
-    return target[JavaInfo] if JavaInfo in target else None
-
 def _deps_artifacts(toolchains, targets):
     """Collect the deps' jdeps for the builder's KOTLINBUILDER_REDUCED classpath mode, the only consumer."""
     if toolchains.kt.experimental_reduce_classpath_mode != "KOTLINBUILDER_REDUCED" or toolchains.kt.experimental_report_unused_deps == "off":
@@ -968,6 +965,7 @@ def _kt_jvm_produce_output_jar_actions(
         deps = compile_deps.deps,
         runtime_deps = compile_deps.runtime_deps,
         exports = compile_deps.exports,
+        native_libraries = compile_deps.native_libraries,
         neverlink = getattr(ctx.attr, "neverlink", False),
         generated_source_jar = generated_source_jar,
         generated_class_jar = generated_class_jar,
@@ -1311,9 +1309,14 @@ def _export_only_providers(ctx, actions, attr, outputs):
     java = JavaInfo(
         output_jar = toolchains.kt.empty_jar,
         compile_jar = toolchains.kt.empty_jar,
-        deps = [_java_info(d) for d in attr.deps],
-        exports = [_java_info(d) for d in getattr(attr, "exports", [])],
-        runtime_deps = [_java_info(d) for d in getattr(attr, "runtime_deps", [])],
+        deps = _jvm_deps_utils.java_infos(attr.deps),
+        exports = _jvm_deps_utils.java_infos(getattr(attr, "exports", [])),
+        runtime_deps = _jvm_deps_utils.java_infos(getattr(attr, "runtime_deps", [])),
+        native_libraries = _jvm_deps_utils.native_libraries(
+            attr.deps,
+            getattr(attr, "runtime_deps", []),
+            getattr(attr, "exports", []),
+        ),
         neverlink = getattr(attr, "neverlink", False),
         jdeps = output_jdeps,
     )

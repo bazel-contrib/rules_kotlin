@@ -1,0 +1,36 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+# System.loadLibrary("native") looks for the platform's own file name.
+cc_binary(
+    name = "libnative.so",
+    srcs = ["native.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+cc_binary(
+    name = "libnative.dylib",
+    srcs = ["native.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+cc_binary(
+    name = "native.dll",
+    srcs = ["native.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+alias(
+    name = "native",
+    actual = select({
+        "@platforms//os:macos": ":libnative.dylib",
+        "@platforms//os:windows": ":native.dll",
+        "//conditions:default": ":libnative.so",
+    }),
+    visibility = ["//visibility:public"],
+)

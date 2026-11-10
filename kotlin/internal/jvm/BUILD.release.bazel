@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 
 exports_files([
     "kotlin-compiler-embeddable-reshade.jarjar",
@@ -29,6 +30,29 @@ bzl_library(
     deps = [
         "//third_party:bzl",
         "@bazel_skylib//lib:sets",
+        "@bazel_skylib//lib:shell",
         "@bazel_skylib//rules:common_settings",
+        "@rules_cc//cc/common",
     ],
 )
+
+# Kotlin binaries and tests depend on this on every platform. Only Windows needs it: elsewhere the
+# shell launcher sets java.library.path itself.
+alias(
+    name = "native_java_launcher",
+    actual = select({
+        "@platforms//os:windows": ":native_java",
+        "//conditions:default": ":no_native_java_launcher",
+    }),
+    visibility = ["//visibility:public"],
+)
+
+# A short name: it is part of the object file paths, which cl.exe can't open past 259 characters.
+cc_binary(
+    name = "native_java",
+    srcs = ["native_java_launcher.cc"],
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = ["@rules_cc//cc/runfiles"],
+)
+
+filegroup(name = "no_native_java_launcher")

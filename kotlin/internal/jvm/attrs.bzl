@@ -14,6 +14,7 @@
 """Shared attributes for Kotlin JVM and Android rules."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(
@@ -97,6 +98,11 @@ _runnable_implicit_deps = utils.add_dicts(
             cfg = "target",
             executable = True,
         ),
+        "_native_java_launcher": attr.label(
+            doc = "Windows only: runs java.exe with java.library.path resolved from runfiles.",
+            default = Label("//kotlin/internal/jvm:native_java_launcher"),
+            cfg = "target",
+        ),
         "_windows_constraint": attr.label(
             default = "@platforms//os:windows",
         ),
@@ -132,6 +138,7 @@ _common_attr = utils.add_dicts(
             providers = [
                 [JavaInfo],
                 [_KtJvmInfo],
+                [CcInfo],
             ],
             allow_files = False,
         ),
@@ -197,6 +204,7 @@ _common_attr = utils.add_dicts(
         appear on the runtime classpath, but unlike them, not on the compile-time classpath.""",
             default = [],
             allow_files = False,
+            providers = [[JavaInfo], [CcInfo]],
         ),
         "srcs": attr.label_list(
             doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
@@ -226,7 +234,7 @@ Exported libraries.
 Deps listed here will be made available to other rules, as if the parents explicitly depended on
 these deps. This is not true for regular (non-exported) deps.""",
         default = [],
-        providers = [JavaInfo],
+        providers = [[JavaInfo], [CcInfo]],
     ),
     "neverlink": attr.bool(
         doc = """If true only use this library for compilation and not at runtime.""",

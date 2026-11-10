@@ -1,0 +1,144 @@
+# Kotlin binaries and tests load JNI libraries from their dependencies: each test makes a real
+# native call, reaching the library through a different kind of dependency edge.
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_java//java:defs.bzl", "java_library")
+load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test")
+load(":run_tool.bzl", "run_tool")
+
+# System.loadLibrary("native_lib") looks for the platform's own file name.
+cc_binary(
+    name = "libnative_lib.so",
+    srcs = ["native_lib.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+cc_binary(
+    name = "libnative_lib.dylib",
+    srcs = ["native_lib.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+cc_binary(
+    name = "native_lib.dll",
+    srcs = ["native_lib.cc"],
+    linkshared = True,
+    tags = ["manual"],
+    deps = ["@rules_java//toolchains:jni"],
+)
+
+alias(
+    name = "native_lib",
+    actual = select({
+        "@platforms//os:macos": ":libnative_lib.dylib",
+        "@platforms//os:windows": ":native_lib.dll",
+        "//conditions:default": ":libnative_lib.so",
+    }),
+)
+
+kt_jvm_test(
+    name = "deps_test",
+    srcs = [
+        "NativeLib.kt",
+        "NativeLibTest.kt",
+    ],
+    test_class = "nativelib.NativeLibTest",
+    deps = [
+        ":native_lib",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
+kt_jvm_test(
+    name = "runtime_deps_test",
+    srcs = [
+        "NativeLib.kt",
+        "NativeLibTest.kt",
+    ],
+    test_class = "nativelib.NativeLibTest",
+    runtime_deps = [":native_lib"],
+    deps = ["@kotlin_rules_maven_test//:junit_junit"],
+)
+
+kt_jvm_library(
+    name = "native_lib_kt",
+    srcs = ["NativeLib.kt"],
+    runtime_deps = [":native_lib"],
+)
+
+kt_jvm_test(
+    name = "kt_library_test",
+    srcs = ["NativeLibTest.kt"],
+    test_class = "nativelib.NativeLibTest",
+    deps = [
+        ":native_lib_kt",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
+# A library without srcs only forwards providers.
+kt_jvm_library(
+    name = "exports_native_lib",
+    exports = [":native_lib"],
+)
+
+kt_jvm_test(
+    name = "exports_test",
+    srcs = [
+        "NativeLib.kt",
+        "NativeLibTest.kt",
+    ],
+    test_class = "nativelib.NativeLibTest",
+    deps = [
+        ":exports_native_lib",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "native_lib_java",
+    runtime_deps = [":native_lib"],
+)
+
+kt_jvm_test(
+    name = "java_library_test",
+    srcs = [
+        "NativeLib.kt",
+        "NativeLibTest.kt",
+    ],
+    test_class = "nativelib.NativeLibTest",
+    runtime_deps = [":native_lib_java"],
+    deps = ["@kotlin_rules_maven_test//:junit_junit"],
+)
+
+# Users who already set java.library.path themselves keep their value.
+kt_jvm_test(
+    name = "user_library_path_test",
+    srcs = ["LibraryPathOverrideTest.kt"],
+    jvm_flags = ["-Djava.library.path='user supplied'"],
+    test_class = "nativelib.LibraryPathOverrideTest",
+    runtime_deps = [":native_lib"],
+    deps = ["@kotlin_rules_maven_test//:junit_junit"],
+)
+
+kt_jvm_binary(
+    name = "tool",
+    srcs = ["Tool.kt"],
+    main_class = "nativelib.ToolKt",
+    deps = [":native_lib_kt"],
+)
+
+# Fails to build unless the binary can make the native call from the execroot.
+run_tool(
+    name = "tool_output",
+    tool = ":tool",
+)
+
+build_test(
+    name = "binary_as_tool_test",
+    targets = [":tool_output"],
+)
