@@ -69,3 +69,8 @@ bazel test //src/test/kover:report_test
 This test invokes the Kover CLI with Bazel-generated metadata and checks covered,
 missed, and excluded code. It saves `report.xml` and `exercise_test-kover_report.ic`
 under `bazel-testlogs/src/test/kover/report_test/test.outputs/`.
+
+Reports include Kotlin target JARs selected by `--instrumentation_filter`. The default
+filter for this example covers `//app`; widen it to report on other packages.
+Standalone `java_library` dependencies do not contribute report JARs. Java sources
+compiled as part of a Kotlin target are included with that target.

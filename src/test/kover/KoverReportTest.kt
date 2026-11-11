@@ -23,12 +23,18 @@ class KoverReportTest {
     assertTrue("Missing or empty ${raw.name}", raw.length() > 0)
     val outputs = File(System.getenv("TEST_UNDECLARED_OUTPUTS_DIR"))
     raw.copyTo(outputs.resolve(raw.name))
+    val metadata = dir.resolve("exercise_test-kover_metadata.txt")
+    val classfiles = metadata.readLines().zipWithNext()
+      .filter { (flag, _) -> flag == "--classfiles" }
+      .map { (_, path) -> path }
+    assertEquals("only instrumented JARs", listOf("src/test/kover/subject.jar"), classfiles)
     val xml = outputs.resolve("report.xml")
-    run(workspace, cli, "@${dir.resolve("exercise_test-kover_metadata.txt")}", "--xml", xml.path)
+    run(workspace, cli, "@$metadata", "--xml", xml.path)
     assertTrue("Missing source from test runfiles", dir.resolve("Subject.kt").isFile)
 
     val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml)
     val xpath = XPathFactory.newInstance().newXPath()
+    assertEquals("only the instrumented, non-excluded class", "1", xpath.evaluate("count(//class)", document))
     fun lines(method: String, counter: String): String = xpath.evaluate(
       "//class[@name='kover/Subject']/method[@name='$method']/counter[@type='LINE']/@$counter",
       document,
