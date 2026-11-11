@@ -26,8 +26,7 @@
 # Notes :
 #
 # 1. Run the report CLI from the test's runfiles workspace, where both its arguments and
-#    the agent's raw report resolve. See examples/kover for a --run_under wrapper that
-#    saves the result before the test sandbox is removed.
+#    the agent's raw report resolve. See src/test/kover for report generation and validation.
 #
 # 2. For mixed sourceset, disabling JaCoCo instrumenation is required. To do this properly,
 #    one should add an extra parameter to java_common.compile() API, which require modifying both
@@ -39,7 +38,6 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     _paths = "paths",
 )
-load("@rules_java//java:defs.bzl", "JavaInfo")
 load(
     "//kotlin/internal:defs.bzl",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
@@ -142,11 +140,12 @@ def create_kover_metadata_action(
         for dep in deps
         if InstrumentedFilesInfo in dep
     ])
-    runtime_jars = depset(transitive = [
-        dep[JavaInfo].transitive_runtime_jars
+    metadata_files = depset(transitive = [
+        dep[InstrumentedFilesInfo].metadata_files
         for dep in deps
-        if JavaInfo in dep
+        if InstrumentedFilesInfo in dep
     ])
+    instrumented_jars = depset([file for file in metadata_files.to_list() if file.extension == "jar"])
 
     # The CLI reads one literal argument per line, relative to the test's runfiles workspace.
     args = ctx.actions.args()
@@ -162,7 +161,7 @@ def create_kover_metadata_action(
         uniquify = True,
     )
     args.add_all(
-        runtime_jars,
+        instrumented_jars,
         before_each = "--classfiles",
         map_each = _runfiles_path,
         uniquify = True,
@@ -182,7 +181,7 @@ def create_kover_metadata_action(
 
     ctx.actions.write(kover_output_metadata_file, args)
 
-    return depset([kover_output_metadata_file], transitive = [instrumented_files, runtime_jars])
+    return depset([kover_output_metadata_file], transitive = [instrumented_files, instrumented_jars])
 
 def create_kover_runtime(ctx):
     """Creates the agent flags and files used by Kotlin test launchers.

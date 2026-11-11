@@ -8,5 +8,6 @@ class ExerciseTest {
   fun callsOneMethod() {
     assertEquals("covered", Subject().called())
     assertEquals("excluded", Generated().value())
+    assertEquals("outside filter", OutsideFilter().value())
   }
 }

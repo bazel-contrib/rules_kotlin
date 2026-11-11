@@ -978,6 +978,7 @@ def _kt_jvm_produce_output_jar_actions(
         source_attributes = ["srcs"],
         dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
         extensions = ["kt", "java"],
+        metadata_files = [output_jar] if ctx.coverage_instrumented() else [],
     )
 
     return struct(
