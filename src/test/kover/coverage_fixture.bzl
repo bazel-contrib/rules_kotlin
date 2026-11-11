@@ -4,7 +4,7 @@ def _coverage_settings(settings, _attr):
     return {
         "//command_line_option:collect_code_coverage": True,
         "//command_line_option:extra_toolchains": [str(Label(":toolchain"))] + settings["//command_line_option:extra_toolchains"],
-        "//command_line_option:instrumentation_filter": "^//src/test/kover[/:]",
+        "//command_line_option:instrumentation_filter": "^//src/test/kover[/:],-//src/test/kover:outside_filter$",
     }
 
 _coverage = transition(
