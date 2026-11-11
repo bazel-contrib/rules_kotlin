@@ -5,12 +5,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.xpath.XPathFactory
 
 class KoverReportTest {
   @Test
-  fun reportDistinguishesExecutedAndUnexecutedMethods() {
+  fun reportMatchesGolden() {
     val fixture = File(System.getProperty("fixture"))
     val cli = File(System.getProperty("cli")).absoluteFile
     val workspace = File(System.getenv("TEST_TMPDIR"), "runfiles/workspace").apply { mkdirs() }
@@ -34,18 +32,11 @@ class KoverReportTest {
     run(workspace, cli, "@$metadata", "--xml", xml.path)
     assertTrue("Missing source from test runfiles", dir.resolve("Subject.kt").isFile)
 
-    val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml)
-    val xpath = XPathFactory.newInstance().newXPath()
-    assertEquals("only the instrumented, non-excluded class", "1", xpath.evaluate("count(//class)", document))
-    fun lines(method: String, counter: String): String = xpath.evaluate(
-      "//class[@name='kover/Subject']/method[@name='$method']/counter[@type='LINE']/@$counter",
-      document,
+    assertEquals(
+      "Kover XML report",
+      File(System.getProperty("expected_report")).readText().replace("\r\n", "\n"),
+      xml.readText().replace("\r\n", "\n"),
     )
-    assertEquals("covered lines in called()", "1", lines("called", "covered"))
-    assertEquals("covered lines in skipped()", "0", lines("skipped", "covered"))
-    assertEquals("missed lines in skipped()", "1", lines("skipped", "missed"))
-    val excluded = xpath.evaluate("count(//class[@name='kover/Generated'])", document)
-    assertEquals("excluded class", "0", excluded)
   }
 
   private fun run(workspace: File, program: File, vararg args: String) {
