@@ -83,12 +83,14 @@ kt_jvm_test(
     size = "small",
     srcs = ["KoverReportTest.kt"],
     data = [
+        "report.expected.xml",
         ":fixture",
         ":kover_cli",
     ],
     jvm_flags = [
         "-Dfixture=$(rootpath :fixture)",
         "-Dcli=$(rootpath :kover_cli)",
+        "-Dexpected_report=$(rootpath report.expected.xml)",
     ],
     test_class = "kover.KoverReportTest",
     deps = ["@kotlin_rules_maven_test//:junit_junit"],
