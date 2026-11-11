@@ -20,21 +20,14 @@
 # How to use?
 #
 # Supply the version of Kover agent via toolchain (typically from jvm_rules_extrenal),
-# and enable Kover. Then run `bazel coverage //your/kotlin/test_target`. Output files
-# are created in working module directory (along test/library explicity outputs).
+# and enable Kover. The agent writes its report in the test's runfiles workspace.
 #
 #
 # Notes :
 #
-# 1. Because Bazel test/coverage are 'terminal' and actions or aspects can't reuse the output
-#    of these, the generation of the report is done outside bazel (typically
-#    from Bazel wrapper). The logic here will generate both raw output (*.ic file) and
-#    a metadata file ready to provide to Kover CLI, so that one can generate report simply by
-#    running : `java -jar kover-cli.jar report @path_to_metadat_file <options>`
-#
-#    We could possibly generate the report by hijacking test runner shell script template
-#    and injecting this command to executed after tests are run. This is rather hacky
-#    and is likely to require changes to Bazel project.
+# 1. Run the report CLI from the test's runfiles workspace, where both its arguments and
+#    the agent's raw report resolve. See examples/kover for a --run_under wrapper that
+#    saves the result before the test sandbox is removed.
 #
 # 2. For mixed sourceset, disabling JaCoCo instrumenation is required. To do this properly,
 #    one should add an extra parameter to java_common.compile() API, which require modifying both
@@ -90,20 +83,11 @@ def get_kover_jvm_flags(kover_agent_file, kover_args_file):
     ]
     return jvm_args
 
-def _source_to_kover_arg(src):
-    return "--src\n%s" % _paths.dirname(src.short_path)
+def _source_dir(src):
+    return _paths.dirname(src.short_path) or "."
 
-def _classfile_to_kover_arg(classfile):
-    return "--classfiles\n%s" % classfile.short_path
-
-def _exclude_to_kover_arg(exclude):
-    return "--exclude\n%s" % exclude
-
-def _exclude_annotation_to_kover_arg(exclude_annotation):
-    return "--excludeAnnotation\n%s" % exclude_annotation
-
-def _exclude_inherited_from_to_kover_arg(exclude_inherited_from):
-    return "--excludeInheritedFrom\n%s" % exclude_inherited_from
+def _runfiles_path(file):
+    return file.short_path
 
 def create_kover_agent_actions(ctx, name):
     """Generate the actions needed to emit Kover code coverage metadata file.
@@ -122,8 +106,7 @@ def create_kover_agent_actions(ctx, name):
     binary_output_name = "%s-kover_report.ic" % name
     kover_output_file = ctx.actions.declare_file(binary_output_name)
 
-    # Declare an initial output without relying on a shell command so this also
-    # works on Windows. The Kover agent replaces it when the test runs.
+    # The agent writes this relative name in the test sandbox during execution.
     ctx.actions.write(kover_output_file, "")
 
     # declare args file - https://kotlin.github.io/kotlinx-kover/jvm-agent/#kover-jvm-arguments-file
@@ -153,7 +136,7 @@ def create_kover_metadata_action(
         kover_output_file: The Kover output file.
 
     Returns:
-        The kover output metadata file.
+        A depset containing the CLI argument file and the sources and JARs it names.
     """
     metadata_output_name = "%s-kover_metadata.txt" % name
     kover_output_metadata_file = ctx.actions.declare_file(metadata_output_name)
@@ -169,39 +152,38 @@ def create_kover_metadata_action(
         if JavaInfo in dep
     ])
 
+    # The CLI reads one literal argument per line, relative to the test's runfiles workspace.
     args = ctx.actions.args()
+    args.set_param_file_format("multiline")
     args.add("report")
     args.add(kover_output_file.short_path)
     args.add("--title")
     args.add("Code-Coverage Analysis: %s" % ctx.label)
-    args.add_joined(
+    args.add_all(
         instrumented_files,
-        join_with = "\n",
-        map_each = _source_to_kover_arg,
+        before_each = "--src",
+        map_each = _source_dir,
         uniquify = True,
     )
-    args.add_joined(
+    args.add_all(
         runtime_jars,
-        join_with = "\n",
-        map_each = _classfile_to_kover_arg,
+        before_each = "--classfiles",
+        map_each = _runfiles_path,
         uniquify = True,
     )
-    args.add_joined(
+    args.add_all(
         ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude,
-        join_with = "\n",
-        map_each = _exclude_to_kover_arg,
+        before_each = "--exclude",
     )
-    args.add_joined(
+    args.add_all(
         ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude_annotation,
-        join_with = "\n",
-        map_each = _exclude_annotation_to_kover_arg,
+        before_each = "--excludeAnnotation",
     )
-    args.add_joined(
+    args.add_all(
         ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude_inherited_from,
-        join_with = "\n",
-        map_each = _exclude_inherited_from_to_kover_arg,
+        before_each = "--excludeInheritedFrom",
     )
 
     ctx.actions.write(kover_output_metadata_file, args)
 
-    return kover_output_metadata_file
+    return depset([kover_output_metadata_file], transitive = [instrumented_files, runtime_jars])

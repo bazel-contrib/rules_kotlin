@@ -21,16 +21,15 @@ def _get_kover_jvm_flags_test_impl(ctx):
     """Test that get_kover_jvm_flags generates correct JVM agent flags including bootclasspath."""
     env = unittest.begin(ctx)
 
-    # Create mock file objects with short_path attribute
-    mock_agent_file = struct(short_path = "external/kover/kover-jvm-agent.jar")
-    mock_args_file = struct(short_path = "bazel-out/k8-fastbuild/bin/test-kover.args.txt")
+    mock_agent_file = struct(short_path = "../kover/kover-jvm-agent.jar")
+    mock_args_file = struct(short_path = "app/test-kover.args.txt")
 
     result = get_kover_jvm_flags(mock_agent_file, mock_args_file)
 
     # Both flags must remain separate JVM arguments.
     expected = [
-        "-Xbootclasspath/a:external/kover/kover-jvm-agent.jar",
-        "-javaagent:external/kover/kover-jvm-agent.jar=file:bazel-out/k8-fastbuild/bin/test-kover.args.txt",
+        "-Xbootclasspath/a:../kover/kover-jvm-agent.jar",
+        "-javaagent:../kover/kover-jvm-agent.jar=file:app/test-kover.args.txt",
     ]
     asserts.equals(env, expected, result)
 

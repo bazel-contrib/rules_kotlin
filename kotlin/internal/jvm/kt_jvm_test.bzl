@@ -81,7 +81,7 @@ def _process_test_launcher(context):
     ctx = context.ctx
     providers = context.outputs["JvmCompileProcessor"]
 
-    coverage_runfiles = []
+    coverage_runfiles = depset()
     coverage_inputs = []
     coverage_jvm_flags = []
 
@@ -89,7 +89,7 @@ def _process_test_launcher(context):
         if _is_kover_enabled(ctx):
             kover_agent_file = _get_kover_agent_file(ctx)
             kover_output_file, kover_args_file = _create_kover_agent_actions(ctx, ctx.attr.name)
-            kover_output_metadata_file = _create_kover_metadata_action(
+            report_runfiles = _create_kover_metadata_action(
                 ctx,
                 ctx.attr.name,
                 ctx.attr.deps + ctx.attr.associates,
@@ -100,10 +100,10 @@ def _process_test_launcher(context):
             # add Kover agent jvm_flag, inputs and outputs
             coverage_jvm_flags = flags
             coverage_inputs = [depset([kover_agent_file])]
-            coverage_runfiles = [kover_args_file, kover_output_metadata_file]
+            coverage_runfiles = depset([kover_args_file], transitive = [report_runfiles])
         else:
             jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
-            coverage_runfiles = jacocorunner.files.to_list()
+            coverage_runfiles = jacocorunner.files
 
     test_class = _infer_test_class(ctx)
 
@@ -138,7 +138,7 @@ def _process_test_launcher(context):
             executable = launcher_result.executable,
             transitive_files = depset(
                 order = "default",
-                transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.coverage_metadata), java_runtime.files],
+                transitive = [runtime_jars, coverage_runfiles, depset(launcher_result.coverage_metadata), java_runtime.files],
             ),
         ),
         runfiles = None,
