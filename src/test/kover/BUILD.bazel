@@ -2,6 +2,7 @@ load("@rules_java//java:defs.bzl", "java_binary")
 load("//kotlin:core.bzl", "define_kt_toolchain")
 load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 load(":coverage_fixture.bzl", "coverage_fixture")
+load(":metadata_test.bzl", "filtered_metadata_test", "module_metadata_test")
 
 define_kt_toolchain(
     name = "toolchain",
@@ -55,6 +56,26 @@ coverage_fixture(
     name = "fixture",
     testonly = True,
     test = ":exercise_test",
+)
+
+filtered_metadata_test(
+    name = "filtered_metadata_test",
+    expected_jars = ["src/test/kover/subject.jar"],
+    expected_sources = ["src/test/kover/Subject.kt"],
+    target_under_test = ":exercise_test",
+)
+
+module_metadata_test(
+    name = "module_metadata_test",
+    expected_jars = [
+        "src/test/kover/outside_filter.jar",
+        "src/test/kover/subject.jar",
+    ],
+    expected_sources = [
+        "src/test/kover/OutsideFilter.kt",
+        "src/test/kover/Subject.kt",
+    ],
+    target_under_test = ":exercise_test",
 )
 
 kt_jvm_test(
