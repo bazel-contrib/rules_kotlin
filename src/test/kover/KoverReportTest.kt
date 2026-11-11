@@ -1,6 +1,7 @@
 package kover
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -17,6 +18,7 @@ class KoverReportTest {
       File(path).copyTo(workspace.resolve(path))
     }
     val dir = workspace.resolve(fixture.parent)
+    assertFalse("Kover fixture must not use JaCoCo", dir.resolve("exercise_test.jacoco_metadata.txt").exists())
     val raw = dir.resolve("exercise_test-kover_report.ic")
     run(workspace, fixture.absoluteFile)
 
