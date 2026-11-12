@@ -13,6 +13,7 @@
     "javax.inject:javax.inject": -297932879,
     "junit:junit": 373369075,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core": 1254427323,
+    "org.jetbrains.kotlinx:kover-jvm-agent": -677408209,
     "repositories": 582576641
   },
   "__RESOLVED_ARTIFACTS_HASH": {
@@ -97,6 +98,8 @@
     "org.jetbrains.kotlin:kotlin-stdlib:jar:sources": 1119042874,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core": -2101682300,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources": -1493138165,
+    "org.jetbrains.kotlinx:kover-jvm-agent": -165399876,
+    "org.jetbrains.kotlinx:kover-jvm-agent:jar:sources": 768828662,
     "org.jetbrains:annotations": 554168982,
     "org.jetbrains:annotations:jar:sources": 1226441379,
     "org.jspecify:jspecify": 117231129,
@@ -390,6 +393,13 @@
         "sources": "37131e26d85c4d8c7e16b05e524ce00998aee543e6d77b6f0351a475f9f6815e"
       },
       "version": "1.4.2"
+    },
+    "org.jetbrains.kotlinx:kover-jvm-agent": {
+      "shasums": {
+        "jar": "3c07bdf995edce414d078dbd9725cd78c49f9cce871831264d09fa1f7ea067ed",
+        "sources": "d296554c07918b237cd464071b169944fdf01f0dc620671100faee817d9cc736"
+      },
+      "version": "0.8.3"
     },
     "org.jetbrains:annotations": {
       "shasums": {
@@ -964,6 +974,31 @@
       "kotlinx.coroutines.sync",
       "kotlinx.coroutines.test"
     ],
+    "org.jetbrains.kotlinx:kover-jvm-agent": [
+      "com.intellij.rt.coverage.data",
+      "com.intellij.rt.coverage.data.instructions",
+      "com.intellij.rt.coverage.instrumentation",
+      "com.intellij.rt.coverage.instrumentation.data",
+      "com.intellij.rt.coverage.instrumentation.dataAccess",
+      "com.intellij.rt.coverage.instrumentation.filters",
+      "com.intellij.rt.coverage.instrumentation.filters.branches",
+      "com.intellij.rt.coverage.instrumentation.filters.classFilter",
+      "com.intellij.rt.coverage.instrumentation.filters.classes",
+      "com.intellij.rt.coverage.instrumentation.filters.compose",
+      "com.intellij.rt.coverage.instrumentation.filters.lines",
+      "com.intellij.rt.coverage.instrumentation.filters.methods",
+      "com.intellij.rt.coverage.instrumentation.testTracking",
+      "com.intellij.rt.coverage.instrumentation.util",
+      "com.intellij.rt.coverage.main",
+      "com.intellij.rt.coverage.report",
+      "com.intellij.rt.coverage.util",
+      "com.intellij.rt.coverage.util.classFinder",
+      "kotlinx.kover.jvmagent",
+      "org.jetbrains.coverage.gnu.trove",
+      "org.jetbrains.coverage.org.objectweb.asm",
+      "org.jetbrains.coverage.org.objectweb.asm.commons",
+      "org.jetbrains.coverage.org.objectweb.asm.tree"
+    ],
     "org.jetbrains:annotations": [
       "org.intellij.lang.annotations",
       "org.jetbrains.annotations"
@@ -1059,6 +1094,8 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
+      "org.jetbrains.kotlinx:kover-jvm-agent",
+      "org.jetbrains.kotlinx:kover-jvm-agent:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources",
       "org.jspecify:jspecify",
@@ -1148,6 +1185,8 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
+      "org.jetbrains.kotlinx:kover-jvm-agent",
+      "org.jetbrains.kotlinx:kover-jvm-agent:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources",
       "org.jspecify:jspecify",
@@ -1237,6 +1276,8 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
+      "org.jetbrains.kotlinx:kover-jvm-agent",
+      "org.jetbrains.kotlinx:kover-jvm-agent:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources",
       "org.jspecify:jspecify",
