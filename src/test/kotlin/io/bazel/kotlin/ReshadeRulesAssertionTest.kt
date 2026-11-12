@@ -28,6 +28,38 @@ import java.util.jar.JarFile
  */
 class ReshadeRulesAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/reshade") {
   @Test
+  fun testPluginTypeNamesStayUnchangedWhileClassReferencesAreRelocated() {
+    for (dialect in listOf("dist", "embeddable")) {
+      jarTestCase("dialect_fixture_${dialect}_reshaded.jar") {
+        val references = classFileText("plugin/PluginStub.class")
+        for (name in listOf(
+          "com.google.common.collect.ImmutableList",
+          "com.google.common.collect.ImmutableSet",
+          "com.google.common.collect.ImmutableEnumSet",
+          "com.google.common.collect.ImmutableMap",
+          "com.google.common.collect.ImmutableEnumMap",
+          "kotlinx.collections.immutable.PersistentList",
+        )) {
+          check(name in references) { "user type name $name must stay unchanged" }
+        }
+        check("org.jetbrains.kotlin.google.common.collect" !in references)
+        check("org.jetbrains.kotlin.kotlinx.collections.immutable.PersistentList" !in references)
+        check("Lorg/jetbrains/kotlin/google/common/GuavaStub;" in references) {
+          "the actual Guava class reference must still be relocated"
+        }
+        check("com/google/common/GuavaStub" !in references)
+        val service = "META-INF/services/org.jetbrains.kotlin.google.common.GuavaStub"
+        assertContainsEntries(service)
+        assertDoesNotContainEntries("META-INF/services/com.google.common.GuavaStub")
+        check(getInputStream(getJarEntry(service)).bufferedReader().use { it.readText().trim() } ==
+          "org.jetbrains.kotlin.google.common.GuavaStub") {
+          "service provider names must still be relocated"
+        }
+      }
+    }
+  }
+
+  @Test
   fun testEmbeddableRulesRelocateOnlyTheShadedPackages() {
     jarTestCase(
       "dialect_fixture_embeddable_reshaded.jar",
