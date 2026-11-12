@@ -1,4 +1,4 @@
-"""A cc toolchain for analyzing Windows targets; it is never executed."""
+"""A stub Windows cc toolchain with no tools, for analysis tests only."""
 
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
@@ -6,7 +6,7 @@ load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfig
 def _impl(ctx):
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
-        toolchain_identifier = "windows_analysis",
+        toolchain_identifier = "stub_windows",
         target_system_name = "x86_64-pc-windows-msvc",
         target_cpu = "x64_windows",
         target_libc = "msvcrt",
@@ -15,7 +15,7 @@ def _impl(ctx):
         abi_libc_version = "local",
     )
 
-windows_cc_toolchain_config = rule(
+stub_windows_cc_toolchain_config = rule(
     implementation = _impl,
     provides = [CcToolchainConfigInfo],
 )
