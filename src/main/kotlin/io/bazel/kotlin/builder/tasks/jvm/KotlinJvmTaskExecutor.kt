@@ -17,9 +17,12 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.tasks.JvmTaskExecutor
+import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.newSourceDependencies
+import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.writeJdeps
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import io.bazel.kotlin.builder.utils.jars.SourceDependenciesFile
 import io.bazel.kotlin.model.JvmCompilationTask
 
 /**
@@ -65,6 +68,7 @@ class KotlinJvmTaskExecutor(
 
     context.execute("compile classes") {
       preprocessedTask.apply {
+        val sourceDependencies = newSourceDependencies(this)
         listOf(
           runCatching {
             context.execute("kotlinc") {
@@ -77,15 +81,10 @@ class KotlinJvmTaskExecutor(
                       .given(outputs.jdeps)
                       .notEmpty {
                         plugin(plugins.jdeps) {
-                          flag("output", outputs.jdeps)
-                          flag("target_label", info.label)
-                          inputs.directDependenciesList.forEach {
-                            flag("direct_dependencies", it)
-                          }
+                          flag("output", sourceDependencies.toString())
                           inputs.classpathList.forEach {
                             flag("full_classpath", it)
                           }
-                          flag("strict_kotlin_deps", info.strictKotlinDeps)
                         }
                       }.append(codeGenArgs())
                       .given(outputs.abijar)
@@ -135,6 +134,13 @@ class KotlinJvmTaskExecutor(
           first.apply(context::printCompilerOutput)
           second?.let {
             throw it
+          }
+        }
+
+        // Without Kotlin sources, the compilation writes empty jdeps.
+        if (compileKotlin && inputs.kotlinSourcesList.isNotEmpty() && outputs.jdeps.isNotEmpty()) {
+          context.execute("write jdeps") {
+            writeJdeps(context, this, SourceDependenciesFile.read(sourceDependencies).values)
           }
         }
 

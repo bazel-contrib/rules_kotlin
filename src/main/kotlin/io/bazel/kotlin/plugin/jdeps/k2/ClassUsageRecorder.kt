@@ -14,10 +14,26 @@ import org.jetbrains.kotlin.name.ClassId
 
 private const val ANONYMOUS = "<anonymous>"
 
-class ClassUsageRecorder(
-  internal val explicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
-  internal val implicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
-) {
+/** The classes one source uses. */
+internal class SourceClasses {
+  /** The classes the source uses explicitly. */
+  val explicit: MutableSet<String> = linkedSetOf()
+
+  /** The classes the source needs implicitly, e.g. for a supertype. */
+  val implicit: MutableSet<String> = linkedSetOf()
+}
+
+/**
+ * The classes the analyzed sources use, by the path of the source using them. A usage outside a
+ * source file is recorded under the empty path.
+ */
+class ClassUsageRecorder {
+  internal val classesBySource = LinkedHashMap<String, SourceClasses>()
+
+  /** Records an analyzed source, so that it is listed even if it uses no classes. */
+  internal fun recordSource(path: String): SourceClasses =
+    classesBySource.getOrPut(path) { SourceClasses() }
+
   internal fun recordTypeRef(
     typeRef: FirTypeRef,
     context: CheckerContext,
@@ -70,7 +86,7 @@ class ClassUsageRecorder(
       visited.add(classIdAndIsExplicit)
     }
 
-    firClass.sourceElement?.binaryClass()?.let { addFile(it, isExplicit) }
+    firClass.sourceElement?.binaryClass()?.let { addFile(it, isExplicit, context) }
 
     if (firClass is FirClassSymbol<*>) {
       firClass.resolvedSuperTypeRefs.forEach {
@@ -86,19 +102,22 @@ class ClassUsageRecorder(
 
   internal fun recordClass(
     binaryClass: String,
+    context: CheckerContext,
     isExplicit: Boolean = true,
   ) {
-    addFile(binaryClass, isExplicit)
+    addFile(binaryClass, isExplicit, context)
   }
 
   private fun addFile(
     path: String,
     isExplicit: Boolean,
+    context: CheckerContext,
   ) {
+    val classes = recordSource(context.containingFile?.path.orEmpty())
     if (isExplicit) {
-      explicitClassesCanonicalPaths.add(path)
+      classes.explicit.add(path)
     } else {
-      implicitClassesCanonicalPaths.add(path)
+      classes.implicit.add(path)
     }
   }
 }
