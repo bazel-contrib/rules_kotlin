@@ -15,6 +15,7 @@
 
 load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
+load("//kotlin:wasmjs.bzl", "kt_wasmjs_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
 KOTLIN_STDLIBS = [
@@ -65,6 +66,14 @@ def kt_configure_compiler():
 
     _import_artifacts(KOTLINC_ARTIFACTS.jvm, kt_jvm_import)
     _import_artifacts(KOTLINC_ARTIFACTS.core, kt_jvm_import)
+
+    # The Kotlin/WasmJs standard library of the compiler distribution.
+    for (label, file) in KOTLINC_ARTIFACTS.wasmjs.runtime.items():
+        kt_wasmjs_import(
+            name = label,
+            klib = "@%s//:%s" % (_KT_COMPILER_REPO, label),
+            visibility = ["//visibility:public"],
+        )
 
     # The Build Tools API interfaces are distributed as a separate jar from Kotlin 2.4.0 onwards.
     kt_jvm_import(

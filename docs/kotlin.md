@@ -663,3 +663,79 @@ libraries they need, and the internal compiler plugins in the embeddable dialect
 | <a id="define_kt_toolchain-target_settings"></a>target_settings |  <p align="center"> - </p>   |  `None` |
 
 
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
+
+Public Kotlin/WasmJs rule API.
+
+<a id="kt_wasmjs_import"></a>
+
+## kt_wasmjs_import
+
+<pre>
+load("@rules_kotlin//kotlin:wasmjs.bzl", "kt_wasmjs_import")
+
+kt_wasmjs_import(<a href="#kt_wasmjs_import-name">name</a>, <a href="#kt_wasmjs_import-deps">deps</a>, <a href="#kt_wasmjs_import-exported_compiler_plugins">exported_compiler_plugins</a>, <a href="#kt_wasmjs_import-exported_deps">exported_deps</a>, <a href="#kt_wasmjs_import-klib">klib</a>, <a href="#kt_wasmjs_import-neverlink">neverlink</a>,
+                 <a href="#kt_wasmjs_import-npm_packages">npm_packages</a>, <a href="#kt_wasmjs_import-source_jar">source_jar</a>)
+</pre>
+
+Imports a prebuilt Kotlin/WasmJs klib.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="kt_wasmjs_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="kt_wasmjs_import-deps"></a>deps |  Dependencies of the klib. They reach the link path of the dependents transitively.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_wasmjs_import-exported_compiler_plugins"></a>exported_compiler_plugins |  Compiler plugins that apply to the direct dependents of this target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_wasmjs_import-exported_deps"></a>exported_deps |  Dependencies of the klib that are also on the compiler library path of the direct dependents. They reach the link path of the dependents transitively.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_wasmjs_import-klib"></a>klib |  The klib. It is on the compiler library path of the direct dependents.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="kt_wasmjs_import-neverlink"></a>neverlink |  Whether this target is only on the compiler library path. A neverlink target, its runtime closure and its npm packages never reach a link. Use it for a library that the runtime host of the binary supplies.   | Boolean | optional |  `False`  |
+| <a id="kt_wasmjs_import-npm_packages"></a>npm_packages |  Bare import specifier to npm package files, for the npm packages that the klib needs at runtime, as its embedded `package.json` declares. The npm packages of the dependencies propagate automatically.   | Dictionary: String -> Label | optional |  `{}`  |
+| <a id="kt_wasmjs_import-source_jar"></a>source_jar |  The sources of the klib.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+
+
+<a id="KtWasmJsBinaryInfo"></a>
+
+## KtWasmJsBinaryInfo
+
+<pre>
+load("@rules_kotlin//kotlin:wasmjs.bzl", "KtWasmJsBinaryInfo")
+
+KtWasmJsBinaryInfo(<a href="#KtWasmJsBinaryInfo-dist_directory">dist_directory</a>, <a href="#KtWasmJsBinaryInfo-functions_map_directory">functions_map_directory</a>, <a href="#KtWasmJsBinaryInfo-npm_packages">npm_packages</a>)
+</pre>
+
+Linked Kotlin/WasmJs application; binaryen-optimized when the `optimize` attribute resolves to on.
+
+**FIELDS**
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="KtWasmJsBinaryInfo-dist_directory"></a>dist_directory |  Directory: the Kotlin/WasmJs application. When wasm-opt ran (see the `optimize` attribute) this is the linked output with every .wasm optimized by wasm-opt (non-wasm files copied through), otherwise the plain KotlinLinkWasmJs output (`<ir_output_name>-js`).    |
+| <a id="KtWasmJsBinaryInfo-functions_map_directory"></a>functions_map_directory |  Directory of per-wasm-file symbol maps (wasm-opt --symbolmap), named `<wasm basename without extension>.txt`. None unless wasm-opt ran.    |
+| <a id="KtWasmJsBinaryInfo-npm_packages"></a>npm_packages |  dict[str, struct(specifier, label, files)]: npm packages required at runtime by that binary, keyed by bare import specifier, merged from the transitive runtime closure of the linked module (each `files` is an npm package directory whose root contains a package.json).    |
+
+
+<a id="KtWasmJsInfo"></a>
+
+## KtWasmJsInfo
+
+<pre>
+load("@rules_kotlin//kotlin:wasmjs.bzl", "KtWasmJsInfo")
+
+KtWasmJsInfo(<a href="#KtWasmJsInfo-compile_klibs">compile_klibs</a>, <a href="#KtWasmJsInfo-klib">klib</a>, <a href="#KtWasmJsInfo-link_klibs">link_klibs</a>, <a href="#KtWasmJsInfo-npm_packages">npm_packages</a>, <a href="#KtWasmJsInfo-source_jar">source_jar</a>)
+</pre>
+
+Information required to compile Kotlin to Wasm/JS.
+
+**FIELDS**
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="KtWasmJsInfo-compile_klibs"></a>compile_klibs |  depset(File): klibs visible on the compiler library path of *direct* dependents.    |
+| <a id="KtWasmJsInfo-klib"></a>klib |  File: klib of this module, or None for a target without sources.    |
+| <a id="KtWasmJsInfo-link_klibs"></a>link_klibs |  depset(File): klibs that must be given to the Wasm/JS linker, propagated transitively.    |
+| <a id="KtWasmJsInfo-npm_packages"></a>npm_packages |  depset(struct(specifier, label, files)): npm packages required at runtime by a binary linked with that library, propagated transitively along the runtime (link) closure. `specifier` is the bare import specifier (the npm package name), `label` the npm package target, and `files` its files depset (an npm package directory whose root contains a package.json).    |
+| <a id="KtWasmJsInfo-source_jar"></a>source_jar |  File: sources of this module, or None.    |
+
+
