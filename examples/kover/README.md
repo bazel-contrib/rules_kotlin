@@ -48,7 +48,7 @@ for mode in off strip; do
   bazel coverage --experimental_output_paths="$mode" --strategy=KotlinCompile=sandboxed \
     --modify_execution_info=KotlinCompile=+supports-path-mapping \
     --incompatible_enable_proto_toolchain_resolution --@@protobuf+//bazel/toolchains:prefer_prebuilt_protoc=true \
-    --nocache_test_results --run_under=//app:check_report //app:greeter_test || exit 1
+    --nocache_test_results //app:greeter_test || exit 1
 done
 ```
 
@@ -56,11 +56,21 @@ To inspect the mapping, add `--execution_log_json_file=/tmp/kover-$mode.json` in
 the loop. In the `KotlinCompile` spawn for `//app:greeter`, the `--flagfile` path
 uses `bazel-out/cfg/bin` in strip mode and the configuration directory in off mode.
 
-The wrapper runs Kover CLI 0.8.3 in the test's runfiles workspace after the JVM exits.
-The argument file contains one argument per line. Source and JAR paths are relative
-to that workspace, including files from external repositories. The wrapper checks that
-the XML records a covered line in `Greeter.greet` and saves `greeter.xml` and
-`greeter_test-kover_report.ic` under `bazel-testlogs/app/greeter_test/test.outputs/`.
+These commands run the Kover agent. Its binary report is written inside the test's
+runfiles workspace and is discarded with the test sandbox.
 
-Plain `bazel coverage //app:greeter_test` runs the agent. Use the example wrapper
-to keep its binary report after Bazel discards the test sandbox.
+Report generation and validation live in `//src/test/kover:report_test`. From the
+rules_kotlin repository root, run:
+
+```sh
+bazel test //src/test/kover:report_test
+```
+
+This test invokes the Kover CLI with Bazel-generated metadata and checks covered,
+missed, and excluded code. It saves `report.xml` and `exercise_test-kover_report.ic`
+under `bazel-testlogs/src/test/kover/report_test/test.outputs/`.
+
+Reports include Kotlin target JARs selected by `--instrumentation_filter`. The default
+filter for this example covers `//app`; widen it to report on other packages.
+Standalone `java_library` dependencies do not contribute report JARs. Java sources
+compiled as part of a Kotlin target are included with that target.

@@ -158,7 +158,7 @@ def write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
         # ctx.configuration.runfiles_enabled() is internal to rules_java and not available here.
         runfiles_enabled = True
         coverage_enabled = ctx.configuration.coverage_enabled
-        if coverage_enabled:
+        if coverage_enabled and not _is_kover_enabled(ctx):
             jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
             classpath = rjars.to_list() + jacocorunner.files.to_list()
             jacoco_metadata_file = ctx.actions.declare_file(
