@@ -125,6 +125,7 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
                   *systemFlags,
                   "coverage",
                   *commandFlags,
+                  "--test_output=errors",
                   *coverageTargets,
                 ).onFailThrow()
               }
@@ -136,6 +137,7 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
                   *systemFlags,
                   "coverage",
                   *commandFlags,
+                  "--test_output=errors",
                   "--combined_report=lcov",
                   *coverageTargets,
                 ).onFailThrow()
