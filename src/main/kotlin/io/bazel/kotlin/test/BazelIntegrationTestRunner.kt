@@ -116,8 +116,8 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
                 "--test_output=all",
                 "//...",
               ).onFailThrow()
-              // TODO: Fix Kover coverage on Windows.
-              if (isWindows) {
+              // TODO: Fix coverage for the Kover example on Windows.
+              if (isWindows && workspace.fileName.toString() == "kover") {
                 println("Skipping Kover coverage on Windows integration runs.")
               } else {
                 bazel.run(

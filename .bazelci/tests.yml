@@ -83,14 +83,6 @@ tasks:
     <<: [ *windows, *integration_tests_no_android ]
   windows_unittests:
     <<: [ *windows, *unittests ]
-  windows_coverage:
-    <<: *windows
-    name: "Kotlin JVM test coverage"
-    coverage_flags:
-      # The Windows launcher does not export JACOCO_MAIN_CLASS (bazelbuild/bazel#32479).
-      - "--test_env=JACOCO_MAIN_CLASS=com.google.testing.junit.runner.BazelTestRunner"
-    coverage_targets:
-      - //src/test/kotlin/io/bazel/kotlin/builder/utils:ArgMapTest
   rbe_ubuntu2404:
     <<: *common
     test_targets:

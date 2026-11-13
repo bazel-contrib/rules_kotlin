@@ -1,5 +1,9 @@
+common --enable_platform_specific_config
 common --java_runtime_version=remotejdk_21
 common --tool_java_runtime_version=remotejdk_21
+
+# The Windows launcher does not export JACOCO_MAIN_CLASS (bazelbuild/bazel#32479).
+coverage:windows --test_env=JACOCO_MAIN_CLASS=com.google.testing.junit.runner.BazelTestRunner
 
 # Android build tools use Java 17 language features.
 common --tool_java_language_version=17
