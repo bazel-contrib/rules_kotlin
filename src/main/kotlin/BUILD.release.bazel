@@ -89,7 +89,6 @@ java_binary(
 
 java_binary(
     name = "jdeps_merger",
-    data = KOTLIN_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
@@ -100,7 +99,6 @@ java_binary(
 
 java_binary(
     name = "ksp2",
-    data = KOTLIN_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
