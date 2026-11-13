@@ -96,6 +96,7 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
           *systemFlags,
           "query",
           *commandFlags,
+          "--output=label_kind",
           "kind(\".*_test\", \"//...\")",
         ).ok { process ->
           process.stdOut.toString(UTF_8)
@@ -107,7 +108,10 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
         }
           .also { testTargets ->
             if (testTargets.isNotEmpty()) {
-              val coverageTargets = testTargets.toTypedArray()
+              val coverageTargets = testTargets
+                .filter { !isWindows || it.startsWith("kt_jvm_test rule ") }
+                .map { it.substringAfterLast(' ') }
+                .toTypedArray()
               bazel.run(
                 workspace,
                 *systemFlags,
@@ -116,8 +120,13 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
                 "--test_output=all",
                 "//...",
               ).onFailThrow()
-              // TODO: Fix Kover coverage on Windows.
-              if (isWindows) {
+              if (coverageTargets.isEmpty()) {
+                println("Skipping coverage: no Kotlin JVM test targets.")
+              } else if (isWindows && version < Version.of(8, 5)) {
+                // bazelbuild/bazel#26603 added native Windows coverage support in Bazel 8.5.
+                println("Skipping Windows coverage: the native test wrapper requires Bazel 8.5 or newer.")
+              } else if (isWindows && workspace.fileName.toString() == "kover") {
+                // TODO: Fix coverage for the Kover example on Windows.
                 println("Skipping Kover coverage on Windows integration runs.")
               } else {
                 bazel.run(
@@ -125,6 +134,9 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
                   *systemFlags,
                   "coverage",
                   *commandFlags,
+                  "--test_output=errors",
+                  "--instrument_test_targets",
+                  "--instrumentation_filter=^//",
                   *coverageTargets,
                 ).onFailThrow()
               }
@@ -136,6 +148,9 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
                   *systemFlags,
                   "coverage",
                   *commandFlags,
+                  "--test_output=errors",
+                  "--instrument_test_targets",
+                  "--instrumentation_filter=^//",
                   "--combined_report=lcov",
                   *coverageTargets,
                 ).onFailThrow()

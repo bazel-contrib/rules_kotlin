@@ -63,6 +63,7 @@ _ATTRS = _utils.add_dicts(_attrs.runnable_common_attr, {
         allow_files = True,
     ),
     "_lcov_merger": attr.label(
+        cfg = "exec",
         default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),
     ),
 })
