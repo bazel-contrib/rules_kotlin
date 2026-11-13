@@ -21,27 +21,28 @@ exports_files(["rules_kotlin.jar"])
 java_import(
     name = "worker",
     jars = ["rules_kotlin.jar"],
+    visibility = ["//src:__subpackages__"],
 )
 
-java_import(
+alias(
     name = "jdeps_merger_worker",
-    jars = ["rules_kotlin.jar"],
+    actual = ":worker",
 )
 
-java_import(
+alias(
     name = "ksp2_worker",
-    jars = ["rules_kotlin.jar"],
+    actual = ":worker",
 )
 
-java_import(
+alias(
     name = "ksp2_invoker",
-    jars = ["rules_kotlin.jar"],
+    actual = ":worker",
     visibility = ["//visibility:public"],
 )
 
-java_import(
+alias(
     name = "jdeps-gen",
-    jars = ["rules_kotlin.jar"],
+    actual = ":worker",
     visibility = ["//visibility:public"],
 )
 
