@@ -68,7 +68,11 @@ abstract class BazelIntegrationTestBase {
     ProcessBuilder()
       .command(this.toString(), *args)
       .directory(inDirectory.toFile())
-      .apply { environment().putAll(runfiles.envVars) }
+      .apply {
+        environment().putAll(runfiles.envVars)
+        // The Bazel wrapper uses Bash; preserve labels such as //app:test on Windows.
+        environment()["MSYS2_ARG_CONV_EXCL"] = "*"
+      }
       .start()
       .let { process ->
         println("Running [$fileName ${args.joinToString(" ")}]...")
