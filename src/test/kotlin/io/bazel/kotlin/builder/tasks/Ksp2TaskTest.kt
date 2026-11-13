@@ -25,6 +25,7 @@ import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.getKspClassLoader
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.parseKspOptions
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.fingerprintOf
+import java.io.File
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -355,5 +356,18 @@ class Ksp2TaskTest {
         .containsExactly("B/", "B/Second.class", "a/", "a/First.class")
         .inOrder()
     }
+  }
+
+  @Test
+  fun testBundledInvokerLoadsInTheKspClassLoader() {
+    val workerInvoker = Class.forName("io.bazel.kotlin.ksp2.Ksp2Invoker", false, javaClass.classLoader)
+    val invokerJar = File(workerInvoker.protectionDomain.codeSource.location.toURI())
+    val kspLoader = getKspClassLoader(listOf(invokerJar.absolutePath))
+
+    val invokerClass = kspLoader.loadClass(workerInvoker.name)
+
+    assertThat(invokerClass.classLoader).isSameInstanceAs(kspLoader)
+    assertThat(invokerClass).isNotSameInstanceAs(workerInvoker)
+    assertThat(Ksp2EntryPoint::class.java.isAssignableFrom(invokerClass)).isTrue()
   }
 }

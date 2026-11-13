@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@rules_java//java:defs.bzl", "java_import")
 
-java_import(
+alias(
     name = "compiler",
-    jars = ["compiler.jar"],
+    actual = "//src/main/kotlin:worker",
     visibility = ["//src:__subpackages__"],
 )
