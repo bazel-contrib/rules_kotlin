@@ -122,6 +122,9 @@ class BazelIntegrationTestRunner : BazelIntegrationTestBase() {
               ).onFailThrow()
               if (coverageTargets.isEmpty()) {
                 println("Skipping coverage: no Kotlin JVM test targets.")
+              } else if (isWindows && version < Version.of(8, 5)) {
+                // bazelbuild/bazel#26603 added native Windows coverage support in Bazel 8.5.
+                println("Skipping Windows coverage: the native test wrapper requires Bazel 8.5 or newer.")
               } else if (isWindows && workspace.fileName.toString() == "kover") {
                 // TODO: Fix coverage for the Kover example on Windows.
                 println("Skipping Kover coverage on Windows integration runs.")
