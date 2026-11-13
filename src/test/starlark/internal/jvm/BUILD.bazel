@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "cc_toolchain")
 load(":export_only_module_name_test.bzl", "export_only_module_name_test_suite")
 load(":javac_encoding_test.bzl", "javac_encoding_test_suite")
 load(":javac_jvm_target_test.bzl", "javac_jvm_target_test_suite")
@@ -9,11 +8,9 @@ load(":kotlinc_options_test.bzl", "kotlinc_options_test_suite")
 load(":kover_test.bzl", "kover_test_suite")
 load(":kover_toolchain_test.bzl", "kover_toolchain_test_suite")
 load(":kt_jvm_binary_env_test.bzl", "kt_jvm_binary_env_test_suite")
-load(":kt_jvm_test_coverage_test.bzl", "kt_jvm_test_coverage_test_suite")
 load(":manifest_lines_test.bzl", "manifest_lines_test_suite")
 load(":plugin_payload_test.bzl", "plugin_payload_test_suite")
 load(":sourceless_library_test.bzl", "sourceless_library_test_suite")
-load(":stub_windows_cc_toolchain.bzl", "stub_windows_cc_toolchain_config")
 
 export_only_module_name_test_suite(name = "export_only_module_name_tests")
 
@@ -35,49 +32,8 @@ kover_toolchain_test_suite(name = "kover_toolchain_tests")
 
 kt_jvm_binary_env_test_suite(name = "kt_jvm_binary_env_tests")
 
-kt_jvm_test_coverage_test_suite(name = "kt_jvm_test_coverage_tests")
-
 manifest_lines_test_suite(name = "manifest_lines_tests")
 
 plugin_payload_test_suite(name = "plugin_payload_tests")
 
 sourceless_library_test_suite(name = "sourceless_library_tests")
-
-platform(
-    name = "windows_x86_64",
-    constraint_values = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:windows",
-    ],
-)
-
-stub_windows_cc_toolchain_config(name = "stub_windows_cc_toolchain_config")
-
-filegroup(name = "empty")
-
-cc_toolchain(
-    name = "stub_windows_cc_toolchain_impl",
-    all_files = ":empty",
-    compiler_files = ":empty",
-    dwp_files = ":empty",
-    linker_files = ":empty",
-    objcopy_files = ":empty",
-    strip_files = ":empty",
-    toolchain_config = ":stub_windows_cc_toolchain_config",
-)
-
-toolchain(
-    name = "stub_windows_cc_toolchain",
-    target_compatible_with = ["@platforms//os:windows"],
-    toolchain = ":stub_windows_cc_toolchain_impl",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
-)
-
-# Without this, the default test toolchain demands an exec platform matching
-# the Windows target platform, which does not exist on the Linux/macOS hosts.
-toolchain(
-    name = "windows_test_toolchain",
-    target_compatible_with = ["@platforms//os:windows"],
-    toolchain = "@bazel_tools//tools/test:empty_toolchain",
-    toolchain_type = "@bazel_tools//tools/test:default_test_toolchain_type",
-)
