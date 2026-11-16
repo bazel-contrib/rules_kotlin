@@ -42,13 +42,23 @@ def _artifact_short_path(artifact):
 
 def make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), executable = None, *additional_providers):
     files = [ctx.outputs.jar]
-    if providers.java.outputs.jdeps:
-        files.append(providers.java.outputs.jdeps)
+    validation = []
+    jdeps = providers.java.outputs.jdeps
+    if jdeps:
+        files.append(jdeps)
+
+        # The JdepsMerge action that writes the jdeps file is where experimental_report_unused_deps
+        # fails the build. As a default output it only runs when this target is requested itself, so
+        # a target built only as a dependency (e.g. a kt_jvm_test wrapped by another test rule) was
+        # never checked. Outputs in _validation are built for every target in the build.
+        if ctx.toolchains[_TOOLCHAIN_TYPE].experimental_report_unused_deps != "off":
+            validation.append(jdeps)
 
     return [
         providers.java,
         providers.kt,
         providers.instrumented_files,
+        OutputGroupInfo(_validation = depset(validation)),
         DefaultInfo(
             files = depset(files),
             runfiles = ctx.runfiles(
