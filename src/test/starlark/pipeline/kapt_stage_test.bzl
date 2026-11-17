@@ -29,7 +29,6 @@ def _kapt_stage_reaches_consumers(env, got):
     got_target.action_named("KotlinKapt")
 
     assert_gensrc_reaches_kotlin_compile_and_sources_jar(
-        env,
         got_target,
         env.ctx.file.kapt_gensrc_jar.basename,
         env.ctx.file.sources_jar.short_path,

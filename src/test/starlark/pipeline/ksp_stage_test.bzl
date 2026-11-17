@@ -41,7 +41,6 @@ def _ksp_stage_reaches_consumers(env, got):
     gensrc_jar, class_jar = gensrc_matches[0], class_matches[0]
 
     assert_gensrc_reaches_kotlin_compile_and_sources_jar(
-        env,
         got_target,
         gensrc_jar.basename,
         env.ctx.file.sources_jar.short_path,

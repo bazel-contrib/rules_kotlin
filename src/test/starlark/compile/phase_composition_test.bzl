@@ -7,7 +7,7 @@ load("@rules_java//java:defs.bzl", "java_plugin")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import", "kt_jvm_library", "kt_jvm_test")
-load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
+load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")  # buildifier: disable=bzl-visibility
 load("//src/main/starlark/core/compile:common.bzl", "KtJvmInfo")
 load("//src/test/starlark:case.bzl", "Want", "suite")
 load(":subjects.bzl", "java_info_subject_factory")

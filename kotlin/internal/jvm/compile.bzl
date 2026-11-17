@@ -323,9 +323,7 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
     )
 
 def _resourcejar_resource_specs(ctx, extra_resources = {}):
-    """Build the list of `<fs_path>:<jar_entry>` resource descriptors that
-    singlejar's `--resources` flag accepts.
-    """
+    """Builds singlejar `--resources` descriptors (`<fs_path>:<jar_entry>`)."""
     res_specs = []
 
     # Get the strip prefix from the File object if provided
@@ -999,6 +997,7 @@ def _run_remaining_compile(prep, kapt_result, ksp_result):
     ap_generated_src_jar = None
 
     # Build Kotlin
+    kt_runtime_jar = None
     if has_kt_sources:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:

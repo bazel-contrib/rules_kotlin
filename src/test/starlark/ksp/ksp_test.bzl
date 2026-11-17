@@ -117,8 +117,9 @@ def _test_action(test):
     test.claim(got = got, what = _ksp_action, wants = {})
 
 def _ksp_producer_consumer_edges(env, got):
-    """Verify the KotlinKsp2 action's producer->consumer EDGES (not mere artifact existence):
-    exactly one KotlinKsp2 action runs, and its generated src/class jars actually reach Kotlin
+    """Verifies the KotlinKsp2 action's producer->consumer edges.
+
+    Checks edges, not mere artifact existence: exactly one KotlinKsp2 action runs, and its generated src/class jars actually reach Kotlin
     compile and the runtime jar fold by basename, mirroring the KspProcessor pipeline-stage
     contract asserted at the pipeline level by pipeline/ksp_stage_test.bzl."""
     got_target = env.expect.that_target(got)

@@ -5,14 +5,16 @@ load("@rules_java//java:defs.bzl", "JavaInfo")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo")
-load("//kotlin/internal/jvm:attrs.bzl", _attrs = "attrs")
+load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo")  # buildifier: disable=bzl-visibility
+load("//kotlin/internal/jvm:attrs.bzl", _attrs = "attrs")  # buildifier: disable=bzl-visibility
 load(
+    # buildifier: disable=bzl-visibility
     "//kotlin/internal/jvm:common.bzl",
     _make_providers = "make_providers",
 )
-load("//kotlin/internal/jvm:kt_jvm_library.bzl", LIBRARY_PROCESSORS = "PROCESSORS")
+load("//kotlin/internal/jvm:kt_jvm_library.bzl", LIBRARY_PROCESSORS = "PROCESSORS")  # buildifier: disable=bzl-visibility
 load(
+    # buildifier: disable=bzl-visibility
     "//kotlin/internal/jvm:rule.bzl",
     _COMMON_OUTPUTS = "COMMON_OUTPUTS",
     _COMMON_TOOLCHAINS = "COMMON_TOOLCHAINS",
@@ -30,7 +32,7 @@ def assert_no_action_named(env, got, mnemonic):
     if found:
         env.fail("expected no %s action, found %d" % (mnemonic, len(found)))
 
-def assert_gensrc_reaches_kotlin_compile_and_sources_jar(env, got_target, gensrc_jar_basename, sources_jar_short_path):
+def assert_gensrc_reaches_kotlin_compile_and_sources_jar(got_target, gensrc_jar_basename, sources_jar_short_path):
     """Asserts `gensrc_jar` reaches both KotlinCompile and source-jar packing (shared KAPT/KSP edge)."""
     got_target.action_named("KotlinCompile").inputs().contains_predicate(
         matching.file_basename_equals(gensrc_jar_basename),
@@ -78,7 +80,17 @@ def make_replaceable_stage_rule(processor_name, custom_processor, doc):
     )
 
 def gate_unmet_triad(stage_mnemonic, make_eligible_srcs_plugin):
-    """Returns the (no_processors, no_eligible_srcs, export_only) gate-unmet test triad that must all register no `stage_mnemonic` action."""
+    """Builds the gate-unmet test triad for a pipeline stage.
+
+    Args:
+      stage_mnemonic: mnemonic of the stage action that each test asserts is absent.
+      make_eligible_srcs_plugin: fn(test) -> plugin label; supplies a processor for the
+        no-eligible-srcs case.
+
+    Returns:
+      (no_processors, no_eligible_srcs, export_only) test fns; each asserts no
+      `stage_mnemonic` action is registered.
+    """
 
     def _no_action(env, got):
         assert_no_action_named(env, got, stage_mnemonic)
