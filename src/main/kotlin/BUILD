@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("//third_party:jarjar.bzl", "jar_jar")
 
@@ -13,12 +14,10 @@ jar_jar(
     visibility = ["//visibility:public"],
 )
 
-# The embeddable-dialect variants of the builder's compiler plugins the Build Tools API runtime uses.
-# (see the btapi_*/internal_* toolchain attributes)
 jar_jar(
     name = "jdeps-gen-embeddable",
-    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
-    rules = "shade.embeddable.jarjar",
+    input_jar = ":jdeps-gen.jar",
+    rules = "//kotlin/internal/jvm:kotlin-compiler-embeddable-reshade.jarjar",
     visibility = ["//visibility:public"],
 )
 
@@ -46,18 +45,31 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+java_binary(
+    name = "rules_kotlin_raw",
+    create_executable = False,
+    runtime_deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_lib",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_lib",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_lib",
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
+        "//src/main/kotlin/io/bazel/kotlin/ksp2",
+        "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen-lib",
+        "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen-services",
+    ],
+)
+
+jar_jar(
+    name = "rules_kotlin",
+    input_jar = ":rules_kotlin_raw_deploy.jar",
+    rules = "shade.jarjar",
+)
+
 release_archive(
     name = "pkg",
-    srcs = [
-        ":jdeps-gen.jar",
-        ":jdeps-gen-embeddable.jar",
-    ],
+    srcs = [":rules_kotlin.jar"],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
-        "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [

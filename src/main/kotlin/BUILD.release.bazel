@@ -12,40 +12,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLIN_STDLIBS")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("//kotlin/compiler:compiler.bzl", "KOTLIN_STDLIBS")
+load("//third_party:jarjar.bzl", "jar_jar")
+
+exports_files(["rules_kotlin.jar"])
 
 java_import(
     name = "worker",
-    jars = ["kotlin_worker.jar"],
+    jars = ["rules_kotlin.jar"],
+    visibility = ["//src:__subpackages__"],
 )
 
-java_import(
+alias(
     name = "jdeps_merger_worker",
-    jars = ["jdeps_merger_worker.jar"],
+    actual = ":worker",
 )
 
-java_import(
+alias(
     name = "ksp2_worker",
-    jars = ["ksp2_worker.jar"],
+    actual = ":worker",
 )
 
-java_import(
+alias(
     name = "ksp2_invoker",
-    jars = ["ksp2_invoker.jar"],
+    actual = ":worker",
     visibility = ["//visibility:public"],
 )
 
-java_import(
+alias(
     name = "jdeps-gen",
-    jars = ["jdeps-gen.jar"],
+    actual = ":worker",
     visibility = ["//visibility:public"],
 )
 
-# Embeddable-dialect plugin variants for the Build Tools API runtime override attributes.
-java_import(
+# Derive the BTAPI plugin on demand so the release only ships the distribution dialect.
+jar_jar(
     name = "jdeps-gen-embeddable",
-    jars = ["jdeps-gen-embeddable.jar"],
+    input_jar = "rules_kotlin.jar",
+    rules = "//kotlin/internal/jvm:kotlin-compiler-embeddable-reshade.jarjar",
     visibility = ["//visibility:public"],
 )
 
@@ -85,22 +90,20 @@ java_binary(
 
 java_binary(
     name = "jdeps_merger",
-    data = KOTLIN_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdepsMain",
     visibility = ["//visibility:public"],
-    runtime_deps = [":jdeps_merger_worker"],
+    runtime_deps = [":jdeps_merger_worker"] + KOTLIN_STDLIBS,
 )
 
 java_binary(
     name = "ksp2",
-    data = KOTLIN_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     visibility = ["//visibility:public"],
-    runtime_deps = [":ksp2_worker"],
+    runtime_deps = [":ksp2_worker"] + KOTLIN_STDLIBS,
 )
