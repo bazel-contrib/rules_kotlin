@@ -83,6 +83,19 @@ class ModelDslTest {
   }
 
   @Test
+  fun jarOwnerLabelPrefersTheManifestTargetLabel() {
+    val info = CompilationTaskInfo {
+      label = "//example:library"
+      manifestTargetLabel = "@@//example:library"
+    }
+
+    assertThat(info.jarOwnerLabel).isEqualTo("@@//example:library")
+    assertThat(info.label).isEqualTo("//example:library")
+    assertThat(CompilationTaskInfo { label = "//example:library" }.jarOwnerLabel)
+      .isEqualTo("//example:library")
+  }
+
+  @Test
   fun collectionSnapshotsSurviveBuilderReuseAndSelfReplacement() {
     val paths = mutableListOf("first.jar")
     val original = Inputs(classpathList = paths)

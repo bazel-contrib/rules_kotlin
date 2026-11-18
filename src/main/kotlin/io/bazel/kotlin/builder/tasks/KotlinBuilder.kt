@@ -49,6 +49,7 @@ class KotlinBuilder(
       override val flag: String,
     ) : Flag {
       TARGET_LABEL("--target_label"),
+      MANIFEST_TARGET_LABEL("--manifest_target_label"),
       CLASSPATH("--classpath"),
       DIRECT_DEPENDENCIES("--direct_dependencies"),
       DEPS_ARTIFACTS("--deps_artifacts"),
@@ -150,6 +151,7 @@ class KotlinBuilder(
       }
     return CompilationTaskInfo {
       label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
+      manifestTargetLabel = argMap.optionalSingle(KotlinBuilderFlags.MANIFEST_TARGET_LABEL).orEmpty()
       this.platform = platform
       this.ruleKind = ruleKind
       this.moduleName = moduleName

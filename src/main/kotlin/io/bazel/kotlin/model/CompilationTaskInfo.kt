@@ -17,7 +17,16 @@ data class CompilationTaskInfo(
   val removeDebugInfo: Boolean = false,
   val preserveDeclarationOrder: Boolean = false,
   val removeDataClassCopyIfConstructorIsPrivate: Boolean = false,
+  // The Target-Label spelling of the jar fold (str(ctx.label)); empty falls back to [label].
+  val manifestTargetLabel: String = "",
 ) {
+  /**
+   * The `Target-Label` the builder writes into the manifests of its jars. It matches the spelling of a folded
+   * jar, so a jar keeps its manifest whether or not the fold runs. Jdeps and diagnostics keep using [label].
+   */
+  val jarOwnerLabel: String
+    get() = manifestTargetLabel.ifEmpty { label }
+
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
 
@@ -30,6 +39,7 @@ data class CompilationTaskInfo(
     model: CompilationTaskInfo = CompilationTaskInfo(),
   ) {
     var label = model.label
+    var manifestTargetLabel = model.manifestTargetLabel
     var platform = model.platform
     var ruleKind = model.ruleKind
     var moduleName = model.moduleName
@@ -47,6 +57,8 @@ data class CompilationTaskInfo(
     var removeDataClassCopyIfConstructorIsPrivate = model.removeDataClassCopyIfConstructorIsPrivate
 
     fun label(value: String) = apply { label = value }
+
+    fun manifestTargetLabel(value: String) = apply { manifestTargetLabel = value }
 
     fun platform(value: Platform) = apply { platform = value }
 
@@ -116,6 +128,7 @@ data class CompilationTaskInfo(
     fun build(): CompilationTaskInfo =
       CompilationTaskInfo(
         label = label,
+        manifestTargetLabel = manifestTargetLabel,
         platform = platform,
         ruleKind = ruleKind,
         moduleName = moduleName,

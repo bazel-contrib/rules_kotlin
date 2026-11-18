@@ -5,6 +5,7 @@ load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
 load("//src/test/starlark:case.bzl", "suite")
+load(":util.bzl", "values_for_flag_of")
 
 _ABI_JARS_TOOLCHAIN = Label("//src/test/starlark/rules:abi_jars_toolchain")
 
@@ -25,6 +26,10 @@ def _kotlin_only_writes_final_jars(env, target):
     got_target = env.expect.that_target(target)
     got_target.action_generating(java_outputs[0].class_jar.short_path).mnemonic().equals("KotlinCompile")
     got_target.action_generating(java_outputs[0].compile_jar.short_path).mnemonic().equals("KotlinCompile")
+
+    # With no fold to stamp them, the KotlinBuilder stamps its jars with the Target-Label a fold writes.
+    compile = got_target.action_named("KotlinCompile")
+    values_for_flag_of(compile, "--manifest_target_label").contains_exactly([str(target.label)])
 
 def _resources_fold_the_runtime_jar(env, target):
     fold = env.expect.that_target(target).action_named("KotlinFoldJarsRuntime")

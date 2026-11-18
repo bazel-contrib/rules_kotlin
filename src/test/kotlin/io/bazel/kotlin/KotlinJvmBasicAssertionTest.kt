@@ -16,6 +16,7 @@
 package io.bazel.kotlin
 
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/basic") {
   @Test
@@ -106,6 +107,26 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
       description = "The kotlin rules should support the module_name attribute"
     ) {
       assertContainsEntries("META-INF/hello-module.kotlin_module")
+    }
+  }
+
+  @Test
+  fun testBuilderWrittenJarStampsTheFoldedTargetLabel() {
+    // test_embed_resources has resources, so singlejar folds its jar; test_module_name_lib is Kotlin only, so the
+    // KotlinBuilder writes its jar and no fold runs. Both jars spell Target-Label the same way.
+    var folded = ""
+    jarTestCase("test_embed_resources.jar", description = "A folded jar should be stamped") {
+      folded = checkNotNull(manifest.mainAttributes.getValue("Target-Label"))
+    }
+    check(folded.endsWith("//src/test/data/jvm/basic:test_embed_resources")) { "unexpected folded label $folded" }
+    jarTestCase(
+      "test_module_name_lib.jar",
+      description = "A jar the KotlinBuilder writes should carry the Target-Label spelling of a folded jar",
+    ) {
+      assertEquals(
+        folded.replace(":test_embed_resources", ":test_module_name_lib"),
+        manifest.mainAttributes.getValue("Target-Label"),
+      )
     }
   }
 

@@ -45,7 +45,7 @@ internal fun JvmCompilationTask.createCoverageInstrumentedJar() {
     it.addDirectory(Paths.get(directories.javaClasses))
     it.addDirectory(Paths.get(directories.generatedClasses))
     it.addDirectory(instrumentedClassesDirectory)
-    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.setJarOwner(info.jarOwnerLabel, info.bazelRuleKind)
     it.execute()
   }
 }
