@@ -40,25 +40,37 @@ def process_deps(context):
 def _artifact_short_path(artifact):
     return artifact.short_path
 
+def jdeps_validation_outputs(ctx, jdeps):
+    """Returns the jdeps file as a validation output when unused deps fail the build.
+
+    The JdepsMerge action that writes the jdeps file is where experimental_report_unused_deps = "error"
+    fails the build. As a default output it only runs when this target is requested itself, so a target
+    built only as a dependency (e.g. a kt_jvm_test wrapped by another test rule) was never checked.
+    Outputs in _validation are built for every target in the build. "warn" never fails the build, so it
+    keeps reporting only for requested targets instead of forcing a JdepsMerge on every dependency.
+
+    Args:
+        ctx: the rule context.
+        jdeps: the target's merged jdeps file, or None.
+
+    Returns:
+        A list of files for the _validation output group.
+    """
+    if jdeps and ctx.toolchains[_TOOLCHAIN_TYPE].experimental_report_unused_deps == "error":
+        return [jdeps]
+    return []
+
 def make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), executable = None, *additional_providers):
     files = [ctx.outputs.jar]
-    validation = []
     jdeps = providers.java.outputs.jdeps
     if jdeps:
         files.append(jdeps)
-
-        # The JdepsMerge action that writes the jdeps file is where experimental_report_unused_deps
-        # fails the build. As a default output it only runs when this target is requested itself, so
-        # a target built only as a dependency (e.g. a kt_jvm_test wrapped by another test rule) was
-        # never checked. Outputs in _validation are built for every target in the build.
-        if ctx.toolchains[_TOOLCHAIN_TYPE].experimental_report_unused_deps != "off":
-            validation.append(jdeps)
 
     return [
         providers.java,
         providers.kt,
         providers.instrumented_files,
-        OutputGroupInfo(_validation = depset(validation)),
+        OutputGroupInfo(_validation = depset(jdeps_validation_outputs(ctx, jdeps))),
         DefaultInfo(
             files = depset(files),
             runfiles = ctx.runfiles(

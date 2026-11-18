@@ -40,6 +40,10 @@ load(
     "JavaInfo",
 )
 load(
+    "//kotlin/internal/jvm:common.bzl",
+    _jdeps_validation_outputs = "jdeps_validation_outputs",
+)
+load(
     "//kotlin/internal/jvm:compile.bzl",
     _compile = "compile",
 )
@@ -64,6 +68,9 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
                 providers.kt,
                 providers.java,
             ],
+            # rules_android's finalize exposes the jdeps file in no output group, so without this the
+            # unused deps check would only run when something else happened to need the file.
+            validation_outputs = _jdeps_validation_outputs(ctx, providers.java.outputs.jdeps),
         ),
     )
 
