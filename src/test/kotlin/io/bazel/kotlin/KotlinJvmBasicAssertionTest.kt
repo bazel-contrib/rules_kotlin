@@ -42,6 +42,12 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
       )
     }
     jarTestCase(
+      "test_merge_resourcesjar_no_srcs.jar",
+      description = "the rules should merge the jars of a library without sources and resources"
+    ) {
+      assertContainsEntries("pkg/file.txt")
+    }
+    jarTestCase(
       "test_embed_resources_strip_prefix.jar",
       description = "the rules should support the resource_strip_prefix attribute"
     ) {
