@@ -1234,7 +1234,9 @@ def _run_kt_java_builder_actions(
                 deps = compile_deps.deps,
                 associate_jars = compile_deps.associate_jars,
                 outputs = {"output": output_jdeps},
-                classpath_jars = compile_deps.compile_jars,
+                # The Java half also compiles against the kapt stub jar or the Kotlin output jar,
+                # so its jdeps can name them.
+                classpath_jars = depset(transitive = [compile_deps.compile_jars, _java_infos_to_compile_jars(kt_stubs_for_java)]),
             )
         else:
             ctx.actions.symlink(
