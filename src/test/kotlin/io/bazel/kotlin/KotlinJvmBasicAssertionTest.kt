@@ -131,6 +131,26 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
   }
 
   @Test
+  fun testBuilderWrittenJarHasTheFoldedEntryTimestamps() {
+    // The DOS date and time of each entry kind, as singlejar --normalize writes them in a folded jar.
+    var folded = mapOf<String, Any>()
+    jarTestCase("test_embed_resources.jar", description = "A folded jar should have normalized timestamps") {
+      folded = mapOf(
+        "class" to getJarEntry("testresources/AClass.class").timeLocal,
+        "manifest" to getJarEntry("META-INF/MANIFEST.MF").timeLocal,
+      )
+    }
+    jarTestCase(
+      "test_module_name_lib.jar",
+      description = "A jar the KotlinBuilder writes should have the entry timestamps of a folded jar",
+    ) {
+      assertEquals(folded["class"], getJarEntry("helloworld/Main.class").timeLocal)
+      assertEquals(folded["manifest"], getJarEntry("META-INF/MANIFEST.MF").timeLocal)
+      assertEquals(java.time.LocalDateTime.of(2010, 1, 1, 0, 0, 2), getJarEntry("helloworld/Main.class").timeLocal)
+    }
+  }
+
+  @Test
   fun testManifestLines() {
     jarTestCase(
       "test_manifest_lines_lib.jar",
