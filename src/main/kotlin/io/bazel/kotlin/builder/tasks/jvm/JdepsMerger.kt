@@ -35,6 +35,17 @@ class JdepsMerger {
       REPORT_UNUSED_DEPS("--report_unused_deps"),
     }
 
+    /**
+     * Spells a main-repository label the same way whichever tool wrote it: singlejar writes the
+     * `Target-Label` of a folded jar as `@@//pkg:name`, the KotlinBuilder as `//pkg:name`.
+     */
+    fun normalizeLabel(label: String): String =
+      when {
+        label.startsWith("@@//") -> label.substring(2)
+        label.startsWith("@@") || label.startsWith("@//") -> label.substring(1)
+        else -> label
+      }
+
     fun merge(
       ctx: WorkerContext.TaskContext,
       label: String,
@@ -75,11 +86,8 @@ class JdepsMerger {
         // so we need to make sure wedon't mart the dependency as unused
         // unless all of the jars are unused.
         dependencyMap.values.forEach {
-          var label = readJarOwnerFromManifest(Paths.get(it.path)).label
+          val label = readJarOwnerFromManifest(Paths.get(it.path)).label?.let(::normalizeLabel)
           if (label != null) {
-            if (label.startsWith("@@") || label.startsWith("@/")) {
-              label = label.substring(1)
-            }
             if (kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind) {
               kindMap.put(label, it.kind)
             }

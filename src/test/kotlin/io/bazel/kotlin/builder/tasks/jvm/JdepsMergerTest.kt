@@ -40,8 +40,12 @@ class JdepsMergerTest {
     return Files.createDirectories(wrkDir.resolve("out")).resolve(name)
   }
 
-  fun ktJvmLibrary(label: String, suffix: String = ""): String {
-    val path = Files.createDirectories(wrkDir.resolve("out")).resolve("lib${label}$suffix.jar")
+  fun ktJvmLibrary(
+    label: String,
+    suffix: String = "",
+    fileName: String = "lib${label}$suffix.jar",
+  ): String {
+    val path = Files.createDirectories(wrkDir.resolve("out")).resolve(fileName)
     JarCreator(
       path = path,
       normalize = true,
@@ -335,6 +339,57 @@ class JdepsMergerTest {
     }
     assertThat(result.status).isEqualTo(SUCCESS)
     assertThat(result.log.out.toString()).contains("'remove deps kotlin_dep' //foo/bar:baz")
+  }
+
+  @Test
+  fun `used deps jars of one target with differently spelled labels`() {
+    // An associate with resources: singlejar folds its class jar (`@@//`), and the KotlinBuilder
+    // writes its abi jar (`//`). Using either jar uses the target.
+    val foldedClassJar = ktJvmLibrary("@@//foo:dep", fileName = "dep.jar")
+    val builderAbiJar = ktJvmLibrary("//foo:dep", fileName = "dep.abi.jar")
+    val kotlinJdeps = jdeps("kt.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = foldedClassJar
+          build()
+        },
+      )
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = builderAbiJar
+          build()
+        },
+      )
+    }
+
+    val mergedJdeps = out("merged.jdeps")
+
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            input(kotlinJdeps)
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "error")
+          },
+        )
+      }
+    }
+    assertThat(result.status).isEqualTo(SUCCESS)
+    assertThat(result.log.out.toString()).doesNotContain("remove deps")
+  }
+
+  @Test
+  fun `normalizeLabel spells main and external repository labels alike`() {
+    assertThat(JdepsMerger.normalizeLabel("@@//foo:dep")).isEqualTo("//foo:dep")
+    assertThat(JdepsMerger.normalizeLabel("@//foo:dep")).isEqualTo("//foo:dep")
+    assertThat(JdepsMerger.normalizeLabel("//foo:dep")).isEqualTo("//foo:dep")
+    assertThat(JdepsMerger.normalizeLabel("@@repo+//foo:dep")).isEqualTo("@repo+//foo:dep")
+    assertThat(JdepsMerger.normalizeLabel("@repo+//foo:dep")).isEqualTo("@repo+//foo:dep")
   }
 
   @Test
