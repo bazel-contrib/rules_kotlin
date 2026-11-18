@@ -151,7 +151,8 @@ class KotlinBuilder(
       }
     return CompilationTaskInfo {
       label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
-      manifestTargetLabel = argMap.optionalSingle(KotlinBuilderFlags.MANIFEST_TARGET_LABEL).orEmpty()
+      manifestTargetLabel =
+        argMap.optionalSingle(KotlinBuilderFlags.MANIFEST_TARGET_LABEL).orEmpty()
       this.platform = platform
       this.ruleKind = ruleKind
       this.moduleName = moduleName
