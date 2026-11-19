@@ -84,8 +84,10 @@ def get_kover_jvm_flags(kover_agent_file, kover_args_file):
 def _source_dir(src):
     return _paths.dirname(src.short_path) or "."
 
-def _runfiles_path(file):
-    return file.short_path
+def _jar_runfiles_path(file):
+    if file.extension == "jar" and not file.is_directory:
+        return file.short_path
+    return None
 
 def create_kover_agent_actions(ctx, name):
     """Generate the actions needed to emit Kover code coverage metadata file.
@@ -134,7 +136,7 @@ def create_kover_metadata_action(
         kover_output_file: The Kover output file.
 
     Returns:
-        A depset containing the CLI argument file and the sources and JARs it names.
+        A depset containing the CLI argument file, instrumented sources, and coverage metadata for runfiles.
     """
     metadata_output_name = "%s-kover_metadata.txt" % name
     kover_output_metadata_file = ctx.actions.declare_file(metadata_output_name)
@@ -149,7 +151,6 @@ def create_kover_metadata_action(
         for dep in deps
         if InstrumentedFilesInfo in dep
     ])
-    instrumented_jars = depset([file for file in metadata_files.to_list() if file.extension == "jar"])
 
     # The CLI reads one literal argument per line, relative to the test's runfiles workspace.
     args = ctx.actions.args()
@@ -165,10 +166,11 @@ def create_kover_metadata_action(
         uniquify = True,
     )
     args.add_all(
-        instrumented_jars,
+        metadata_files,
         before_each = "--classfiles",
-        map_each = _runfiles_path,
+        map_each = _jar_runfiles_path,
         uniquify = True,
+        expand_directories = False,
     )
     args.add_all(
         ctx.toolchains[_TOOLCHAIN_TYPE].experimental_kover_exclude,
@@ -185,4 +187,4 @@ def create_kover_metadata_action(
 
     ctx.actions.write(kover_output_metadata_file, args)
 
-    return depset([kover_output_metadata_file], transitive = [instrumented_files, instrumented_jars])
+    return depset([kover_output_metadata_file], transitive = [instrumented_files, metadata_files])
