@@ -60,7 +60,7 @@ _rejects_a_multi_release_value_test = analysistest.make(_rejects_a_multi_release
 
 def _rejects_lines_on_an_export_only_library_test_impl(ctx):
     env = analysistest.begin(ctx)
-    asserts.expect_failure(env, "manifest_lines without srcs or resources is invalid")
+    asserts.expect_failure(env, "manifest_lines without srcs, resources or resource_jars is invalid")
     return analysistest.end(env)
 
 _rejects_lines_on_an_export_only_library_test = analysistest.make(_rejects_lines_on_an_export_only_library_test_impl, expect_failure = True)
@@ -111,9 +111,32 @@ def _manifest_lines_contents():
         tags = ["manual"],
     )
 
+    write_file(
+        name = "manifest_lines_resource_jar",
+        out = "manifest_lines_resources.jar",
+        tags = ["manual"],
+    )
+
+    # No srcs and no resources: the resource jar alone gives the library a jar of its own.
+    kt_jvm_library(
+        name = "manifest_lines_resource_jars_library",
+        srcs = [],
+        manifest_lines = [
+            _MAIN_CLASS_LINE,
+            _PREMAIN_CLASS_LINE,
+        ],
+        resource_jars = ["manifest_lines_resource_jar"],
+        tags = ["manual"],
+    )
+
     _lines_reach_the_runtime_fold_test(
         name = "manifest_lines_reach_the_runtime_fold_test",
         target_under_test = ":manifest_lines_library",
+    )
+
+    _lines_reach_the_runtime_fold_test(
+        name = "manifest_lines_reach_the_runtime_fold_of_resource_jars_test",
+        target_under_test = ":manifest_lines_resource_jars_library",
     )
 
     _rejects_a_line_without_a_value_test(
@@ -143,6 +166,7 @@ def manifest_lines_test_suite(name):
         name = name,
         tests = [
             ":manifest_lines_reach_the_runtime_fold_test",
+            ":manifest_lines_reach_the_runtime_fold_of_resource_jars_test",
             ":manifest_line_without_a_value_is_rejected_test",
             ":manifest_rule_attribute_is_rejected_test",
             ":manifest_multi_release_value_is_rejected_test",

@@ -154,8 +154,8 @@ _common_attr = utils.add_dicts(
         They follow the `Target-Label` and `Injecting-Rule-Kind` attributes the rules write. A line that repeats them,
         `Manifest-Version` or `Created-By` is rejected. As in the `deploy_manifest_lines` attribute of `java_binary`,
         `Multi-Release`, `Add-Exports` and `Add-Opens` lines are not copied as they are: singlejar merges them and writes
-        them in its normalized form, and `Multi-Release` takes `true` or `false`. A target without `srcs` and `resources`
-        has no jar of its own and rejects the attribute.""",
+        them in its normalized form, and `Multi-Release` takes `true` or `false`. A target without `srcs`, `resources`
+        and `resource_jars` has no jar of its own and rejects the attribute.""",
             default = [],
         ),
         "module_name": attr.string(

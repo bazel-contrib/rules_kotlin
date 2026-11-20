@@ -38,7 +38,7 @@ _ATTRS = _attrs.lib_common_attr
 def _process_compile(context):
     """Run the JVM compile engine for the library, or emit export-only providers when it has no jar."""
     ctx = context.ctx
-    providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else _compile.export_only_providers(
+    providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources or ctx.attr.resource_jars else _compile.export_only_providers(
         ctx = ctx,
         actions = ctx.actions,
         outputs = ctx.outputs,
@@ -87,9 +87,9 @@ def kt_jvm_library_impl(ctx):
             "\nTo export libraries use exports.",
             attr = "deps",
         )
-    if not ctx.attr.srcs and not ctx.attr.resources and ctx.attr.manifest_lines:
+    if not ctx.attr.srcs and not ctx.attr.resources and not ctx.attr.resource_jars and ctx.attr.manifest_lines:
         fail(
-            "manifest_lines without srcs or resources is invalid: the target has no jar of its own.",
+            "manifest_lines without srcs, resources or resource_jars is invalid: the target has no jar of its own.",
             attr = "manifest_lines",
         )
     return _processing_pipeline.run(

@@ -64,6 +64,11 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "test_merge_resourcesjar_no_srcs",
+    resource_jars = [":resourcejar"],
+)
+
+kt_jvm_library(
     name = "test_embed_resources_strip_prefix",
     srcs = glob(["testresources/src/*.kt"]),
     resource_strip_prefix = "src/test/data/jvm/basic/testresources/resources",
@@ -131,6 +136,7 @@ filegroup(
         ":test_embed_resources_strip_prefix.jar",
         ":test_manifest_lines_lib.jar",
         ":test_merge_resourcesjar.jar",
+        ":test_merge_resourcesjar_no_srcs.jar",
         ":test_module_name_attr_lib",
         ":test_module_name_bin",
         ":test_module_name_bin.jar",
