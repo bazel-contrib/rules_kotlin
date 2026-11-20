@@ -292,6 +292,10 @@ def _manifest_lines(ctx, rule_attributes):
 
 def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action_type = ""):
     """Set up an action to Fold the input jars into a normalized output jar."""
+    if input_jars == [output_jar]:
+        # The KotlinBuilder wrote the only input at the output path (see _run_kt_java_builder_actions).
+        return
+
     args = ctx.actions.args()
     args.add_all([
         "--normalize",
@@ -920,6 +924,11 @@ def _kt_jvm_produce_output_jar_actions(
         plugins = plugins,
         compile_jar = compile_jar,
         output_jdeps = output_jdeps,
+        # Only the runtime fold adds resources, resource jars and manifest_lines to the jar.
+        runtime_jar = None if (
+            ctx.files.resources or extra_resources or ctx.files.resource_jars or
+            getattr(ctx.attr, "manifest_lines", [])
+        ) else outputs.jar,
     )
     output_jars = outputs_struct.output_jars
     generated_src_jars = outputs_struct.generated_src_jars
@@ -1025,7 +1034,8 @@ def _run_kt_java_builder_actions(
         ksp_transitive_runtime_jars,
         plugins,
         compile_jar,
-        output_jdeps):
+        output_jdeps,
+        runtime_jar = None):
     """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 
     Returns:
@@ -1081,9 +1091,19 @@ def _run_kt_java_builder_actions(
 
     # Build Kotlin
     if has_kt_sources:
-        kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
+        # When the Kotlin jars are the only inputs of their folds, the KotlinBuilder writes them at the target's final
+        # paths and _fold_jars_action skips the fold: copying a single jar through singlejar costs an action without
+        # changing its classes. A symlink is not used, since the JVM resolves classpath symlinks to the -kt.jar name.
+        kt_only = not (annotation_processors or ksp_annotation_processors or srcs.java or srcs.src_jars)
+        if kt_only and runtime_jar:
+            kt_runtime_jar = runtime_jar
+        else:
+            kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
-            kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
+            if kt_only:
+                kt_compile_jar = compile_jar
+            else:
+                kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
             outputs = {
                 "abi_jar": kt_compile_jar,
                 "output": kt_runtime_jar,

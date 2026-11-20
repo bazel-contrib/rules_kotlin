@@ -29,8 +29,8 @@ import java.util.zip.CRC32
 
 /**
  * A simple helper class for creating Jar files. All Jar entries are sorted alphabetically. Allows
- * normalization of Jar entries by setting the timestamp of non-.class files to the DOS epoch.
- * Timestamps of .class files are set to the DOS epoch + 2 seconds (The zip timestamp granularity)
+ * normalization of Jar entries by setting the timestamp of non-.class files to [DEFAULT_TIMESTAMP].
+ * Timestamps of .class files are set to [DEFAULT_TIMESTAMP] + 2 seconds (The zip timestamp granularity)
  * Adjusting the timestamp for .class files is necessary since otherwise javac will recompile java
  * files if both the java file and its .class file are present.
  */
@@ -185,10 +185,12 @@ open class JarHelper internal constructor(
     const val MANIFEST_DIR = "META-INF/"
     const val MANIFEST_NAME = JarFile.MANIFEST_NAME
 
-    // Normalized timestamp for zip entries
-    // We do not include the system's default timezone and locale and additionally avoid the unix epoch
-    // to ensure Java's zip implementation does not add the System's timezone into the extra field of the zip entry
-    val DEFAULT_TIMESTAMP = GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis()
+    // Normalized timestamp for zip entries: 2010-01-01 00:00:00, the time singlejar --normalize and Bazel's
+    // JavaBuilder JarHelper write, so a jar the builder writes matches a folded one.
+    // The calendar is in the system's default timezone, the one Java's zip implementation uses to turn the time
+    // into the entry's DOS date and time, so the DOS fields read 2010-01-01 00:00:00 in every timezone. Like the
+    // unix epoch, a time outside the DOS range (1980-2107) would make it add an extended timestamp extra field.
+    val DEFAULT_TIMESTAMP = GregorianCalendar(2010, Calendar.JANUARY, 1, 0, 0, 0).getTimeInMillis()
 
     // These attributes are used by JavaBuilder, Turbine, and ijar.
     // They must all be kept in sync.

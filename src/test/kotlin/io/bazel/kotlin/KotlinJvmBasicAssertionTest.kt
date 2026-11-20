@@ -16,6 +16,7 @@
 package io.bazel.kotlin
 
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/basic") {
   @Test
@@ -106,6 +107,46 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
       description = "The kotlin rules should support the module_name attribute"
     ) {
       assertContainsEntries("META-INF/hello-module.kotlin_module")
+    }
+  }
+
+  @Test
+  fun testBuilderWrittenJarStampsTheFoldedTargetLabel() {
+    // test_embed_resources has resources, so singlejar folds its jar; test_module_name_lib is Kotlin only, so the
+    // KotlinBuilder writes its jar and no fold runs. Both jars spell Target-Label the same way.
+    var folded = ""
+    jarTestCase("test_embed_resources.jar", description = "A folded jar should be stamped") {
+      folded = checkNotNull(manifest.mainAttributes.getValue("Target-Label"))
+    }
+    check(folded.endsWith("//src/test/data/jvm/basic:test_embed_resources")) { "unexpected folded label $folded" }
+    jarTestCase(
+      "test_module_name_lib.jar",
+      description = "A jar the KotlinBuilder writes should carry the Target-Label spelling of a folded jar",
+    ) {
+      assertEquals(
+        folded.replace(":test_embed_resources", ":test_module_name_lib"),
+        manifest.mainAttributes.getValue("Target-Label"),
+      )
+    }
+  }
+
+  @Test
+  fun testBuilderWrittenJarHasTheFoldedEntryTimestamps() {
+    // The DOS date and time of each entry kind, as singlejar --normalize writes them in a folded jar.
+    var folded = mapOf<String, Any>()
+    jarTestCase("test_embed_resources.jar", description = "A folded jar should have normalized timestamps") {
+      folded = mapOf(
+        "class" to getJarEntry("testresources/AClass.class").timeLocal,
+        "manifest" to getJarEntry("META-INF/MANIFEST.MF").timeLocal,
+      )
+    }
+    jarTestCase(
+      "test_module_name_lib.jar",
+      description = "A jar the KotlinBuilder writes should have the entry timestamps of a folded jar",
+    ) {
+      assertEquals(folded["class"], getJarEntry("helloworld/Main.class").timeLocal)
+      assertEquals(folded["manifest"], getJarEntry("META-INF/MANIFEST.MF").timeLocal)
+      assertEquals(java.time.LocalDateTime.of(2010, 1, 1, 0, 0, 2), getJarEntry("helloworld/Main.class").timeLocal)
     }
   }
 

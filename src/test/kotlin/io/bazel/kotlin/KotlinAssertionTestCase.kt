@@ -98,7 +98,7 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
   }
 
   /**
-   * Validated the entry is compressed and has the DOS epoch for it's timestamp.
+   * Validated the entry is compressed and has the normalized 2010-01-01 timestamp.
    */
   protected fun JarFile.assertEntryCompressedAndNormalizedTimestampYear(entry: String) {
     checkNotNull(this.getJarEntry(entry)).also {
@@ -107,8 +107,8 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
       val modifiedTimestamp = LocalDateTime.ofInstant(
         Instant.ofEpochMilli(it.lastModifiedTime.toMillis()), ZoneId.systemDefault()
       )
-      assertTrue("normalized modification time stamps should have year 1980") {
-        modifiedTimestamp.year == 1980
+      assertTrue("normalized modification time stamps should have year 2010") {
+        modifiedTimestamp.year == 2010
       }
     }
   }
