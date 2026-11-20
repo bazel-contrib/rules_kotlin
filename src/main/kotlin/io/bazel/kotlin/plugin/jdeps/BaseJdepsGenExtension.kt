@@ -1,37 +1,43 @@
 package io.bazel.kotlin.plugin.jdeps
 
-import com.google.devtools.build.lib.view.proto.Deps
-import io.bazel.kotlin.builder.utils.jars.JarOwner
+import io.bazel.kotlin.builder.utils.jars.SourceDependencies
+import io.bazel.kotlin.builder.utils.jars.SourceDependenciesFile
+import io.bazel.kotlin.plugin.jdeps.k2.SourceClasses
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import java.io.BufferedOutputStream
 import java.io.File
 import java.nio.file.Paths
 
 abstract class BaseJdepsGenExtension(
   protected val configuration: CompilerConfiguration,
 ) {
-  protected fun onAnalysisCompleted(
-    explicitClassesCanonicalPaths: Set<String>,
-    implicitClassesCanonicalPaths: Set<String>,
-  ) {
-    val directDeps = configuration.getList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES)
-    val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
+  /**
+   * Appends the dependencies of the analyzed sources to the output, without reading it.
+   * Incremental compilation analyzes only the recompiled sources, possibly over several rounds:
+   * the builder merges the records of every round.
+   *
+   * @param classesBySource the classes each analyzed source uses, by the source's path.
+   */
+  internal fun onAnalysisCompleted(classesBySource: Map<String, SourceClasses>) {
+    val output = configuration.getNotNull(JdepsGenConfigurationKeys.OUTPUT)
     val fullClasspath = configuration.getList(JdepsGenConfigurationKeys.FULL_CLASSPATH)
 
     // Create mapping from canonical paths to original classpath paths
     val canonicalToClasspath = createCanonicalToClasspathMap(fullClasspath)
 
-    val explicitDeps = createDepsMap(explicitClassesCanonicalPaths, canonicalToClasspath)
+    // Sources share most of their jars: resolve each jar once.
+    val classpathJars = HashMap<String, String>()
 
-    doWriteJdeps(
-      directDeps,
-      targetLabel,
-      explicitDeps,
-      implicitClassesCanonicalPaths,
-      canonicalToClasspath,
+    fun jarsOf(classes: Set<String>): Set<String> =
+      classes.mapNotNullTo(LinkedHashSet()) {
+        classpathJarOf(it, canonicalToClasspath, classpathJars)
+      }
+
+    SourceDependenciesFile.append(
+      Paths.get(output),
+      classesBySource.mapValues { (_, classes) ->
+        SourceDependencies(jarsOf(classes.explicit), jarsOf(classes.implicit))
+      },
     )
-
-    doStrictDeps(configuration, targetLabel, directDeps, explicitDeps)
   }
 
   /**
@@ -59,26 +65,24 @@ abstract class BaseJdepsGenExtension(
   }
 
   /**
-   * Returns a map of jars to classes loaded from those jars.
+   * The classpath entry of the jar a class is loaded from, or null if it is not loaded from a jar.
    * Uses the canonical-to-classpath mapping to preserve original classpath paths.
+   *
+   * @param classpathJars the classpath entries of the jars resolved so far, by the jar's path.
    */
-  private fun createDepsMap(
-    classes: Set<String>,
+  private fun classpathJarOf(
+    classPath: String,
     canonicalToClasspath: Map<String, String>,
-  ): Map<String, List<String>> {
-    val jarsToClasses = mutableMapOf<String, MutableList<String>>()
-    classes.forEach {
-      val parts = it.split("!/")
-      val jarPath = parts[0]
-      if (jarPath.endsWith(".jar")) {
-        // Canonicalize for lookup so K2's forward-slash paths match classpath entries on Windows.
-        val canonicalJarPath = canonicalizePath(jarPath)
-        // Map back to original classpath path
-        val classpathJarPath = canonicalToClasspath[canonicalJarPath] ?: jarPath
-        jarsToClasses.computeIfAbsent(classpathJarPath) { ArrayList() }.add(parts[1])
-      }
+    classpathJars: MutableMap<String, String>,
+  ): String? {
+    val jarPath = classPath.substringBefore("!/")
+    if (!jarPath.endsWith(".jar")) {
+      return null
     }
-    return jarsToClasses
+    return classpathJars.getOrPut(jarPath) {
+      // Canonicalize for lookup so K2's forward-slash paths match classpath entries on Windows.
+      canonicalToClasspath[canonicalizePath(jarPath)] ?: jarPath
+    }
   }
 
   private fun canonicalizePath(path: String): String {
@@ -97,117 +101,4 @@ abstract class BaseJdepsGenExtension(
       }
     }
   }
-
-  private fun doWriteJdeps(
-    directDeps: List<String>,
-    targetLabel: String,
-    explicitDeps: Map<String, List<String>>,
-    implicitClassesCanonicalPaths: Set<String>,
-    canonicalToClasspath: Map<String, String>,
-  ) {
-    val implicitDeps = createDepsMap(implicitClassesCanonicalPaths, canonicalToClasspath)
-
-    // Build and write out deps.proto
-    val jdepsOutput = configuration.getNotNull(JdepsGenConfigurationKeys.OUTPUT_JDEPS)
-
-    val rootBuilder = Deps.Dependencies.newBuilder()
-    rootBuilder.success = true
-    rootBuilder.ruleLabel = targetLabel
-
-    val unusedDeps = directDeps.subtract(explicitDeps.keys)
-    unusedDeps.forEach { jarPath ->
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.UNUSED
-      dependency.path = jarPath
-      rootBuilder.addDependency(dependency)
-    }
-
-    explicitDeps.forEach { (jarPath, _) ->
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.EXPLICIT
-      dependency.path = jarPath
-      rootBuilder.addDependency(dependency)
-    }
-
-    implicitDeps.keys.subtract(explicitDeps.keys).forEach {
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.IMPLICIT
-      dependency.path = it
-      rootBuilder.addDependency(dependency)
-    }
-
-    BufferedOutputStream(File(jdepsOutput).outputStream()).use {
-      it.write(rootBuilder.buildSorted().toByteArray())
-    }
-  }
-
-  private fun doStrictDeps(
-    compilerConfiguration: CompilerConfiguration,
-    targetLabel: String,
-    directDeps: List<String>,
-    explicitDeps: Map<String, List<String>>,
-  ) {
-    when (compilerConfiguration.getNotNull(JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS)) {
-      "warn" -> {
-        checkStrictDeps(explicitDeps, directDeps, targetLabel)
-      }
-
-      "error" -> {
-        if (checkStrictDeps(explicitDeps, directDeps, targetLabel)) {
-          error(
-            "Strict Deps Violations - please fix",
-          )
-        }
-      }
-    }
-  }
-
-  /**
-   * Prints strict deps warnings and returns true if violations were found.
-   */
-  private fun checkStrictDeps(
-    result: Map<String, List<String>>,
-    directDeps: List<String>,
-    targetLabel: String,
-  ): Boolean {
-    val missingStrictDeps =
-      result.keys
-        .filter { !directDeps.contains(it) }
-        .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)) }
-
-    if (missingStrictDeps.isNotEmpty()) {
-      val missingStrictLabels = missingStrictDeps.mapNotNull { it.label }
-
-      val open = "\u001b[35m\u001b[1m"
-      val close = "\u001b[0m"
-
-      var command =
-        """
-        $open ** Please add the following dependencies:$close
-        ${
-          missingStrictDeps.map { it.label ?: it.jar }.joinToString(" ")
-        } to $targetLabel
-        """
-
-      if (missingStrictLabels.isNotEmpty()) {
-        command += """$open ** You can use the following buildozer command:$close
-        buildozer 'add deps ${
-          missingStrictLabels.joinToString(" ")
-        }' $targetLabel
-        """
-      }
-
-      println(command.trimIndent())
-      return true
-    }
-    return false
-  }
-}
-
-private fun Deps.Dependencies.Builder.buildSorted(): Deps.Dependencies {
-  val sortedDeps = dependencyList.sortedBy { it.path }
-  sortedDeps.forEachIndexed { index, dep ->
-    setDependency(index, dep)
-  }
-  return build()
 }
