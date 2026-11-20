@@ -34,10 +34,6 @@
 #    rules_java and Bazel core. For now, we disabled JaCoCo instrumentation accross the board,
 #    you will need to cherry-pick this PR https://github.com/uber-common/bazel/commit/cb9f6f042c64af96bbd77e21fe6fb75936c74f47
 #
-# 3. Code in `kt_android_local_test_impl.bzl` needs to be kept in sync with rules_android. There is ongoing
-#    conversation with google to simply of to extend rules_android, and override pipeline's behavior without
-#    duplicating their code, we should be able to simplify this soon.
-#
 
 load(
     "@bazel_skylib//lib:paths.bzl",
@@ -187,3 +183,21 @@ def create_kover_metadata_action(
     ctx.actions.write(kover_output_metadata_file, args)
 
     return depset([kover_output_metadata_file], transitive = [instrumented_files, runtime_jars])
+
+def create_kover_runtime(ctx):
+    """Creates the agent flags and files used by Kotlin test launchers.
+
+    Args:
+        ctx: The test rule context.
+
+    Returns:
+        The agent jar, JVM flags, and runfiles needed to generate a report.
+    """
+    agent = get_kover_agent_file(ctx)
+    report, args = create_kover_agent_actions(ctx, ctx.label.name)
+    report_runfiles = create_kover_metadata_action(ctx, ctx.label.name, ctx.attr.deps + ctx.attr.associates, report)
+    return struct(
+        agent = agent,
+        report_runfiles = depset([args], transitive = [report_runfiles]),
+        jvm_flags = get_kover_jvm_flags(agent, args),
+    )

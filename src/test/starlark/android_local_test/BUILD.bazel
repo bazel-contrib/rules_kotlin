@@ -1,0 +1,47 @@
+load("@rules_java//java:java_library.bzl", "java_library")
+load("//kotlin:android.bzl", "kt_android_local_test")
+load("//kotlin:core.bzl", "define_kt_toolchain")
+load(":coverage_test.bzl", "coverage_off_test", "jacoco_test", "kover_test")
+
+kt_android_local_test(
+    name = "CoverageTest",
+    srcs = ["com/example/CoverageTest.kt"],
+    custom_package = "com.example",
+    env = {"LAUNCHER_ENV": "from_android_local_test"},
+    tags = ["manual"],
+    test_class = "com.example.CoverageTest",
+    deps = ["@kotlin_rules_maven_test//:junit_junit"],
+)
+
+define_kt_toolchain(
+    name = "kover_toolchain",
+    experimental_kover_agent = "@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kover_jvm_agent",
+    experimental_kover_enabled = True,
+)
+
+java_library(
+    name = "custom_jacoco_runner",
+    # Give this runner its own jar so the test can distinguish it from the Android toolchain default.
+    resources = ["com/example/CoverageTest.kt"],
+    exports = ["@remote_java_tools//:jacoco_coverage_runner"],
+)
+
+define_kt_toolchain(
+    name = "jacoco_toolchain",
+    jacocorunner = ":custom_jacoco_runner",
+)
+
+coverage_off_test(
+    name = "coverage_off",
+    target_under_test = ":CoverageTest",
+)
+
+jacoco_test(
+    name = "jacoco",
+    target_under_test = ":CoverageTest",
+)
+
+kover_test(
+    name = "kover",
+    target_under_test = ":CoverageTest",
+)
