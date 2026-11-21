@@ -31,6 +31,7 @@ release_archive(
         "//kotlin/internal/jvm:pkg",
         "//kotlin/internal/lint:pkg",
         "//kotlin/internal/utils:pkg",
+        "//kotlin/internal/wasmjs:pkg",
     ],
 )
 
@@ -45,6 +46,7 @@ bzl_library(
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",
+        "//kotlin/internal/wasmjs",
         "//src/main/starlark",
         "//src/main/starlark/core/compile",
         "//src/main/starlark/core/options",
