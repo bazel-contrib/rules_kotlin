@@ -3,9 +3,9 @@
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-load("//kotlin/internal/jvm:kt_jvm_binary.bzl", BINARY_PROCESSORS = "PROCESSORS")
-load("//kotlin/internal/jvm:kt_jvm_library.bzl", LIBRARY_PROCESSORS = "PROCESSORS")
-load("//kotlin/internal/jvm:kt_jvm_test.bzl", TEST_PROCESSORS = "PROCESSORS")
+load("//kotlin/internal/jvm:kt_jvm_binary.bzl", BINARY_PROCESSORS = "PROCESSORS")  # buildifier: disable=bzl-visibility
+load("//kotlin/internal/jvm:kt_jvm_library.bzl", LIBRARY_PROCESSORS = "PROCESSORS")  # buildifier: disable=bzl-visibility
+load("//kotlin/internal/jvm:kt_jvm_test.bzl", TEST_PROCESSORS = "PROCESSORS")  # buildifier: disable=bzl-visibility
 load("//src/main/starlark/core/compile:common.bzl", "KtJvmInfo")
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_binary", "core_kt_jvm_library")
 load("//src/main/starlark/core/compile/cli:toolchain.bzl", "COMPILE_MNEMONIC")
@@ -460,10 +460,11 @@ def test_jvm():
 def _library_processors_test_impl(ctx):
     env = unittest.begin(ctx)
 
-    # The kt_jvm_library chain is declared statically: collect deps, then compile.
+    # The kt_jvm_library chain is declared statically: collect deps, then prepare, run KAPT, then
+    # KSP, then compile.
     asserts.equals(
         env,
-        ["DepsProcessor", "JvmCompileProcessor"],
+        ["DepsProcessor", "CompilePreparationProcessor", "KaptProcessor", "KspProcessor", "JvmCompileProcessor"],
         LIBRARY_PROCESSORS.keys(),
     )
 
@@ -477,7 +478,7 @@ def _binary_processors_test_impl(ctx):
     # The kt_jvm_binary chain adds a launcher phase after the compile phase.
     asserts.equals(
         env,
-        ["DepsProcessor", "JvmCompileProcessor", "LauncherProcessor"],
+        ["DepsProcessor", "CompilePreparationProcessor", "KaptProcessor", "KspProcessor", "JvmCompileProcessor", "LauncherProcessor"],
         BINARY_PROCESSORS.keys(),
     )
 
@@ -491,7 +492,7 @@ def _test_processors_test_impl(ctx):
     # The kt_jvm_junit_test chain adds a test-launcher phase after the compile phase.
     asserts.equals(
         env,
-        ["DepsProcessor", "JvmCompileProcessor", "TestLauncherProcessor"],
+        ["DepsProcessor", "CompilePreparationProcessor", "KaptProcessor", "KspProcessor", "JvmCompileProcessor", "TestLauncherProcessor"],
         TEST_PROCESSORS.keys(),
     )
 

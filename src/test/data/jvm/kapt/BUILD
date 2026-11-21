@@ -60,6 +60,7 @@ kt_jvm_library(
         "kotlin/TestKtValue.kt",
     ],
     plugins = [":autovalue"],
+    visibility = ["//src/test/starlark/pipeline:__pkg__"],
     deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
 )
 
@@ -96,6 +97,7 @@ kt_jvm_library(
     name = "ap_kotlin_resources",
     srcs = ["kotlin/TestKtService.kt"],
     plugins = [":autoservice"],
+    visibility = ["//src/test/starlark/pipeline:__pkg__"],
     deps = ["@kotlin_rules_maven_test//:com_google_auto_service_auto_service_annotations"],
 )
 
@@ -151,6 +153,7 @@ java_library(
         ":autovalue",
         ":autoservice",
     ],
+    visibility = ["//src/test/starlark/pipeline:__pkg__"],
 )
 
 kt_jvm_library(

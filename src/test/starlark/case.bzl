@@ -49,9 +49,20 @@ def case(namespace):
     )
 
 def suite(name, **tests):
+    """Instantiates each test case and wraps the generated analysis tests in a test_suite.
+
+    Args:
+      name: name of the aggregate test_suite.
+      **tests: test-name -> fn(case) that calls case.claim() exactly once.
+    """
     test_targets = []
     for test_name, test in tests.items():
         test(case(test_name))
+
+        # Each test fn calls case.claim() exactly once, creating an
+        # analysis_test named `test_name` (see _claim/case); collect it so the
+        # aggregate test_suite actually wraps every generated case.
+        test_targets.append(":" + test_name)
 
     native.test_suite(
         name = name,
