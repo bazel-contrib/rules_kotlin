@@ -74,11 +74,18 @@ KOTLINC_ARTIFACTS = struct(
             "scripting-compiler": "lib/scripting-compiler.jar",
         },
     ),
+    wasmjs = struct(
+        plugin = {},
+        runtime = {
+            "kotlin-stdlib-wasm-js": "lib/kotlin-stdlib-wasm-js.klib",
+        },
+        compile = {},
+    ),
 )
 
 KOTLINC_ARTIFACT_LIST = {
     label: file
-    for lang in ["jvm", "core"]
+    for lang in ["jvm", "core", "wasmjs"]
     for type in ["compile", "plugin", "runtime"]
     for (label, file) in getattr(getattr(KOTLINC_ARTIFACTS, lang), type).items()
 }
