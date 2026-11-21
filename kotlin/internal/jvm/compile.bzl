@@ -421,8 +421,11 @@ def _build_resourcejar_action(ctx, toolchains, extra_resources = {}):
     )
     return resources_jar_output
 
-def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, classpath_jars, associate_jars = depset()):
-    """Creates a Jdeps merger action invocation."""
+def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, classpath_jars, associate_jars = depset(), ignore_jars = depset()):
+    """Creates a Jdeps merger action invocation.
+
+    ignore_jars are dropped from the merged jdeps. They are passed as paths only, not as inputs.
+    """
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
     args.use_param_file("--flagfile=%s", use_always = True)
@@ -433,6 +436,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps, classpath_jar
         args.add("--" + f, path)
 
     args.add_all("--inputs", jdeps, omit_if_empty = True)
+    args.add_all("--ignore_jars", ignore_jars, omit_if_empty = True)
     args.add("--report_unused_deps", toolchains.kt.experimental_report_unused_deps)
 
     mnemonic = "JdepsMerge"
@@ -1235,6 +1239,9 @@ def _run_kt_java_builder_actions(
                 associate_jars = compile_deps.associate_jars,
                 outputs = {"output": output_jdeps},
                 classpath_jars = compile_deps.compile_jars,
+                # The Java half compiles against the kapt stub jar or the Kotlin output jar, so its
+                # jdeps names them. They hold this target's own classes, not dependencies.
+                ignore_jars = _java_infos_to_compile_jars(kt_stubs_for_java),
             )
         else:
             ctx.actions.symlink(
