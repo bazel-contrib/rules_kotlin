@@ -131,22 +131,21 @@ def _test_mixed_target_without_pruning_gets_transitive_classpath(test):
     )
 
 _JAVA_HALF_ATTRS = {
-    "want_basenames": attr.string_list(),
+    "ignored_basename": attr.string(),
 }
 
-def _java_half_classpath_assertions(env, target):
+def _java_half_jar_ignored_assertions(env, target):
     action = env.expect.that_target(target).action_named("JdepsMerge")
-    action.inputs().contains_at_least_predicates([
-        matching.file_basename_equals(basename)
-        for basename in env.ctx.attr.want_basenames
-    ])
+    basename = env.ctx.attr.ignored_basename
 
-def _test_kapt_target_gets_the_kapt_stub_jar(test):
-    """The Java half of a kapt target compiles against the kapt stub jar.
+    # The jar holds the target's own classes. The merger drops it from the merged jdeps by path,
+    # so it is named in the arguments but is not an input: the merge does not rerun whenever
+    # the Kotlin half changes.
+    action.argv().contains_at_least_predicates([matching.str_endswith("/" + basename)])
+    action.inputs().not_contains_predicate(matching.file_basename_equals(basename))
 
-    Its jdeps names the stub jar, and the merger opens every jar its inputs name, so the stub
-    jar has to be an input of JdepsMerge or a sandboxed merge cannot find it.
-    """
+def _test_kapt_target_ignores_the_kapt_stub_jar(test):
+    """The Java half of a kapt target compiles against the kapt stub jar, so its jdeps names it."""
     processor = test.have(
         java_import,
         name = "processor",
@@ -167,16 +166,16 @@ def _test_kapt_target_gets_the_kapt_stub_jar(test):
 
     analysis_test(
         name = test.name,
-        impl = _java_half_classpath_assertions,
+        impl = _java_half_jar_ignored_assertions,
         target = library,
         config_settings = _config_settings(report_unused_deps = True),
         attr_values = {
-            "want_basenames": [test.name + "_library-kapt-generated-stub.jar"],
+            "ignored_basename": test.name + "_library-kapt-generated-stub.jar",
         },
         attrs = _JAVA_HALF_ATTRS,
     )
 
-def _test_mixed_target_gets_the_kotlin_jar(test):
+def _test_mixed_target_ignores_the_kotlin_jar(test):
     """The Java half of a mixed target without kapt compiles against the Kotlin output jar."""
     library = test.got(
         kt_jvm_library,
@@ -189,11 +188,11 @@ def _test_mixed_target_gets_the_kotlin_jar(test):
 
     analysis_test(
         name = test.name,
-        impl = _java_half_classpath_assertions,
+        impl = _java_half_jar_ignored_assertions,
         target = library,
         config_settings = _config_settings(report_unused_deps = True),
         attr_values = {
-            "want_basenames": [test.name + "_library-kt.jar"],
+            "ignored_basename": test.name + "_library-kt.jar",
         },
         attrs = _JAVA_HALF_ATTRS,
     )
@@ -205,6 +204,6 @@ def jdeps_merge_inputs_tests(name):
         with_java_sources = _test_target_with_java_sources_gets_the_compile_classpath,
         report_unused_deps_off = _test_report_unused_deps_off_gets_no_jars,
         pruning_disabled = _test_mixed_target_without_pruning_gets_transitive_classpath,
-        kapt_stub_jar = _test_kapt_target_gets_the_kapt_stub_jar,
-        mixed_kotlin_jar = _test_mixed_target_gets_the_kotlin_jar,
+        kapt_stub_jar = _test_kapt_target_ignores_the_kapt_stub_jar,
+        mixed_kotlin_jar = _test_mixed_target_ignores_the_kotlin_jar,
     )

@@ -33,6 +33,7 @@ class JdepsMerger {
       OUTPUT("--output"),
       TARGET_LABEL("--target_label"),
       REPORT_UNUSED_DEPS("--report_unused_deps"),
+      IGNORE_JARS("--ignore_jars"),
     }
 
     fun merge(
@@ -41,6 +42,7 @@ class JdepsMerger {
       inputs: List<String>,
       output: String,
       reportUnusedDeps: String,
+      ignoreJars: Set<String> = emptySet(),
     ): Int {
       val rootBuilder = Deps.Dependencies.newBuilder()
       rootBuilder.success = false
@@ -50,7 +52,9 @@ class JdepsMerger {
       inputs.forEach { input ->
         BufferedInputStream(Paths.get(input).toFile().inputStream()).use {
           val deps: Deps.Dependencies = Deps.Dependencies.parseFrom(it)
-          deps.getDependencyList().forEach {
+          // Jars of the target being compiled, such as the -kt.jar or kapt stub jar the Java half
+          // compiles against, are not dependencies.
+          deps.getDependencyList().filterNot { it.path in ignoreJars }.forEach {
             val dependency = dependencyMap.get(it.path)
             // Replace dependency if it has a stronger kind than one we encountered before.
             if (dependency == null || dependency.kind > it.kind) {
@@ -132,6 +136,8 @@ class JdepsMerger {
     val label = argMap.mandatorySingle(JdepsMergerFlags.TARGET_LABEL)
     val reportUnusedDeps = argMap.mandatorySingle(JdepsMergerFlags.REPORT_UNUSED_DEPS)
 
-    return merge(ctx, label, inputs, output, reportUnusedDeps)
+    val ignoreJars = argMap.optional(JdepsMergerFlags.IGNORE_JARS).orEmpty().toSet()
+
+    return merge(ctx, label, inputs, output, reportUnusedDeps, ignoreJars)
   }
 }
