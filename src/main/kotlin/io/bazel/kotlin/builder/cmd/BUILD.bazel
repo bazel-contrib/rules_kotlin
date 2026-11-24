@@ -1,5 +1,6 @@
 load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
+load("//src/main/kotlin:jvm_flags.bzl", "MAX_FD_LIMIT_JVM_FLAGS")
 
 kt_bootstrap_library(
     name = "build_lib",
@@ -34,8 +35,7 @@ kt_bootstrap_binary(
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar)",
         "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
-        "-XX:-MaxFDLimit",
-    ],
+    ] + MAX_FD_LIMIT_JVM_FLAGS,
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     shade_rules = "//src/main/kotlin:shade.jarjar",
     visibility = ["//src:__subpackages__"],

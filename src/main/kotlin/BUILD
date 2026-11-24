@@ -67,7 +67,10 @@ jar_jar(
 
 release_archive(
     name = "pkg",
-    srcs = [":rules_kotlin.jar"],
+    srcs = [
+        "jvm_flags.bzl",
+        ":rules_kotlin.jar",
+    ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
