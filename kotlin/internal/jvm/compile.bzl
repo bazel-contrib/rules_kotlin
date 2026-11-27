@@ -1242,8 +1242,9 @@ def _run_kt_java_builder_actions(
                 target_file = toolchains.kt.empty_jdeps,
             )
 
+    # A target without sources has no compilation output, and no annotation processor runs for it.
     annotation_processing = None
-    if annotation_processors or ksp_annotation_processors:
+    if compilation_outputs and (annotation_processors or ksp_annotation_processors):
         is_ksp = (ksp_annotation_processors != None)
         processor = ksp_annotation_processors if is_ksp else annotation_processors
         gen_jar = ksp_generated_src_jar if is_ksp else ap_generated_src_jar

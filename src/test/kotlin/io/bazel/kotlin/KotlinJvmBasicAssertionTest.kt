@@ -42,6 +42,24 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
       )
     }
     jarTestCase(
+      "test_merge_resourcesjar_no_srcs.jar",
+      description = "the rules should merge the jars of a library without sources and resources"
+    ) {
+      assertContainsExactEntries("META-INF/", "META-INF/MANIFEST.MF", "pkg/", "pkg/file.txt")
+      assertManifestStamped()
+    }
+    assertExecutableRunfileSucceeds(
+      "test_merge_resourcesjar_no_srcs_consumer",
+      description = "a consumer should read the merged entry through runtime_deps on the library"
+    )
+    jarTestCase(
+      "test_merge_resourcesjar_overlap.jar",
+      description = "the first resource jar should win an entry that two resource jars hold"
+    ) {
+      val content = getInputStream(getJarEntry("pkg/file.txt")).use { it.reader().readText() }
+      check(content == "resourcejar_overlap") { "unexpected content of pkg/file.txt: $content" }
+    }
+    jarTestCase(
       "test_embed_resources_strip_prefix.jar",
       description = "the rules should support the resource_strip_prefix attribute"
     ) {
