@@ -5,7 +5,7 @@ module(
     repo_name = "rules_kotlin",
 )
 
-proto_version = "4.33.4"
+proto_version = "4.36.2"
 
 proto_version_parts = proto_version.split(".")
 
