@@ -14,6 +14,7 @@ load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
         "jvm",
         "lint",
         "core",
+        "wasmjs",
     ]
 ]
 
@@ -23,6 +24,7 @@ genrule(
         "jvm",
         "lint",
         "core",
+        "wasmjs",
     ]],
     outs = ["kotlin.md.generated"],
     cmd = """

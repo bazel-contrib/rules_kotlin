@@ -1,0 +1,3 @@
+load(":wasmjs_test.bzl", "wasmjs_test_suite")
+
+wasmjs_test_suite(name = "wasmjs_tests")

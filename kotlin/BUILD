@@ -29,6 +29,7 @@ exports_files([
     "jvm.bzl",
     "lint.bzl",
     "core.bzl",
+    "wasmjs.bzl",
 ])
 
 release_archive(
