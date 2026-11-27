@@ -9,6 +9,8 @@ package(default_visibility = ["//visibility:private"])
 java_library(
     name = "dialect_fixture",
     srcs = glob(["**/*.java"]),
+    resource_strip_prefix = "src/test/data/jvm/reshade/resources",
+    resources = glob(["resources/**"]),
 )
 
 jar_jar(
