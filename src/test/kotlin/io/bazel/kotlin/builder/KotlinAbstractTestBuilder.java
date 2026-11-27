@@ -117,7 +117,9 @@ abstract class KotlinAbstractTestBuilder<T> {
                     removePrivateClassesInAbiJar,
                     false,
                     false,
-                    false);
+                    false,
+                    // No manifest label: the jars carry the label, as the builder does without the flag.
+                    "");
         }
     }
 

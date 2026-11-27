@@ -37,6 +37,10 @@ def _init_builder_args(ctx, rule_kind, module_name, kotlinc_options = None):
     args.use_param_file("--flagfile=%s", use_always = True)
 
     args.add("--target_label", ctx.label)
+
+    # The Target-Label the builder writes into its jars' manifests: the str(ctx.label) spelling the jar fold writes
+    # (see _rule_manifest_attributes), not the --target_label spelling used for jdeps and diagnostics.
+    args.add("--manifest_target_label", str(ctx.label))
     args.add("--rule_kind", rule_kind)
     args.add("--kotlin_module_name", module_name)
 

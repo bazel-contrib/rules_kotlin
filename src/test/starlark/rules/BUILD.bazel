@@ -6,6 +6,7 @@ load(":btapi_runtime_args_tests.bzl", "btapi_runtime_args_tests")
 load(":btapi_runtime_tests.bzl", "btapi_runtime_tests")
 load(":deps_artifacts_tests.bzl", "deps_artifacts_tests")
 load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
+load(":fold_jars_tests.bzl", "fold_jars_tests")
 load(":java_plugin_flag_tests.bzl", "java_plugin_flag_tests")
 load(":jdeps_merge_inputs_tests.bzl", "jdeps_merge_inputs_tests")
 load(":jdeps_validation_tests.bzl", "jdeps_validation_tests")
@@ -121,6 +122,16 @@ deps_artifacts_tests(
 
 mixed_mode_tests(
     name = "mixed_mode_tests",
+)
+
+fold_jars_tests(
+    name = "fold_jars_tests",
+)
+
+# Only used by fold_jars_tests, which pulls it in with --extra_toolchains.
+define_kt_toolchain(
+    name = "abi_jars_toolchain",
+    experimental_use_abi_jars = True,
 )
 
 plugin_classpath_tests(

@@ -53,7 +53,7 @@ internal fun JvmCompilationTask.createOutputJar() =
     it.addDirectory(Paths.get(directories.classes))
     it.addDirectory(Paths.get(directories.javaClasses))
     it.addDirectory(Paths.get(directories.generatedClasses))
-    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.setJarOwner(info.jarOwnerLabel, info.bazelRuleKind)
     it.execute()
   }
 
@@ -68,7 +68,7 @@ internal fun JvmCompilationTask.createAbiJar() =
   ).also {
     it.addDirectory(Paths.get(directories.abiClasses))
     it.addDirectory(Paths.get(directories.generatedClasses))
-    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.setJarOwner(info.jarOwnerLabel, info.bazelRuleKind)
     it.execute()
   }
 
@@ -82,7 +82,7 @@ internal fun JvmCompilationTask.createGeneratedJavaSrcJar() {
     verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.generatedJavaSources))
-    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.setJarOwner(info.jarOwnerLabel, info.bazelRuleKind)
     it.execute()
   }
 }
@@ -97,7 +97,7 @@ internal fun JvmCompilationTask.createGeneratedStubJar() {
     verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.incrementalData))
-    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.setJarOwner(info.jarOwnerLabel, info.bazelRuleKind)
     it.execute()
   }
 }
@@ -112,7 +112,7 @@ internal fun JvmCompilationTask.createGeneratedClassJar() {
     verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.generatedClasses))
-    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.setJarOwner(info.jarOwnerLabel, info.bazelRuleKind)
     it.execute()
   }
 }
@@ -125,7 +125,7 @@ internal fun JvmCompilationTask.createGeneratedKspKotlinSrcJar() {
   ).also {
     it.addDirectory(Paths.get(directories.generatedSources))
     it.addDirectory(Paths.get(directories.generatedJavaSources))
-    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.setJarOwner(info.jarOwnerLabel, info.bazelRuleKind)
     it.execute()
   }
 }
@@ -140,7 +140,7 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
     verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.generatedClasses))
-    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.setJarOwner(info.jarOwnerLabel, info.bazelRuleKind)
     it.execute()
   }
 }
