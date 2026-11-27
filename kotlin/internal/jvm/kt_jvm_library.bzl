@@ -18,10 +18,13 @@ load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo")
 load("//kotlin/internal/jvm:attrs.bzl", _attrs = "attrs")
 load(
     "//kotlin/internal/jvm:common.bzl",
+    _kapt_processor = "kapt_processor",
+    _ksp_processor = "ksp_processor",
+    _make_compile_processor = "make_compile_processor",
+    _make_prepare_processor = "make_prepare_processor",
     _make_providers = "make_providers",
     _process_deps = "process_deps",
 )
-load("//kotlin/internal/jvm:compile.bzl", _compile = "compile")
 load(
     "//kotlin/internal/jvm:rule.bzl",
     _COMMON_OUTPUTS = "COMMON_OUTPUTS",
@@ -29,26 +32,10 @@ load(
 )
 load(
     "//src/main/starlark/core/pipeline:pipeline.bzl",
-    _ProviderInfo = "ProviderInfo",
     _processing_pipeline = "processing_pipeline",
 )
 
 _ATTRS = _attrs.lib_common_attr
-
-def _process_compile(context):
-    """Run the JVM compile engine for the library, or emit export-only providers when it has no jar."""
-    ctx = context.ctx
-    providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else _compile.export_only_providers(
-        ctx = ctx,
-        actions = ctx.actions,
-        outputs = ctx.outputs,
-        attr = ctx.attr,
-    )
-    return _ProviderInfo(
-        name = "JvmCompileProcessor",
-        value = providers,
-        runfiles = None,
-    )
 
 def finalize(context):
     """Assemble the kt_jvm_library providers from the accumulated processor results."""
@@ -60,7 +47,10 @@ def finalize(context):
 
 PROCESSORS = dict(
     DepsProcessor = _process_deps,
-    JvmCompileProcessor = _process_compile,
+    CompilePreparationProcessor = _make_prepare_processor("kt_jvm_library", export_only = True),
+    KaptProcessor = _kapt_processor,
+    KspProcessor = _ksp_processor,
+    JvmCompileProcessor = _make_compile_processor(export_only = True),
 )
 
 _PROCESSING_PIPELINE = _processing_pipeline.make_processing_pipeline(
