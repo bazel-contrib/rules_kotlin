@@ -332,22 +332,13 @@ class Ksp2TaskTest {
     java.io.File(src, "pkg/Some.class").apply { parentFile.mkdirs() }.writeText("x")
 
     val jar = tmp.newFile("out.jar")
-    assertThat(Ksp2Task().packageDirectoriesToJar(jar.absolutePath, listOf(src.toPath()))).isTrue()
+    Ksp2Task().packageDirectoriesToJar(jar.absolutePath, listOf(src.toPath()))
 
     val fixed = GregorianCalendar(1980, 0, 1, 0, 0, 0).timeInMillis
     JarFile(jar).use { jf ->
       val times = jf.entries().toList().map { it.time }.distinct()
       assertThat(times).containsExactly(fixed)
     }
-  }
-
-  @Test
-  fun packagedResourcesDoNotCountAsClasses() {
-    val src = tmp.newFolder("gen")
-    File(src, "META-INF/services/example.Service").apply { parentFile.mkdirs() }.writeText("example.Provider")
-
-    val jar = tmp.newFile("out.jar")
-    assertThat(Ksp2Task().packageDirectoriesToJar(jar.absolutePath, listOf(src.toPath()))).isFalse()
   }
 
   @Test

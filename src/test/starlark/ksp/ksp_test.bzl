@@ -77,8 +77,7 @@ def _ksp_action_test_impl(ctx):
             for output in outputs
             if not output.is_directory
         ]))
-        expected_directories = [name + "-ksp-genclasses-presence"] if hasattr(ctx.actions, "map_directory") else []
-        asserts.equals(env, expected_directories, [output.basename for output in outputs if output.is_directory])
+        asserts.equals(env, 2, len(outputs))
 
     return analysistest.end(env)
 
@@ -89,14 +88,20 @@ def _ksp_abi_action_test_impl(ctx):
     env = analysistest.begin(ctx)
 
     actions = analysistest.target_actions(env)
+    class_jar_name = analysistest.target_under_test(env).label.name + "-ksp-genclasses.jar"
+    ijar_actions = [
+        action
+        for action in actions
+        if action.mnemonic.startswith("JavaIjar") and class_jar_name in [input.basename for input in action.inputs.to_list()]
+    ]
     abi_merges = [action for action in actions if action.mnemonic == "KotlinFoldJarsAbi"]
+    asserts.equals(env, 1, len(ijar_actions))
     asserts.equals(env, 1, len(abi_merges))
-    if abi_merges:
-        name = analysistest.target_under_test(env).label.name
-        abi_suffix = "-ksp-genclasses-abi" if hasattr(ctx.actions, "map_directory") else "-ksp-genclasses-ijar.jar"
-        inputs = [input.basename for input in abi_merges[0].inputs.to_list()]
-        asserts.true(env, name + abi_suffix in inputs)
-        asserts.false(env, name + "-ksp-genclasses.jar" in inputs)
+    if ijar_actions and abi_merges:
+        abi_jar = ijar_actions[0].outputs.to_list()[0]
+        inputs = abi_merges[0].inputs.to_list()
+        asserts.true(env, abi_jar in inputs)
+        asserts.false(env, class_jar_name in [input.basename for input in inputs])
 
     return analysistest.end(env)
 
@@ -109,7 +114,7 @@ def _ksp_single_action_test_impl(ctx):
     actions = analysistest.target_actions(env)
 
     # Count KSP-related actions
-    ksp_actions = [a for a in actions if a.mnemonic == "KotlinKsp2"]
+    ksp_actions = [a for a in actions if "ksp" in a.mnemonic.lower()]
 
     # Should only have one KSP2 action
     asserts.equals(
