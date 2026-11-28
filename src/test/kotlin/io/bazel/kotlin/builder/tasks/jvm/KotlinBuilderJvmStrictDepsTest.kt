@@ -18,19 +18,34 @@ package io.bazel.kotlin.builder.tasks.jvm;
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
-import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
+import org.junit.runners.Parameterized
 import java.util.function.Consumer
 
-@RunWith(JUnit4::class)
-class KotlinBuilderJvmStrictDepsTest {
+@RunWith(Parameterized::class)
+class KotlinBuilderJvmStrictDepsTest(private val buildToolsApi: Boolean) {
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "buildToolsApi={0}")
+    fun data(): Collection<Array<Any>> = listOf(arrayOf(true), arrayOf(false))
+  }
+
   val ctx = KotlinJvmTestBuilder()
 
-  @Test
-  fun `strict dependency violation error`() {
-    val transitiveDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+  private fun runCompileTask(block: (c: KotlinJvmTestBuilder.TaskBuilder) -> Unit) =
+    ctx.runCompileTask(
+      Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+        if (buildToolsApi) {
+          c.useBuildToolsApi()
+        }
+        block(c)
+      },
+    )
+
+  /** Compiles a source that references a class of a transitive dependency only. */
+  private fun compileTransitiveReference(strictDeps: String) {
+    val transitiveDep = runCompileTask { c ->
       c.addSource("TransitiveClass.kt",
         """
           package something
@@ -40,9 +55,9 @@ class KotlinBuilderJvmStrictDepsTest {
       c.outputJar()
       c.outputJdeps()
       c.compileKotlin()
-    })
+    }
 
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+    val dependentTarget = runCompileTask { c ->
       c.addSource("AClass.kt",
         """
           package something
@@ -53,29 +68,40 @@ class KotlinBuilderJvmStrictDepsTest {
       c.compileKotlin()
       c.addDirectDependencies(transitiveDep)
       c.outputJdeps()
-    })
+    }
 
-
-    ctx.runFailingCompileTaskAndValidateOutput(
-      {
-        ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-            c.addSource("HasTransitiveReference.kt",
-              """
+    runCompileTask { c ->
+      c.addSource("HasTransitiveReference.kt",
+        """
           package something
 
           val transitiveReference = TransitiveClass()
         """)
-            c.outputJar()
-            c.compileKotlin()
-            c.addDirectDependencies(dependentTarget)
-            c.addTransitiveDependencies(transitiveDep)
-            c.outputJdeps()
-            c.kotlinStrictDeps("error")
-          })
-      }
-    ) { lines: List<String?> ->
-      assertThat(lines.any { it?.contains("Strict Deps Violations - please fix") == true }).isTrue()
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.addTransitiveDependencies(transitiveDep)
+      c.outputJdeps()
+      c.kotlinStrictDeps(strictDeps)
     }
+  }
+
+  @Test
+  fun `strict dependency violation error`() {
+    ctx.runFailingCompileTaskAndValidateOutput(
+      { compileTransitiveReference("error") }
+    ) { lines: List<String?> ->
+      assertThat(lines.any { it?.contains("Please add the following dependencies") == true })
+        .isTrue()
+    }
+  }
+
+  @Test
+  fun `strict dependency violation warning`() {
+    compileTransitiveReference("warn")
+
+    assertThat(ctx.outLines().any { it.contains("Please add the following dependencies") })
+      .isTrue()
   }
 
 }
