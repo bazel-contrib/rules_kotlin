@@ -26,6 +26,7 @@ toolchain(
 )
 
 exports_files([
+    "BUILD.release.bazel",
     "jvm.bzl",
     "lint.bzl",
     "core.bzl",

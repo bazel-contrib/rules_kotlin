@@ -1,0 +1,8 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+sh_test(
+    name = "kotlin_filegroup_test",
+    srcs = ["kotlin_filegroup_test.sh"],
+    args = ["$(rootpath //kotlin:BUILD.release.bazel)"],
+    data = ["//kotlin:BUILD.release.bazel"],
+)

@@ -26,9 +26,6 @@ toolchain(
 
 filegroup(
     name = "kotlin",
-    srcs = glob(
-        ["*.bzl"],
-        exclude = ["android.bzl"],
-    ),
+    srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
 )
