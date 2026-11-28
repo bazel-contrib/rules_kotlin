@@ -1,0 +1,97 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("//kotlin:core.bzl", "define_kt_toolchain")
+load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load(":coverage_fixture.bzl", "coverage_fixture")
+load(":metadata_test.bzl", "filtered_metadata_test", "module_metadata_test")
+
+define_kt_toolchain(
+    name = "toolchain",
+    experimental_kover_agent = "@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kover_jvm_agent",
+    experimental_kover_enabled = True,
+    experimental_kover_exclude = [
+        "kover.Generated",
+    ],
+    experimental_multiplex_sandboxing = True,
+    supports_path_mapping = True,
+)
+
+kt_jvm_library(
+    name = "exported_subject",
+    testonly = True,
+    exports = [":subject"],
+)
+
+kt_jvm_library(
+    name = "outside_filter",
+    testonly = True,
+    srcs = ["OutsideFilter.kt"],
+)
+
+kt_jvm_library(
+    name = "subject",
+    testonly = True,
+    srcs = ["Subject.kt"],
+)
+
+kt_jvm_test(
+    name = "exercise_test",
+    srcs = ["ExerciseTest.kt"],
+    tags = ["manual"],
+    test_class = "kover.ExerciseTest",
+    deps = [
+        ":exported_subject",
+        ":outside_filter",
+        "@kotlin_rules_maven_test//:junit_junit",
+    ],
+)
+
+java_binary(
+    name = "kover_cli",
+    testonly = True,
+    main_class = "kotlinx.kover.cli.MainKt",
+    runtime_deps = ["@kotlin_rules_maven_test//:org_jetbrains_kotlinx_kover_cli"],
+)
+
+coverage_fixture(
+    name = "fixture",
+    testonly = True,
+    test = ":exercise_test",
+)
+
+filtered_metadata_test(
+    name = "filtered_metadata_test",
+    expected_jars = ["src/test/kover/subject.jar"],
+    expected_sources = ["src/test/kover/Subject.kt"],
+    target_under_test = ":exercise_test",
+)
+
+module_metadata_test(
+    name = "module_metadata_test",
+    expected_jars = [
+        "src/test/kover/outside_filter.jar",
+        "src/test/kover/subject.jar",
+    ],
+    expected_sources = [
+        "src/test/kover/OutsideFilter.kt",
+        "src/test/kover/Subject.kt",
+    ],
+    target_under_test = ":exercise_test",
+)
+
+kt_jvm_test(
+    name = "report_test",
+    size = "small",
+    srcs = ["KoverReportTest.kt"],
+    data = [
+        "report.expected.xml",
+        ":fixture",
+        ":kover_cli",
+    ],
+    jvm_flags = [
+        "-Dfixture=$(rootpath :fixture)",
+        "-Dcli=$(rootpath :kover_cli)",
+        "-Dexpected_report=$(rootpath report.expected.xml)",
+    ],
+    test_class = "kover.KoverReportTest",
+    deps = ["@kotlin_rules_maven_test//:junit_junit"],
+)
