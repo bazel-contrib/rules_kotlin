@@ -1,14 +1,18 @@
 package io.bazel.kotlin
 
+import coffee.CoffeeAppModel
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import src.test.data.jvm.ksp.`BytecodeExample$GeneratedDefinition$`
 
 @RunWith(JUnit4::class)
 class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp") {
 
     @Test
     fun testKotlinOnlyKSP() {
+        assertEquals("test-id", CoffeeAppModel("test-id").id)
         jarTestCase(
             name = "ksp_kotlin_resources.jar",
             description = "KSP should work",
@@ -132,6 +136,7 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
 
     @Test
     fun testKSPJarIncludesGeneratedClasses() {
+      assertEquals("Hello, BytecodeExample!", `BytecodeExample$GeneratedDefinition$`().greet())
       jarTestCase(
         name = "ksp_generate_bytecode.jar",
         description = "KSP should include generated classes from processors",
