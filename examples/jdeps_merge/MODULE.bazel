@@ -1,0 +1,12 @@
+module(name = "jdeps-merge-example")
+
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_kotlin", version = "2.2.0")
+local_path_override(
+    module_name = "rules_kotlin",
+    path = "../..",
+)
+
+# The local toolchain reports unused deps, which makes JdepsMerge read the jars named in the
+# jdeps it merges.
+register_toolchains("//:kotlin_toolchain")

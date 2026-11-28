@@ -12,6 +12,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -33,7 +34,10 @@ class JdepsMerger {
       OUTPUT("--output"),
       TARGET_LABEL("--target_label"),
       REPORT_UNUSED_DEPS("--report_unused_deps"),
+      IGNORE_JARS("--ignore_jars"),
     }
+
+    private fun normalizedPath(path: String): Path = Paths.get(path).toAbsolutePath().normalize()
 
     fun merge(
       ctx: WorkerContext.TaskContext,
@@ -41,22 +45,31 @@ class JdepsMerger {
       inputs: List<String>,
       output: String,
       reportUnusedDeps: String,
+      ignoreJars: Set<String> = emptySet(),
     ): Int {
       val rootBuilder = Deps.Dependencies.newBuilder()
       rootBuilder.success = false
       rootBuilder.ruleLabel = label
 
+      // Compare normalized absolute paths: the jdeps and the arguments can spell the same jar
+      // differently, and a missed jar is read below although it is not an input of the action.
+      val ignoredPaths = ignoreJars.mapTo(mutableSetOf(), ::normalizedPath)
       val dependencyMap = sortedMapOf<String, Deps.Dependency>()
       inputs.forEach { input ->
         BufferedInputStream(Paths.get(input).toFile().inputStream()).use {
           val deps: Deps.Dependencies = Deps.Dependencies.parseFrom(it)
-          deps.getDependencyList().forEach {
-            val dependency = dependencyMap.get(it.path)
-            // Replace dependency if it has a stronger kind than one we encountered before.
-            if (dependency == null || dependency.kind > it.kind) {
-              dependencyMap.put(it.path, it)
+          // Jars of the target being compiled, such as the -kt.jar or kapt stub jar, are not
+          // dependencies, whichever input jdeps names them.
+          deps
+            .getDependencyList()
+            .filterNot { ignoredPaths.isNotEmpty() && normalizedPath(it.path) in ignoredPaths }
+            .forEach {
+              val dependency = dependencyMap.get(it.path)
+              // Replace dependency if it has a stronger kind than one we encountered before.
+              if (dependency == null || dependency.kind > it.kind) {
+                dependencyMap.put(it.path, it)
+              }
             }
-          }
         }
       }
 
@@ -132,6 +145,8 @@ class JdepsMerger {
     val label = argMap.mandatorySingle(JdepsMergerFlags.TARGET_LABEL)
     val reportUnusedDeps = argMap.mandatorySingle(JdepsMergerFlags.REPORT_UNUSED_DEPS)
 
-    return merge(ctx, label, inputs, output, reportUnusedDeps)
+    val ignoreJars = argMap.optional(JdepsMergerFlags.IGNORE_JARS).orEmpty().toSet()
+
+    return merge(ctx, label, inputs, output, reportUnusedDeps, ignoreJars)
   }
 }
