@@ -140,8 +140,15 @@ def _java_half_jar_ignored_assertions(env, target):
 
     # The jar holds the target's own classes. The merger drops it from the merged jdeps by path,
     # so it is named in the arguments but is not an input: the merge does not rerun whenever
-    # the Kotlin half changes.
-    action.argv().contains_at_least_predicates([matching.str_endswith("/" + basename)])
+    # the Kotlin half changes. It is the only jar dropped, so no real dependency is lost.
+    argv = action.actual.argv
+    ignored = []
+    if "--ignore_jars" in argv:
+        for arg in argv[argv.index("--ignore_jars") + 1:]:
+            if arg.startswith("--"):
+                break
+            ignored.append(arg)
+    env.expect.that_collection(ignored).contains_exactly_predicates([matching.str_endswith("/" + basename)])
     action.inputs().not_contains_predicate(matching.file_basename_equals(basename))
 
 def _test_kapt_target_ignores_the_kapt_stub_jar(test):

@@ -12,6 +12,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -36,6 +37,8 @@ class JdepsMerger {
       IGNORE_JARS("--ignore_jars"),
     }
 
+    private fun normalizedPath(path: String): Path = Paths.get(path).toAbsolutePath().normalize()
+
     fun merge(
       ctx: WorkerContext.TaskContext,
       label: String,
@@ -48,19 +51,25 @@ class JdepsMerger {
       rootBuilder.success = false
       rootBuilder.ruleLabel = label
 
+      // Compare normalized absolute paths: the jdeps and the arguments can spell the same jar
+      // differently, and a missed jar is read below although it is not an input of the action.
+      val ignoredPaths = ignoreJars.mapTo(mutableSetOf(), ::normalizedPath)
       val dependencyMap = sortedMapOf<String, Deps.Dependency>()
       inputs.forEach { input ->
         BufferedInputStream(Paths.get(input).toFile().inputStream()).use {
           val deps: Deps.Dependencies = Deps.Dependencies.parseFrom(it)
-          // Jars of the target being compiled, such as the -kt.jar or kapt stub jar the Java half
-          // compiles against, are not dependencies.
-          deps.getDependencyList().filterNot { it.path in ignoreJars }.forEach {
-            val dependency = dependencyMap.get(it.path)
-            // Replace dependency if it has a stronger kind than one we encountered before.
-            if (dependency == null || dependency.kind > it.kind) {
-              dependencyMap.put(it.path, it)
+          // Jars of the target being compiled, such as the -kt.jar or kapt stub jar, are not
+          // dependencies, whichever input jdeps names them.
+          deps
+            .getDependencyList()
+            .filterNot { ignoredPaths.isNotEmpty() && normalizedPath(it.path) in ignoredPaths }
+            .forEach {
+              val dependency = dependencyMap.get(it.path)
+              // Replace dependency if it has a stronger kind than one we encountered before.
+              if (dependency == null || dependency.kind > it.kind) {
+                dependencyMap.put(it.path, it)
+              }
             }
-          }
         }
       }
 

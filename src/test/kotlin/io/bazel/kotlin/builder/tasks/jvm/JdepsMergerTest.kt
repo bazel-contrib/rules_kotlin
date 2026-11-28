@@ -287,6 +287,92 @@ class JdepsMergerTest {
     assertThat(depsProto(mergedJdeps).dependencyList.map { it.path }).containsExactly(javaDep)
   }
 
+  private fun explicitDependency(depPath: String) =
+    with(Dependency.newBuilder()) {
+      kind = Dependency.Kind.EXPLICIT
+      path = depPath
+      build()
+    }
+
+  private fun mergeIgnoring(
+    inputs: List<Path>,
+    ignoreJars: List<String>,
+  ): Pair<Status, List<String>> {
+    val mergedJdeps = out("merged.jdeps")
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            inputs.forEach { input(it) }
+            ignoreJars.forEach { flag(JdepsMergerFlags.IGNORE_JARS, it) }
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "error")
+          },
+        )
+      }
+    }
+    return result.status to depsProto(mergedJdeps).dependencyList.map { it.path }
+  }
+
+  @Test
+  fun `without ignore_jars every dependency is kept`() {
+    val kotlinDep = ktJvmLibrary("kotlin_dep")
+    val javaDep = ktJvmLibrary("java_dep")
+    val javaJdeps = jdeps("java.jdeps") {
+      addDependency(explicitDependency(kotlinDep))
+      addDependency(explicitDependency(javaDep))
+    }
+
+    val (status, paths) = mergeIgnoring(listOf(javaJdeps), ignoreJars = emptyList())
+
+    assertThat(status).isEqualTo(SUCCESS)
+    assertThat(paths).containsExactly(kotlinDep, javaDep)
+  }
+
+  @Test
+  fun `ignored jars are dropped from every input however often they are named`() {
+    val ownKotlinJar = "/not/an/input/libfoo-kt.jar"
+    val javaDep = ktJvmLibrary("java_dep")
+    val kotlinJdeps = jdeps("kt.jdeps") {
+      addDependency(explicitDependency(ownKotlinJar))
+    }
+    val javaJdeps = jdeps("java.jdeps") {
+      addDependency(explicitDependency(ownKotlinJar))
+      addDependency(explicitDependency(javaDep))
+      addDependency(explicitDependency(ownKotlinJar))
+    }
+
+    val (status, paths) = mergeIgnoring(
+      listOf(kotlinJdeps, javaJdeps),
+      ignoreJars = listOf(ownKotlinJar, ownKotlinJar),
+    )
+
+    assertThat(status).isEqualTo(SUCCESS)
+    assertThat(paths).containsExactly(javaDep)
+  }
+
+  @Test
+  fun `ignored jars match however the path is spelled`() {
+    // The jdeps names the jar relative to the working directory, the argument names it through a
+    // redundant segment. Both resolve to the same file.
+    val ownKotlinJar = "not/an/input/libfoo-kt.jar"
+    val javaDep = ktJvmLibrary("java_dep")
+    val javaJdeps = jdeps("java.jdeps") {
+      addDependency(explicitDependency(ownKotlinJar))
+      addDependency(explicitDependency(javaDep))
+    }
+
+    val (status, paths) = mergeIgnoring(
+      listOf(javaJdeps),
+      ignoreJars = listOf("./not/an/other/../input/libfoo-kt.jar"),
+    )
+
+    assertThat(status).isEqualTo(SUCCESS)
+    assertThat(paths).containsExactly(javaDep)
+  }
+
   @Test
   fun `unused deps report error`() {
 

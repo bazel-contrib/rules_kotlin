@@ -1,0 +1,9 @@
+common --java_runtime_version=remotejdk_21
+common --tool_java_runtime_version=remotejdk_21
+
+# Run JdepsMerge, like every other action, in a sandbox that holds only its declared inputs.
+# A jar named in the jdeps but missing from the inputs then fails the build instead of being
+# read from the execroot. Windows has no sandboxed strategy.
+common --enable_platform_specific_config
+build:linux --spawn_strategy=sandboxed
+build:macos --spawn_strategy=sandboxed
